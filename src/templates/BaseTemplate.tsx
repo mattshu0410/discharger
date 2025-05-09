@@ -8,11 +8,11 @@ export const BaseTemplate = (props: {
 }) => {
   return (
     <div className="w-full px-1 text-gray-700 antialiased">
-      <div className="flex flex-row">
+      <div className="flex flex-row w-full h-full">
         <div>
           <Sidebar />
         </div>
-        <div>
+        <div className="w-full p-16">
           <main>{props.children}</main>
         </div>
       </div>
