@@ -68,7 +68,7 @@
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.2778 0.019 234.74);
   --card: oklch(1 0 0);
@@ -162,12 +162,25 @@
   --sidebar-ring: oklch(0.8147 0.0762 230.95);
 }
 
+/* This basically injects the styles into Tailwind's CSS Processing */
 @layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
   .font-display {
     font-weight: var(--display-weight);
   }
   .font-text {
     font-weight: var(--text-weight);
+  }
+}
+
+@layer utilities {
+  .bg-muted {
+    background-color: var(--muted);
   }
 }
 

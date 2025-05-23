@@ -2,22 +2,15 @@ import type { NextFetchEvent, NextRequest } from 'next/server';
 import arcjet from '@/libs/Arcjet';
 import { detectBot } from '@arcjet/next';
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import createMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
-import { routing } from './libs/i18nRouting';
-
-const handleI18nRouting = createMiddleware(routing);
 
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
-  '/:locale/dashboard(.*)',
 ]);
 
 const isAuthPage = createRouteMatcher([
   '/sign-in(.*)',
-  '/:locale/sign-in(.*)',
   '/sign-up(.*)',
-  '/:locale/sign-up(.*)',
 ]);
 
 // Improve security with Arcjet
@@ -48,26 +41,19 @@ export default async function middleware(
     }
   }
 
-  // Clerk keyless mode doesn't work with i18n, this is why we need to run the middleware conditionally
-  if (
-    isAuthPage(request) || isProtectedRoute(request)
-  ) {
+  if (isAuthPage(request) || isProtectedRoute(request)) {
     return clerkMiddleware(async (auth, req) => {
       if (isProtectedRoute(req)) {
-        const locale = req.nextUrl.pathname.match(/(\/.*)\/dashboard/)?.at(1) ?? '';
-
-        const signInUrl = new URL(`${locale}/sign-in`, req.url);
-
+        const signInUrl = new URL('/sign-in', req.url);
         await auth.protect({
           unauthenticatedUrl: signInUrl.toString(),
         });
       }
-
-      return handleI18nRouting(request);
+      return NextResponse.next();
     })(request, event);
   }
 
-  return handleI18nRouting(request);
+  return NextResponse.next();
 }
 
 export const config = {

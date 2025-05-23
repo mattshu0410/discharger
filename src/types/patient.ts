@@ -1,5 +1,9 @@
 export type Patient = {
   id: number;
   name: string;
-  summary: string;
+  age: number;
+  sex: string;
+  context: string;
+  documentIds: number[];
+  dischargeText: string;
 };

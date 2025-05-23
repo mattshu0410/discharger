@@ -1,5 +1,4 @@
 'use client';
-import { Sidebar } from '@/components/Sidebar';
 import { AppConfig } from '@/utils/AppConfig';
 
 export const BaseTemplate = (props: {
@@ -7,16 +6,9 @@ export const BaseTemplate = (props: {
   className?: string;
 }) => {
   return (
-    <div className="w-full px-1 text-gray-700 antialiased">
-      <div className="flex flex-row w-full h-full">
-        <div>
-          <Sidebar />
-        </div>
-        <div className="w-full p-16">
-          <main>{props.children}</main>
-        </div>
-      </div>
-      <footer className="border-t border-gray-300 py-8 text-center text-sm">
+    <div className="flex min-h-screen flex-col">
+      <main className="flex flex-1">{props.children}</main>
+      <footer className="border-t border-gray-300 py-8 text-center text-sm ">
         {`© Copyright ${new Date().getFullYear()} ${AppConfig.name}. `}
         {/*
            * PLEASE READ THIS SECTION
