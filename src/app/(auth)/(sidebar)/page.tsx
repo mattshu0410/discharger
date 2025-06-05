@@ -9,7 +9,6 @@ import { Eye, EyeOff } from 'lucide-react';
 export default function Index() {
   const isContextViewerOpen = useUIStore((state: any) => state.isContextViewerOpen);
   const toggleContextViewer = useUIStore((state: any) => state.toggleContextViewer);
-  const contextViewerHeight = useUIStore((state: any) => state.contextViewerHeight);
 
   return (
     <ResizablePanelGroup direction="vertical" className="h-screen w-full">

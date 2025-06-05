@@ -279,13 +279,13 @@ export function PatientForm() {
           <FormField
             control={form.control}
             name="name"
-            render={({ field }) => (
+            render={({ field: _field }) => (
               <FormItem>
                 <FormLabel>Patient Name</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="Enter patient name" 
-                    {...field}
+                    {..._field}
                     disabled={actualIsLoading}
                   />
                 </FormControl>
@@ -297,7 +297,7 @@ export function PatientForm() {
           <FormField
             control={form.control}
             name="context"
-            render={({ field }) => (
+            render={({ field: _field }) => (
               <FormItem className="flex-1 flex flex-col">
                 <FormLabel>Clinical Context</FormLabel>
                 

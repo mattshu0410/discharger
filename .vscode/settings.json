@@ -1,37 +1,33 @@
 {
-  "editor.tabSize": 2,
-  "editor.detectIndentation": false,
-  "search.exclude": {
-    "package-lock.json": true
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
   },
-
-  // TypeScript
-  "typescript.tsdk": "node_modules/typescript/lib", // Use the workspace version of TypeScript
-  "typescript.enablePromptUseWorkspaceTsdk": true, // For security reasons it's require that users opt into using the workspace version of typescript
-  "typescript.preferences.autoImportSpecifierExcludeRegexes": [
-    // useRouter should be imported from `next/navigation` instead of `next/router`
-    "next/router",
-    // give priority for Link to next/link instead of lucide-react
-    "lucide-react",
-    // Not used in the project and conflicts with `use()` from React
-    "chai"
+  "deno.enablePaths": [
+    "supabase/functions"
   ],
-  "typescript.preferences.preferTypeOnlyAutoImports": true, // Prefer type-only imports
-
-  // Vitest
-  "testing.automaticallyOpenTestResults": "neverOpen", // Don't open the test results automatically
-
-  // Disable the default formatter, use ESLint instead
-  "prettier.enable": false,
-  "editor.formatOnSave": false,
-
-  // Auto fix with ESLint on save
+  "deno.lint": true,
+  "deno.unstable": [
+    "bare-node-builtins",
+    "byonm",
+    "sloppy-imports",
+    "unsafe-proto",
+    "webgpu",
+    "broadcast-channel",
+    "worker-options",
+    "cron",
+    "kv",
+    "ffi",
+    "fs",
+    "http",
+    "net"
+  ],
   "editor.codeActionsOnSave": {
     "source.addMissingImports": "explicit",
     "source.fixAll.eslint": "explicit"
   },
-
-  // Enable eslint for all supported languages
+  "editor.detectIndentation": false,
+  "editor.formatOnSave": false,
+  "editor.tabSize": 2,
   "eslint.validate": [
     "javascript",
     "javascriptreact",
@@ -55,5 +51,18 @@
     "pcss",
     "postcss",
     "github-actions-workflow"
-  ]
+  ],
+  "prettier.enable": false,
+  "search.exclude": {
+    "package-lock.json": true
+  },
+  "testing.automaticallyOpenTestResults": "neverOpen",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.autoImportSpecifierExcludeRegexes": [
+    "next/router",
+    "lucide-react",
+    "chai"
+  ],
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

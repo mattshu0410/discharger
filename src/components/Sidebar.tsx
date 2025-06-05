@@ -1,6 +1,6 @@
 'use client';
 import type { Patient } from '@/types/patient';
-import { getAllPatients, getPatientById } from '@/hooks/patients';
+import { getAllPatients } from '@/hooks/patients';
 import { usePatientStore } from '@/stores/patientStore';
 import { useUIStore } from '@/stores/uiStore';
 import {
@@ -14,20 +14,15 @@ import {
   User,
   UserCircle,
   Plus,
-  ChevronLeft,
-  ChevronRight,
   HardDrive
 } from '@mynaui/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
 
-import { useEffect, useState } from 'react';
-
 export function Sidebar() {
   const currentPatientId = usePatientStore(state => state.currentPatientId);
   const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
-  const updateCurrentPatientContext = usePatientStore(state => state.updateCurrentPatientContext);
   const createNewPatient = usePatientStore(state => state.createNewPatient);
 
   // UI state from the new UI store

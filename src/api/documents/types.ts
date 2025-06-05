@@ -1,47 +1,71 @@
-import { Document, DocumentSearchResult } from '@/types';
+import type { Document } from '@/types';
 
 // API Request Types
-export interface UploadDocumentRequest {
+export type UploadDocumentRequest = {
   file: File;
   filename?: string;
   summary: string;
   tags: string[];
   shareStatus: 'private' | 'public';
-}
+};
 
-export interface UpdateDocumentRequest {
+export type UpdateDocumentRequest = {
   filename?: string;
   summary?: string;
   tags?: string[];
   shareStatus?: 'private' | 'public';
-}
+};
 
-export interface SearchDocumentsRequest {
+export type SearchDocumentsRequest = {
   query: string;
   source?: 'all' | 'user' | 'community';
   tags?: string[];
   limit?: number;
-}
+};
+
+export type CreateSnippetRequest = {
+  shortcut: string;
+  content: string;
+};
+
+export type UpdateSnippetRequest = {
+  shortcut?: string;
+  content?: string;
+};
 
 // API Response Types
-export interface DocumentsResponse {
+export type DocumentsResponse = {
   documents: Document[];
   total: number;
   page: number;
   pageSize: number;
-}
+};
 
-export interface DocumentResponse {
+export type DocumentResponse = {
   document: Document;
-}
+};
 
-export interface UploadProgressResponse {
+export type UploadProgressResponse = {
   progress: number;
   status: 'uploading' | 'processing' | 'complete' | 'error';
   message?: string;
-}
+};
 
-export interface DeleteDocumentResponse {
+export type DeleteDocumentResponse = {
   success: boolean;
   id: string;
-} 
+};
+
+export type SnippetsResponse = {
+  snippets: Document[];
+  total: number;
+};
+
+export type SnippetResponse = {
+  snippet: Document;
+};
+
+export type DeleteSnippetResponse = {
+  success: boolean;
+  id: string;
+};

@@ -1,16 +1,19 @@
 import type { UserProfile } from '@/types';
 import { UpdateProfileRequest, UpdatePreferencesRequest } from '@/api/users/types';
 
-// Mock user data
+// Use the same UUID as in the database migration
+const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
+
+// Mock user data aligned with database
 let mockUser: UserProfile = {
-  id: 'user-1',
+  id: DEFAULT_USER_ID,
   email: 'doctor@example.com',
   name: 'Dr. John Smith',
   organization: 'General Hospital',
   role: 'Attending Physician',
   preferences: {
-    defaultDocumentIds: ['doc-1', 'doc-2'],
-    favoriteDocumentIds: ['doc-1', 'doc-4', 'doc-5'],
+    defaultDocumentIds: [], // Will be populated from actual documents in DB
+    favoriteDocumentIds: [], // Will be populated from actual documents in DB
     theme: 'system',
   },
 };
@@ -18,6 +21,9 @@ let mockUser: UserProfile = {
 // Get current user profile
 export async function getCurrentUser(): Promise<UserProfile> {
   await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+  
+  // In a real app, you might fetch some user preferences from the database
+  // For now, we'll return the mock user with the proper UUID
   return mockUser;
 }
 
@@ -91,4 +97,9 @@ export async function removeDefaultDocument(documentId: string): Promise<UserPro
   );
   
   return mockUser;
+}
+
+// Helper function to get the current user ID (used throughout the app)
+export function getCurrentUserId(): string {
+  return DEFAULT_USER_ID;
 } 

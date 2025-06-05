@@ -1,16 +1,14 @@
-import { 
-  integer, 
-  pgTable, 
-  serial, 
-  timestamp, 
-  text, 
-  varchar, 
-  boolean, 
-  jsonb,
-  uuid,
+import {
   index,
+  integer,
+  jsonb,
   pgEnum,
-  real
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core';
 
 // This file defines the structure of your database tables using the Drizzle ORM.
@@ -41,35 +39,28 @@ export const userProfiles = pgTable('user_profiles', {
   preferences: jsonb('preferences').notNull().default({
     defaultDocumentIds: [],
     favoriteDocumentIds: [],
-    theme: 'system'
+    theme: 'system',
   }),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'date' })
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-}, (table) => ({
+}, table => ({
   clerkUserIdIdx: index('clerk_user_id_idx').on(table.clerkUserId),
 }));
 
 // Patients table
 export const patients = pgTable('patients', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => userProfiles.id, { onDelete: 'cascade' }),
-  name: varchar('name', { length: 255 }).notNull(),
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
   age: integer('age').notNull(),
-  sex: sexEnum('sex').notNull(),
-  context: text('context').notNull().default(''),
-  documentIds: jsonb('document_ids').notNull().default([]),
-  snippetIds: jsonb('snippet_ids').notNull().default([]),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'date' })
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-}, (table) => ({
-  userIdIdx: index('patient_user_id_idx').on(table.userId),
-}));
+  sex: text('sex').notNull(),
+  context: text('context'),
+  dischargeText: text('discharge_text'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
 
 // Documents table
 export const documents = pgTable('documents', {
@@ -84,7 +75,7 @@ export const documents = pgTable('documents', {
   metadata: jsonb('metadata'),
   tags: jsonb('tags').notNull().default([]),
   uploadedAt: timestamp('uploaded_at', { mode: 'date' }).defaultNow().notNull(),
-}, (table) => ({
+}, table => ({
   userIdIdx: index('document_user_id_idx').on(table.userId),
   sourceIdx: index('document_source_idx').on(table.source),
   shareStatusIdx: index('document_share_status_idx').on(table.shareStatus),
@@ -99,7 +90,7 @@ export const documentChunks = pgTable('document_chunks', {
   pageNumber: integer('page_number').notNull(),
   embedding: jsonb('embedding').notNull(), // Store as JSONB array for now
   metadata: jsonb('metadata'),
-}, (table) => ({
+}, table => ({
   documentIdIdx: index('chunk_document_id_idx').on(table.documentId),
 }));
 
@@ -114,7 +105,7 @@ export const snippets = pgTable('snippets', {
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
-}, (table) => ({
+}, table => ({
   userIdIdx: index('snippet_user_id_idx').on(table.userId),
   userShortcutIdx: index('snippet_user_shortcut_idx').on(table.userId, table.shortcut),
 }));
@@ -127,7 +118,7 @@ export const dischargeSummaries = pgTable('discharge_summaries', {
   sections: jsonb('sections').notNull(),
   citations: jsonb('citations').notNull(),
   generatedAt: timestamp('generated_at', { mode: 'date' }).defaultNow().notNull(),
-}, (table) => ({
+}, table => ({
   patientIdIdx: index('discharge_patient_id_idx').on(table.patientId),
 }));
 
@@ -138,7 +129,7 @@ export const analyticsEvents = pgTable('analytics_events', {
   eventType: varchar('event_type', { length: 100 }).notNull(),
   eventData: jsonb('event_data'),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-}, (table) => ({
+}, table => ({
   userIdIdx: index('analytics_user_id_idx').on(table.userId),
   eventTypeIdx: index('analytics_event_type_idx').on(table.eventType),
   createdAtIdx: index('analytics_created_at_idx').on(table.createdAt),
