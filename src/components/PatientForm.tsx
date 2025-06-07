@@ -1,6 +1,7 @@
 'use client';
-import type { Document } from '@/types';
+import type { Document, Snippet } from '@/types';
 import { DocumentSelector } from '@/components/DocumentSelector';
+import { SnippetSelector } from '@/components/SnippetSelector';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -89,6 +90,9 @@ export function PatientForm() {
   const openDocumentSelector = useUIStore(state => state.openDocumentSelector);
   const closeDocumentSelector = useUIStore(state => state.closeDocumentSelector);
   const isDocumentSelectorOpen = useUIStore(state => state.isDocumentSelectorOpen);
+  const openSnippetSelector = useUIStore(state => state.openSnippetSelector);
+  const closeSnippetSelector = useUIStore(state => state.closeSnippetSelector);
+  const isSnippetSelectorOpen = useUIStore(state => state.isSnippetSelectorOpen);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // I sort of only need this here so we are going to cbbs with usePatientStore
   const [triggerPosition, setTriggerPosition] = useState<number | null>(null);
@@ -141,10 +145,11 @@ export function PatientForm() {
     form.setValue('context', currentPatientContext || '');
   }, [currentPatientContext, form]);
 
-  // Ref to track the previous state of isDocumentSelectorOpen
+  // Refs to track the previous state of selectors
   const prevIsDocumentSelectorOpenRef = useRef<boolean>(false);
+  const prevIsSnippetSelectorOpenRef = useRef<boolean>(false);
 
-  // Effect to refocus textarea when document selector closes
+  // Effect to refocus textarea when selectors close
   useEffect(() => {
     // If the document selector was previously open and is now closed,
     // and the textarea exists, focus it.
@@ -157,6 +162,19 @@ export function PatientForm() {
     // Update the ref with the current state for the next render.
     prevIsDocumentSelectorOpenRef.current = isDocumentSelectorOpen;
   }, [isDocumentSelectorOpen]);
+
+  useEffect(() => {
+    // If the snippet selector was previously open and is now closed,
+    // and the textarea exists, focus it.
+    if (prevIsSnippetSelectorOpenRef.current === true && !isSnippetSelectorOpen) {
+      // Use requestAnimationFrame to ensure focus happens after DOM updates
+      requestAnimationFrame(() => {
+        textareaRef.current?.focus();
+      });
+    }
+    // Update the ref with the current state for the next render.
+    prevIsSnippetSelectorOpenRef.current = isSnippetSelectorOpen;
+  }, [isSnippetSelectorOpen]);
 
   const generateDischargeText = useMutation({
     mutationFn: async ({ context, documentIds }: { context: string; documentIds?: string[] }) => {
@@ -188,15 +206,28 @@ export function PatientForm() {
     const cursorPos = e.currentTarget.selectionStart;
     updateCurrentPatientContext(e.target.value);
     form.setValue('context', e.target.value);
+
     if (isDocumentSelectorOpen) {
       const textFromTrigger = currentPatientContext.substring(triggerPosition || 0, cursorPos);
 
-      if ((!textFromTrigger.startsWith('/') && !textFromTrigger.startsWith('@'))
+      if ((!textFromTrigger.startsWith('@'))
         || (textFromTrigger.includes(' ') || textFromTrigger.includes('\n'))) {
         closeDocumentSelector();
       } else if (textareaRef.current) {
         const position = calculateCursorPosition(textareaRef.current, cursorPos);
         openDocumentSelector(position);
+      }
+    }
+
+    if (isSnippetSelectorOpen) {
+      const textFromTrigger = currentPatientContext.substring(triggerPosition || 0, cursorPos);
+
+      if ((!textFromTrigger.startsWith('/'))
+        || (textFromTrigger.includes(' ') || textFromTrigger.includes('\n'))) {
+        closeSnippetSelector();
+      } else if (textareaRef.current) {
+        const position = calculateCursorPosition(textareaRef.current, cursorPos);
+        openSnippetSelector(position);
       }
     }
   };
@@ -218,10 +249,23 @@ export function PatientForm() {
         }, 0);
       }
     } else if (e.key === '/') {
-      // TODO: Open snippet selector
-      console.error('Open snippet selector');
+      const cursorPos = e.currentTarget.selectionStart;
+      const textBefore = currentPatientContext.substring(0, cursorPos);
+      const lastChar = textBefore[textBefore.length - 1];
+
+      if (cursorPos === 0 || lastChar === ' ' || lastChar === '\n') {
+        setTriggerPosition(cursorPos);
+
+        setTimeout(() => {
+          if (textareaRef.current) {
+            const position = calculateCursorPosition(textareaRef.current, cursorPos + 1);
+            openSnippetSelector(position);
+          }
+        }, 0);
+      }
     } else if (e.key === 'Escape') {
       closeDocumentSelector();
+      closeSnippetSelector();
       requestAnimationFrame(() => {
         textareaRef.current?.focus();
       });
@@ -230,16 +274,40 @@ export function PatientForm() {
 
   const handleDocumentSelect = (document: Document) => {
     addDocument(document);
+
     // Store current cursor position before updating context
     const currentCursorPos = textareaRef.current?.selectionStart || 0;
+
     // Add document reference to context
-    const newContext = `${currentPatientContext} @${document.filename} `;
-    handleContextChange({ target: { value: newContext } } as React.ChangeEvent<HTMLTextAreaElement>);
+    const newContext = `${currentPatientContext}`;
+    updateCurrentPatientContext(newContext);
+    form.setValue('context', newContext);
+
+    // Close document selector
+    closeDocumentSelector();
 
     // Refocus textarea
     setTimeout(() => {
       textareaRef.current?.focus();
-      const newCursorPos = currentCursorPos + ` @${document.filename} `.length;
+      const newCursorPos = currentCursorPos;
+      textareaRef.current?.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
+
+  const handleSnippetSelect = (snippet: Snippet) => {
+    // Replace the "/" + any typed text with the snippet content
+    const currentCursorPos = textareaRef.current?.selectionStart || 0;
+    const textBeforeTrigger = currentPatientContext.substring(0, triggerPosition || 0);
+    const textAfterCursor = currentPatientContext.substring(currentCursorPos);
+    const newContext = textBeforeTrigger + snippet.content + textAfterCursor;
+
+    updateCurrentPatientContext(newContext);
+    form.setValue('context', newContext);
+
+    // Refocus textarea and set cursor position after inserted content
+    setTimeout(() => {
+      textareaRef.current?.focus();
+      const newCursorPos = (triggerPosition || 0) + snippet.content.length;
       textareaRef.current?.setSelectionRange(newCursorPos, newCursorPos);
     }, 0);
   };
@@ -369,6 +437,9 @@ export function PatientForm() {
 
       {/* Document Selector - now controlled by uiStore */}
       <DocumentSelector onSelect={handleDocumentSelect} />
+
+      {/* Snippet Selector - controlled by uiStore */}
+      <SnippetSelector onSelect={handleSnippetSelect} />
 
       {/* Debug info in development */}
       {process.env.NODE_ENV === 'development' && (

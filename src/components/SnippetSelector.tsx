@@ -1,21 +1,20 @@
 'use client';
-import type { DocumentSearchResult } from '@/types';
-import { useSearchDocuments } from '@/api/documents/queries';
-import { Badge } from '@/components/ui/badge';
+import type { Snippet } from '@/types';
+import { useSnippets } from '@/api/snippets/queries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/libs/utils';
 import { useUIStore } from '@/stores/uiStore';
-import { FileText, Search as SearchIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Slash } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-type DocumentSelectorProps = {
-  onSelect: (document: DocumentSearchResult['document']) => void;
+type SnippetSelectorProps = {
+  onSelect: (snippet: Snippet) => void;
 };
 
-// Moved PopoverTriggerComponent to the top level
+// Popover trigger component positioned at cursor
 const PopoverTriggerComponent = ({ position }: { position: { x: number; y: number } | null }) => {
   if (!position) {
     return null;
@@ -23,25 +22,27 @@ const PopoverTriggerComponent = ({ position }: { position: { x: number; y: numbe
   return <PopoverAnchor style={{ position: 'fixed', top: position.y, left: position.x, width: 0, height: 0 }} />;
 };
 
-export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
+export function SnippetSelector({ onSelect }: SnippetSelectorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  const isOpen = useUIStore(state => state.isDocumentSelectorOpen);
-  const position = useUIStore(state => state.documentSelectorPosition);
-  const searchQuery = useUIStore(state => state.documentSearchQuery);
-  const closeDocumentSelector = useUIStore(state => state.closeDocumentSelector);
-  const setDocumentSearchQuery = useUIStore(state => state.setDocumentSearchQuery);
+  const isOpen = useUIStore(state => state.isSnippetSelectorOpen);
+  const position = useUIStore(state => state.snippetSelectorPosition);
+  const searchQuery = useUIStore(state => state.snippetSearchQuery);
+  const closeSnippetSelector = useUIStore(state => state.closeSnippetSelector);
+  const setSnippetSearchQuery = useUIStore(state => state.setSnippetSearchQuery);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const { data: searchResults = [], isLoading } = useSearchDocuments(searchQuery, isOpen);
+  const { data: snippets = [], isLoading } = useSnippets(searchQuery);
 
+  // Reset selection when results change
   useEffect(() => {
     setSelectedIndex(0);
     itemRefs.current = [];
-  }, [searchResults, searchQuery]);
+  }, [snippets, searchQuery]);
 
+  // Focus input when opened
   useEffect(() => {
     if (isOpen && inputRef.current) {
       // Use requestAnimationFrame to ensure DOM is ready
@@ -51,12 +52,13 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
     }
   }, [isOpen]);
 
-  const handleSelect = (doc: DocumentSearchResult['document']) => {
-    onSelect(doc);
-    setDocumentSearchQuery('');
-    closeDocumentSelector();
-  };
+  const handleSelect = useCallback((snippet: Snippet) => {
+    onSelect(snippet);
+    setSnippetSearchQuery('');
+    closeSnippetSelector();
+  }, [onSelect, setSnippetSearchQuery, closeSnippetSelector]);
 
+  // Keyboard navigation
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -65,40 +67,41 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedIndex(prev => Math.min(prev + 1, searchResults.length - 1));
+        setSelectedIndex(prev => Math.min(prev + 1, snippets.length - 1));
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
         setSelectedIndex(prev => Math.max(prev - 1, 0));
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        if (searchResults[selectedIndex]) {
-          handleSelect(searchResults[selectedIndex].document);
+        if (snippets[selectedIndex]) {
+          handleSelect(snippets[selectedIndex]);
         }
       } else if (e.key === 'Escape') {
         e.preventDefault();
-        closeDocumentSelector();
+        closeSnippetSelector();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, searchResults, selectedIndex, handleSelect, closeDocumentSelector]);
+  }, [isOpen, snippets, selectedIndex, handleSelect, closeSnippetSelector]);
 
+  // Scroll selected item into view
   useEffect(() => {
-    if (isOpen && searchResults.length > 0 && selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
+    if (isOpen && snippets.length > 0 && selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
       itemRefs.current[selectedIndex]?.scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
       });
     }
-  }, [selectedIndex, isOpen, searchResults]);
+  }, [selectedIndex, isOpen, snippets]);
 
   if (!isOpen || !position) {
     return null;
   }
 
   return (
-    <Popover open={isOpen} onOpenChange={open => !open && closeDocumentSelector()}>
+    <Popover open={isOpen} onOpenChange={open => !open && closeSnippetSelector()}>
       <PopoverTriggerComponent position={position} />
       <PopoverContent
         className="w-96 shadow-lg p-0"
@@ -108,13 +111,13 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
       >
         <div className="p-2">
           <div className="relative mb-2">
-            <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Slash className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               ref={inputRef}
-              placeholder="Search documents..."
+              placeholder="Search snippets..."
               className="pl-8"
               value={searchQuery}
-              onChange={e => setDocumentSearchQuery(e.target.value)}
+              onChange={e => setSnippetSearchQuery(e.target.value)}
             />
           </div>
           <ScrollArea className="h-[250px]" ref={scrollContainerRef}>
@@ -122,13 +125,13 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
               {isLoading && (
                 <div className="p-3 text-center text-sm text-muted-foreground">Searching...</div>
               )}
-              {!isLoading && searchResults.length === 0 && (
-                <div className="p-3 text-center text-sm text-muted-foreground">No documents found.</div>
+              {!isLoading && snippets.length === 0 && (
+                <div className="p-3 text-center text-sm text-muted-foreground">No snippets found.</div>
               )}
-              {!isLoading && searchResults.length > 0 && (
-                searchResults.map((result, index) => (
+              {!isLoading && snippets.length > 0 && (
+                snippets.map((snippet, index) => (
                   <Button
-                    key={result.document.id}
+                    key={snippet.id}
                     ref={(el) => {
                       itemRefs.current[index] = el;
                     }}
@@ -137,28 +140,18 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
                       'w-full h-auto justify-start text-left p-2',
                       index === selectedIndex && 'bg-accent text-accent-foreground',
                     )}
-                    onClick={() => handleSelect(result.document)}
+                    onClick={() => handleSelect(snippet)}
                     onMouseEnter={() => setSelectedIndex(index)}
                   >
-                    <FileText className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
+                    <Slash className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">
-                        {result.document.filename}
+                      <div className="font-mono font-medium text-sm">
+                        /
+                        {snippet.shortcut}
                       </div>
-                      {result.document.summary && (
-                        <div className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                          {result.document.summary}
-                        </div>
-                      )}
-                      {result.document.tags && result.document.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1.5">
-                          {result.document.tags.slice(0, 3).map(tag => (
-                            <Badge key={tag} variant="secondary" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
+                      <div className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                        {snippet.content}
+                      </div>
                     </div>
                   </Button>
                 ))

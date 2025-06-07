@@ -3,13 +3,14 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const supabase = createServerSupabaseClient();
+    const { id } = await params;
 
     // Convert id to number since patients table uses SERIAL PRIMARY KEY
-    const patientId = Number.parseInt(params.id);
+    const patientId = Number.parseInt(id);
     if (Number.isNaN(patientId)) {
       return NextResponse.json({ error: 'Invalid patient ID' }, { status: 400 });
     }
@@ -40,14 +41,15 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const body = await request.json();
     const supabase = createServerSupabaseClient();
+    const { id } = await params;
 
     // Convert id to number since patients table uses SERIAL PRIMARY KEY
-    const patientId = Number.parseInt(params.id);
+    const patientId = Number.parseInt(id);
     if (Number.isNaN(patientId)) {
       return NextResponse.json({ error: 'Invalid patient ID' }, { status: 400 });
     }
@@ -83,13 +85,14 @@ export async function PUT(
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const supabase = createServerSupabaseClient();
+    const { id } = await params;
 
     // Convert id to number since patients table uses SERIAL PRIMARY KEY
-    const patientId = Number.parseInt(params.id);
+    const patientId = Number.parseInt(id);
     if (Number.isNaN(patientId)) {
       return NextResponse.json({ error: 'Invalid patient ID' }, { status: 400 });
     }
