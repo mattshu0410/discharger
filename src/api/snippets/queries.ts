@@ -1,13 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  getAllSnippets, 
-  getSnippetById, 
-  createSnippet, 
-  updateSnippet, 
+import type { CreateSnippetRequest, UpdateSnippetRequest } from './types';
+import {
+  createSnippet,
   deleteSnippet,
-  searchSnippets
+  getAllSnippets,
+  getSnippetById,
+  searchSnippets,
+  updateSnippet,
 } from '@/hooks/snippets';
-import { CreateSnippetRequest, UpdateSnippetRequest } from './types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Query Keys
 export const snippetKeys = {
@@ -38,7 +38,7 @@ export function useSnippet(id: string) {
 // Create new snippet
 export function useCreateSnippet() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: CreateSnippetRequest) => createSnippet(data),
     onSuccess: () => {
@@ -50,9 +50,9 @@ export function useCreateSnippet() {
 // Update snippet
 export function useUpdateSnippet() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateSnippetRequest }) => 
+    mutationFn: ({ id, data }: { id: string; data: UpdateSnippetRequest }) =>
       updateSnippet(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: snippetKeys.detail(id) });
@@ -64,7 +64,7 @@ export function useUpdateSnippet() {
 // Delete snippet
 export function useDeleteSnippet() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (id: string) => deleteSnippet(id),
     onSuccess: (_, id) => {
@@ -72,4 +72,4 @@ export function useDeleteSnippet() {
       queryClient.removeQueries({ queryKey: snippetKeys.detail(id) });
     },
   });
-} 
+}

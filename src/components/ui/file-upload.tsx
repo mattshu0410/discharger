@@ -799,11 +799,9 @@ const FileUploadDropzone = ({ ref: forwardedRef, ...props }: FileUploadDropzoneP
       role="region"
       id={context.dropzoneId}
       aria-controls={`${context.inputId} ${context.listId}`}
-      aria-disabled={context.disabled}
-      aria-invalid={invalid}
       data-disabled={context.disabled ? '' : undefined}
-      data-dragging={dragOver ? '' : undefined}
       data-invalid={invalid ? '' : undefined}
+      data-dragging={dragOver ? '' : undefined}
       data-slot="file-upload-dropzone"
       dir={context.dir}
       tabIndex={context.disabled ? undefined : 0}
@@ -881,8 +879,8 @@ const FileUploadList = ({ ref: forwardedRef, ...props }: FileUploadListProps & {
 
   const context = useFileUploadContext(LIST_NAME);
 
-  const shouldRender
-      = forceMount || useStore(state => state.files.size > 0);
+  const hasFiles = useStore(state => state.files.size > 0);
+  const shouldRender = forceMount || hasFiles;
 
   if (!shouldRender) {
     return null;
@@ -894,7 +892,6 @@ const FileUploadList = ({ ref: forwardedRef, ...props }: FileUploadListProps & {
     <ListPrimitive
       role="list"
       id={context.listId}
-      aria-orientation={orientation}
       data-orientation={orientation}
       data-slot="file-upload-list"
       data-state={shouldRender ? 'active' : 'inactive'}
@@ -1412,7 +1409,8 @@ const FileUploadClear = ({ ref: forwardedRef, ...props }: FileUploadClearProps &
     [store, propsRef],
   );
 
-  const shouldRender = forceMount || useStore(state => state.files.size > 0);
+  const hasFiles = useStore(state => state.files.size > 0);
+  const shouldRender = forceMount || hasFiles;
 
   if (!shouldRender) {
     return null;

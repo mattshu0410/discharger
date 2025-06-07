@@ -1,31 +1,39 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import type { DocumentSearchResult } from '@/types';
 import { useSearchDocuments } from '@/api/documents/queries';
-import { DocumentSearchResult } from '@/types';
-import { FileText, Search as SearchIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/libs/utils';
 import { useUIStore } from '@/stores/uiStore';
-import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { FileText, Search as SearchIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
-interface DocumentSelectorProps {
+type DocumentSelectorProps = {
   onSelect: (document: DocumentSearchResult['document']) => void;
-}
+};
+
+// Moved PopoverTriggerComponent to the top level
+const PopoverTriggerComponent = ({ position }: { position: { x: number; y: number } | null }) => {
+  if (!position) {
+    return null;
+  }
+  return <PopoverAnchor style={{ position: 'fixed', top: position.y, left: position.x, width: 0, height: 0 }} />;
+};
 
 export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  
-  const isOpen = useUIStore((state) => state.isDocumentSelectorOpen);
-  const position = useUIStore((state) => state.documentSelectorPosition);
-  const searchQuery = useUIStore((state) => state.documentSearchQuery);
-  const closeDocumentSelector = useUIStore((state) => state.closeDocumentSelector);
-  const setDocumentSearchQuery = useUIStore((state) => state.setDocumentSearchQuery);
-  
+
+  const isOpen = useUIStore(state => state.isDocumentSelectorOpen);
+  const position = useUIStore(state => state.documentSelectorPosition);
+  const searchQuery = useUIStore(state => state.documentSearchQuery);
+  const closeDocumentSelector = useUIStore(state => state.closeDocumentSelector);
+  const setDocumentSearchQuery = useUIStore(state => state.setDocumentSearchQuery);
+
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { data: searchResults = [], isLoading } = useSearchDocuments(searchQuery, isOpen);
 
@@ -36,8 +44,10 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus();
-      setSelectedIndex(0);
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
     }
   }, [isOpen]);
 
@@ -48,15 +58,17 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
   };
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      return;
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedIndex((prev) => Math.min(prev + 1, searchResults.length - 1));
+        setSelectedIndex(prev => Math.min(prev + 1, searchResults.length - 1));
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedIndex((prev) => Math.max(prev - 1, 0));
+        setSelectedIndex(prev => Math.max(prev - 1, 0));
       } else if (e.key === 'Enter') {
         e.preventDefault();
         if (searchResults[selectedIndex]) {
@@ -81,18 +93,16 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
     }
   }, [selectedIndex, isOpen, searchResults]);
 
-  if (!isOpen || !position) return null;
-
-  const PopoverTriggerComponent = () => (
-    <PopoverAnchor style={{ position: 'fixed', top: position.y, left: position.x, width: 0, height: 0 }} />
-  );
+  if (!isOpen || !position) {
+    return null;
+  }
 
   return (
-    <Popover open={isOpen} onOpenChange={(open) => !open && closeDocumentSelector()}>
-      <PopoverTriggerComponent />
-      <PopoverContent 
+    <Popover open={isOpen} onOpenChange={open => !open && closeDocumentSelector()}>
+      <PopoverTriggerComponent position={position} />
+      <PopoverContent
         className="w-96 shadow-lg p-0"
-        onOpenAutoFocus={(e) => e.preventDefault()}
+        onOpenAutoFocus={e => e.preventDefault()}
         side="bottom"
         align="start"
         sideOffset={5}
@@ -102,11 +112,10 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
             <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               ref={inputRef}
-              autoFocus
               placeholder="Search documents..."
               className="pl-8"
               value={searchQuery}
-              onChange={(e) => setDocumentSearchQuery(e.target.value)}
+              onChange={e => setDocumentSearchQuery(e.target.value)}
             />
           </div>
           <ScrollArea className="h-[250px]" ref={scrollContainerRef}>
@@ -121,11 +130,13 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
                 searchResults.map((result, index) => (
                   <Button
                     key={result.document.id}
-                    ref={el => { itemRefs.current[index] = el; }}
+                    ref={(el) => {
+                      itemRefs.current[index] = el;
+                    }}
                     variant="ghost"
                     className={cn(
-                      "w-full h-auto justify-start text-left p-2",
-                      index === selectedIndex && "bg-accent text-accent-foreground"
+                      'w-full h-auto justify-start text-left p-2',
+                      index === selectedIndex && 'bg-accent text-accent-foreground',
                     )}
                     onClick={() => handleSelect(result.document)}
                     onMouseEnter={() => setSelectedIndex(index)}
@@ -159,4 +170,4 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
       </PopoverContent>
     </Popover>
   );
-} 
+}

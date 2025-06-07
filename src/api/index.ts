@@ -4,10 +4,10 @@
 export * from './documents/queries';
 export * from './documents/types';
 
-// Snippets  
+// Snippets
 export * from './snippets/queries';
 export * from './snippets/types';
 
 // Users
 export * from './users/queries';
-export * from './users/types'; 
+export * from './users/types';

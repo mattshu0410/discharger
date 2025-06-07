@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/libs/supabaseClient';
+import { createServerSupabaseClient } from '@/libs/supabase-server';
 import { SupabaseVectorStore } from '@langchain/community/vectorstores/supabase';
 import { OpenAIEmbeddings } from '@langchain/openai';
 

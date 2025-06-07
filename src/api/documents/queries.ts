@@ -1,12 +1,12 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  getAllDocuments, 
-  searchDocuments, 
+import type { Document } from '@/types';
+import type { SearchDocumentsRequest, UpdateDocumentRequest } from './types';
+import {
+  getAllDocuments,
   getDocumentById,
-  getDocumentsByIds 
+  getDocumentsByIds,
+  searchDocuments,
 } from '@/hooks/documents';
-import { UpdateDocumentRequest, SearchDocumentsRequest } from './types';
-import { Document } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Query Keys
 export const documentKeys = {
@@ -56,12 +56,12 @@ export function useDocumentsByIds(ids: string[]) {
 // Upload document (mock for now)
 export function useUploadDocument() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (data: { file: File; summary: string; tags: string[]; shareStatus: 'private' | 'public' }) => {
       // Mock upload
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       const newDoc: Document = {
         id: `doc-${Date.now()}`,
         userId: 'user-1',
@@ -74,7 +74,7 @@ export function useUploadDocument() {
         s3Url: `https://s3.example.com/doc-${Date.now()}.pdf`,
         tags: data.tags,
       };
-      
+
       return newDoc;
     },
     onSuccess: () => {
@@ -86,15 +86,17 @@ export function useUploadDocument() {
 // Update document (mock for now)
 export function useUpdateDocument() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateDocumentRequest }) => {
       // Mock update
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const existingDoc = await getDocumentById(id);
-      if (!existingDoc) throw new Error('Document not found');
-      
+      if (!existingDoc) {
+        throw new Error('Document not found');
+      }
+
       return { ...existingDoc, ...data };
     },
     onSuccess: (_, { id }) => {
@@ -107,7 +109,7 @@ export function useUpdateDocument() {
 // Delete document (mock for now)
 export function useDeleteDocument() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (id: string) => {
       // Mock delete
@@ -124,7 +126,7 @@ export function useDeleteDocument() {
 // Toggle favorite (would update user preferences)
 export function useToggleDocumentFavorite() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (documentId: string) => {
       // Mock toggle favorite
@@ -136,4 +138,4 @@ export function useToggleDocumentFavorite() {
       queryClient.invalidateQueries({ queryKey: ['user', 'preferences'] });
     },
   });
-} 
+}

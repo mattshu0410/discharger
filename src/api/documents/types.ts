@@ -23,16 +23,6 @@ export type SearchDocumentsRequest = {
   limit?: number;
 };
 
-export type CreateSnippetRequest = {
-  shortcut: string;
-  content: string;
-};
-
-export type UpdateSnippetRequest = {
-  shortcut?: string;
-  content?: string;
-};
-
 // API Response Types
 export type DocumentsResponse = {
   documents: Document[];
@@ -52,20 +42,6 @@ export type UploadProgressResponse = {
 };
 
 export type DeleteDocumentResponse = {
-  success: boolean;
-  id: string;
-};
-
-export type SnippetsResponse = {
-  snippets: Document[];
-  total: number;
-};
-
-export type SnippetResponse = {
-  snippet: Document;
-};
-
-export type DeleteSnippetResponse = {
   success: boolean;
   id: string;
 };

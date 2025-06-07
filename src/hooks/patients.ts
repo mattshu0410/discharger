@@ -6,13 +6,13 @@ export async function getAllPatients(limit?: number): Promise<Patient[]> {
   if (limit) {
     url.searchParams.set('limit', limit.toString());
   }
-  
+
   const response = await fetch(url.toString());
-  
+
   if (!response.ok) {
     throw new Error('Failed to fetch patients');
   }
-  
+
   return response.json();
 }
 
@@ -23,14 +23,14 @@ export async function getPatientById(id: number): Promise<Patient> {
   }
 
   const response = await fetch(`/api/patients/${id}`);
-  
+
   if (!response.ok) {
     if (response.status === 404) {
       throw new Error('Patient not found');
     }
     throw new Error('Failed to fetch patient');
   }
-  
+
   return response.json();
 }
 
@@ -43,10 +43,10 @@ export async function createPatient(data: Omit<Patient, 'id' | 'created_at' | 'u
     },
     body: JSON.stringify(data),
   });
-  
+
   if (!response.ok) {
     throw new Error('Failed to create patient');
   }
-  
+
   return response.json();
 }

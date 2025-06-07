@@ -1,14 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  getCurrentUser,
-  updateUserProfile,
-  updateUserPreferences,
-  addFavoriteDocument,
-  removeFavoriteDocument,
+import type { UpdatePreferencesRequest, UpdateProfileRequest } from './types';
+import {
   addDefaultDocument,
-  removeDefaultDocument
+  addFavoriteDocument,
+  getCurrentUser,
+  removeDefaultDocument,
+  removeFavoriteDocument,
+  updateUserPreferences,
+  updateUserProfile,
 } from '@/hooks/users';
-import { UpdateProfileRequest, UpdatePreferencesRequest } from './types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Query Keys
 export const userKeys = {
@@ -29,7 +29,7 @@ export function useCurrentUser() {
 // Update user profile
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: UpdateProfileRequest) => updateUserProfile(data),
     onSuccess: () => {
@@ -41,7 +41,7 @@ export function useUpdateProfile() {
 // Update user preferences
 export function useUpdatePreferences() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: UpdatePreferencesRequest) => updateUserPreferences(data),
     onSuccess: () => {
@@ -53,7 +53,7 @@ export function useUpdatePreferences() {
 // Toggle favorite document
 export function useToggleFavoriteDocument() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ documentId, isFavorite }: { documentId: string; isFavorite: boolean }) => {
       if (isFavorite) {
@@ -71,7 +71,7 @@ export function useToggleFavoriteDocument() {
 // Toggle default document
 export function useToggleDefaultDocument() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ documentId, isDefault }: { documentId: string; isDefault: boolean }) => {
       if (isDefault) {
@@ -89,13 +89,13 @@ export function useToggleDefaultDocument() {
 // Update theme
 export function useUpdateTheme() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: (theme: 'light' | 'dark' | 'system') => 
+    mutationFn: (theme: 'light' | 'dark' | 'system') =>
       updateUserPreferences({ theme }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: userKeys.current() });
-      
+
       // Apply theme to document
       if (data.preferences.theme === 'dark') {
         document.documentElement.classList.add('dark');
@@ -112,4 +112,4 @@ export function useUpdateTheme() {
       }
     },
   });
-} 
+}

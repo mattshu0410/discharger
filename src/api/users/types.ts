@@ -1,33 +1,33 @@
-import { UserProfile, UserPreferences } from '@/types';
+import type { UserPreferences, UserProfile } from '@/types';
 
 // API Request Types
-export interface UpdateProfileRequest {
+export type UpdateProfileRequest = {
   name?: string;
   organization?: string;
   role?: string;
-}
+};
 
-export interface UpdatePreferencesRequest {
+export type UpdatePreferencesRequest = {
   defaultDocumentIds?: string[];
   favoriteDocumentIds?: string[];
   theme?: 'light' | 'dark' | 'system';
-}
+};
 
 // API Response Types
-export interface UserResponse {
+export type UserResponse = {
   user: UserProfile;
-}
+};
 
-export interface PreferencesResponse {
+export type PreferencesResponse = {
   preferences: UserPreferences;
-}
+};
 
-export interface UpdateProfileResponse {
+export type UpdateProfileResponse = {
   user: UserProfile;
   message: string;
-}
+};
 
-export interface UpdatePreferencesResponse {
+export type UpdatePreferencesResponse = {
   preferences: UserPreferences;
   message: string;
-} 
+};

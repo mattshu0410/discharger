@@ -57,9 +57,9 @@ Technical Decisions
 - New users that aren't signed in can generate discharges but it doesn't show the full discharge, just blurred and says 'login to see full discharge'
 
 e.g.
-pdf_id	chunk_index	text_chunk	page_number	embedding	metadata
-abc123	0	"Chunk 1 text…"	1	[0.123, …]	{...}
-abc123	1	"Chunk 2 text…"	1	[0.456, …]	{...}
+pdf_id chunk_index text_chunk page_number embedding metadata
+abc123 0 "Chunk 1 text…" 1 [0.123, …] {...}
+abc123 1 "Chunk 2 text…" 1 [0.456, …] {...}
 
 Potential Future Features
 - Ability to save presets of documents to load

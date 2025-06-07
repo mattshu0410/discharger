@@ -1,9 +1,9 @@
 'use client';
 import { DischargeSummary } from '@/components/DischargeSummary';
 import { PatientForm } from '@/components/PatientForm';
+import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { useUIStore } from '@/stores';
-import { Button } from '@/components/ui/button';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function Index() {
@@ -29,22 +29,22 @@ export default function Index() {
             </div>
             <PatientForm />
           </ResizablePanel>
-          
+
           <ResizableHandle withHandle />
-          
+
           {/* Right: Discharge Summary */}
           <ResizablePanel defaultSize={50} className="w-1/2 p-8 overflow-y-auto">
             <DischargeSummary />
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>
-      
+
       {/* Context Viewer Panel */}
       {isContextViewerOpen && (
         <>
           <ResizableHandle withHandle />
-          <ResizablePanel 
-            defaultSize={30} 
+          <ResizablePanel
+            defaultSize={30}
             className="flex flex-col border-t bg-muted/50"
           >
             <div className="p-4 border-b">
