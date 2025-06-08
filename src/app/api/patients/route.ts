@@ -1,8 +1,14 @@
 import { createServerSupabaseClient } from '@/libs/supabase-server';
+import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const limit = Number.parseInt(searchParams.get('limit') || '10');
 
@@ -11,7 +17,8 @@ export async function GET(request: Request) {
     const { data, error } = await supabase
       .from('patients')
       .select('*')
-      .order('id', { ascending: true })
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
       .limit(limit);
 
     if (error) {
@@ -31,6 +38,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const supabase = createServerSupabaseClient();
 
@@ -45,6 +57,7 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from('patients')
       .insert({
+        user_id: user.id,
         name: body.name,
         age: body.age,
         sex: body.sex,

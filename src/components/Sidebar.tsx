@@ -114,12 +114,12 @@ export function Sidebar() {
                             type="button"
                             className={cn(
                               'w-full text-left px-4 py-2 cursor-pointer rounded transition-colors outline-none flex items-center gap-2',
-                              currentPatientId === Number(p.id)
+                              currentPatientId === p.id
                                 ? 'bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)]'
                                 : 'hover:bg-[var(--sidebar-accent)]',
                             )}
                             onClick={() => {
-                              setCurrentPatientId(Number(p.id));
+                              setCurrentPatientId(p.id);
                               setActiveView('patients'); // Ensure we're on patients view
                             }}
                           >

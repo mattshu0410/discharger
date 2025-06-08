@@ -3,12 +3,12 @@
 import { createContext, use, useMemo, useState } from 'react';
 
 const PatientContext = createContext<{
-  selectedPatient: number | null;
-  setSelectedPatient: (id: number) => void;
+  selectedPatient: string | null;
+  setSelectedPatient: (id: string) => void;
 } | null>(null);
 
 export function PatientProvider({ children }: { children: React.ReactNode }) {
-  const [selectedPatient, setSelectedPatient] = useState<number | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
   // https://www.reddit.com/r/reactjs/comments/zzcgr2/why_is_usememo_commonlyused_in_reacts_context/
   const value = useMemo(() => {
     return { selectedPatient, setSelectedPatient };

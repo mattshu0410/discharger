@@ -52,15 +52,21 @@ export const userProfiles = pgTable('user_profiles', {
 
 // Patients table
 export const patients = pgTable('patients', {
-  id: serial('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => userProfiles.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   age: integer('age').notNull(),
-  sex: text('sex').notNull(),
+  sex: sexEnum('sex').notNull(),
   context: text('context'),
   dischargeText: text('discharge_text'),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+}, table => ({
+  userIdIdx: index('patient_user_id_idx').on(table.userId),
+}));
 
 // Documents table
 export const documents = pgTable('documents', {

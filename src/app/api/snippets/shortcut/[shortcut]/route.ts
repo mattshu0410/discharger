@@ -1,20 +1,23 @@
 import { createServerSupabaseClient } from '@/libs/supabase-server';
+import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: { shortcut: string } },
 ) {
   try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || '00000000-0000-0000-0000-000000000000';
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const supabase = createServerSupabaseClient();
 
     const { data, error } = await supabase
       .from('snippets')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .eq('shortcut', params.shortcut)
       .single();
 

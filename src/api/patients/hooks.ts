@@ -1,66 +1,76 @@
 import type { Patient } from '@/types';
 
-// Mock data - in a real app, this would come from your database
-const mockPatients: Patient[] = [
-  {
-    id: 'patient-1',
-    userId: '00000000-0000-0000-0000-000000000000',
-    name: 'John Smith',
-    age: 65,
-    sex: 'male',
-    context: 'Admitted for chest pain evaluation. History of hypertension and diabetes.',
-    documentIds: ['doc-1', 'doc-2'],
-    snippetIds: ['snippet-1', 'snippet-2'],
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-15'),
-  },
-];
+// Get all patients, optionally limit the number returned
+export async function getAllPatients(limit?: number): Promise<Patient[]> {
+  const url = new URL('/api/patients', window.location.origin);
+  if (limit) {
+    url.searchParams.set('limit', limit.toString());
+  }
 
-// Get all patients for the current user
-export async function getAllPatients(_userId?: string): Promise<Patient[]> {
-  await new Promise(resolve => setTimeout(resolve, 200)); // Simulate network delay
+  const response = await fetch(url.toString());
 
-  return mockPatients;
+  if (!response.ok) {
+    throw new Error('Failed to fetch patients');
+  }
+
+  return response.json();
 }
 
 // Get a single patient by ID
-export async function getPatientById(id: string): Promise<Patient | null> {
-  await new Promise(resolve => setTimeout(resolve, 100)); // Simulate network delay
+export async function getPatientById(id: string): Promise<Patient> {
+  if (!id) {
+    throw new Error('Patient ID is required');
+  }
 
-  return mockPatients.find(patient => patient.id === id) || null;
+  const response = await fetch(`/api/patients/${id}`);
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('Patient not found');
+    }
+    throw new Error('Failed to fetch patient');
+  }
+
+  return response.json();
 }
 
 // Create a new patient
 export async function createPatient(data: Omit<Patient, 'id' | 'createdAt' | 'updatedAt'>): Promise<Patient> {
-  await new Promise(resolve => setTimeout(resolve, 300)); // Simulate network delay
+  const response = await fetch('/api/patients', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
 
-  const newPatient: Patient = {
-    ...data,
-    id: `patient-${Date.now()}`,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  if (!response.ok) {
+    throw new Error('Failed to create patient');
+  }
 
-  mockPatients.push(newPatient);
-  return newPatient;
+  return response.json();
 }
 
 // Update an existing patient
-export async function updatePatient(id: string, data: Partial<Patient>): Promise<Patient> {
-  await new Promise(resolve => setTimeout(resolve, 200)); // Simulate network delay
-
-  const patientIndex = mockPatients.findIndex(patient => patient.id === id);
-  if (patientIndex === -1) {
-    throw new Error('Patient not found');
+export async function updatePatient(id: string, data: Partial<Omit<Patient, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Promise<Patient> {
+  if (!id) {
+    throw new Error('Patient ID is required');
   }
 
-  const existingPatient = mockPatients[patientIndex]!;
-  mockPatients[patientIndex] = {
-    ...existingPatient,
-    ...data,
-    id: existingPatient.id, // Ensure id is preserved
-    updatedAt: new Date(),
-  };
+  const response = await fetch(`/api/patients/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
 
-  return mockPatients[patientIndex]!;
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('Patient not found');
+    }
+    throw new Error('Failed to update patient');
+  }
+
+  return response.json();
 }

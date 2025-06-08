@@ -44,7 +44,7 @@ export function SnippetSelector({ onSelect }: SnippetSelectorProps) {
 
   // Determine which data to use
   const hasSearchQuery = !!searchQuery.trim();
-  const snippets = hasSearchQuery ? searchResults.map(result => result.snippet) : allSnippets;
+  const snippets = hasSearchQuery ? searchResults : allSnippets;
   const isLoading = hasSearchQuery ? isLoadingSearch : isLoadingAll;
 
   // Reset selection when results change

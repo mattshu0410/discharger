@@ -1,14 +1,19 @@
 import { createServerSupabaseClient } from '@/libs/supabase-server';
+import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const files = formData.getAll('files') as File[];
     const summary = formData.get('summary') as string || '';
     const tags = JSON.parse(formData.get('tags') as string || '[]') as string[];
     const shareStatus = formData.get('shareStatus') as string || 'private';
-    const userId = formData.get('userId') as string || '00000000-0000-0000-0000-000000000000';
 
     if (!files.length) {
       return NextResponse.json({ error: 'No files uploaded' }, { status: 400 });
@@ -20,12 +25,14 @@ export async function POST(request: Request) {
     for (const file of files) {
       // Generate document metadata
       const documentData = {
-        user_id: userId,
+        user_id: user.id,
         filename: file.name,
         summary: summary || `Uploaded document: ${file.name}`,
         source: 'user',
         share_status: shareStatus,
-        uploaded_by: 'Current User', // TODO: Get from authenticated user
+        uploaded_by: user.firstName && user.lastName
+          ? `${user.firstName} ${user.lastName}`
+          : user.primaryEmailAddress?.emailAddress || 'Current User',
         s3_url: `https://temp-url/${file.name}`, // TODO: Implement actual file storage
         tags,
         metadata: {
@@ -95,6 +102,11 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
     const ids = searchParams.get('ids');
@@ -102,6 +114,9 @@ export async function GET(request: Request) {
     const supabase = createServerSupabaseClient();
 
     let dbQuery = supabase.from('documents').select('*');
+
+    // Filter by user - show user's documents + public community documents
+    dbQuery = dbQuery.or(`user_id.eq.${user.id},share_status.eq.public`);
 
     // If specific IDs are requested
     if (ids) {

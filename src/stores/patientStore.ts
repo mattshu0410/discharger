@@ -6,7 +6,7 @@ import { immer } from 'zustand/middleware/immer';
 
 type PatientState = {
   // Current patient selection
-  currentPatientId: number | null;
+  currentPatientId: string | null;
 
   // Temporary context for current patient (for auto-save and optimistic updates)
   currentPatientContext: string;
@@ -21,7 +21,7 @@ type PatientState = {
   isGenerating: boolean;
 
   // Actions
-  setCurrentPatientId: (id: number | null) => void;
+  setCurrentPatientId: (id: string | null) => void;
   updateCurrentPatientContext: (context: string) => void;
   loadContextFromBackend: (context: string) => void;
   setIsGenerating: (generating: boolean) => void;
@@ -32,7 +32,7 @@ type PatientState = {
 };
 
 // Debounced save function for auto-saving context
-const debouncedSave = debounce((patientId: number, context: string) => {
+const debouncedSave = debounce((patientId: string, context: string) => {
   // This will be called by the API layer to save to server
   // Only save if there's actual content
   if (context.trim()) {
@@ -70,6 +70,7 @@ const usePatientStore = create<PatientState>()(
           state.selectedDocuments = []; // Clear documents when switching patients
         }
         state.currentPatientId = id;
+        console.warn('Current patient ID set to', id);
       }),
 
       updateCurrentPatientContext: context => set((state) => {
@@ -104,8 +105,8 @@ const usePatientStore = create<PatientState>()(
           debouncedSave(previousId, previousContext);
         }
 
-        // Use negative ID for new patients to distinguish from existing ones
-        state.currentPatientId = -Date.now(); // Unique negative ID
+        // Use special prefix for new patients to distinguish from existing ones
+        state.currentPatientId = `new-${Date.now()}`; // Unique new patient ID
         state.currentPatientContext = '';
         state.isContextLoadedFromBackend = false;
         state.selectedDocuments = [];

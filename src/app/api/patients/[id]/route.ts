@@ -9,16 +9,15 @@ export async function GET(
     const supabase = createServerSupabaseClient();
     const { id } = await params;
 
-    // Convert id to number since patients table uses SERIAL PRIMARY KEY
-    const patientId = Number.parseInt(id);
-    if (Number.isNaN(patientId)) {
+    // Validate UUID format
+    if (!id || typeof id !== 'string') {
       return NextResponse.json({ error: 'Invalid patient ID' }, { status: 400 });
     }
 
     const { data, error } = await supabase
       .from('patients')
       .select('*')
-      .eq('id', patientId)
+      .eq('id', id)
       .single();
 
     if (error) {
@@ -48,9 +47,8 @@ export async function PUT(
     const supabase = createServerSupabaseClient();
     const { id } = await params;
 
-    // Convert id to number since patients table uses SERIAL PRIMARY KEY
-    const patientId = Number.parseInt(id);
-    if (Number.isNaN(patientId)) {
+    // Validate UUID format
+    if (!id || typeof id !== 'string') {
       return NextResponse.json({ error: 'Invalid patient ID' }, { status: 400 });
     }
 
@@ -64,7 +62,7 @@ export async function PUT(
         discharge_text: body.discharge_text,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', patientId)
+      .eq('id', id)
       .select()
       .single();
 
@@ -91,16 +89,15 @@ export async function DELETE(
     const supabase = createServerSupabaseClient();
     const { id } = await params;
 
-    // Convert id to number since patients table uses SERIAL PRIMARY KEY
-    const patientId = Number.parseInt(id);
-    if (Number.isNaN(patientId)) {
+    // Validate UUID format
+    if (!id || typeof id !== 'string') {
       return NextResponse.json({ error: 'Invalid patient ID' }, { status: 400 });
     }
 
     const { error } = await supabase
       .from('patients')
       .delete()
-      .eq('id', patientId);
+      .eq('id', id);
 
     if (error) {
       console.error('Supabase error:', error);

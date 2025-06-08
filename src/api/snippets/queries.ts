@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getAllSnippets,
   getSnippetById,
-  getSnippetsByIds,
   searchSnippets,
 } from './hooks'; // Updated import path and only import existing functions
 
@@ -39,15 +38,6 @@ export function useSnippet(id: string) {
     queryKey: snippetKeys.detail(id),
     queryFn: () => getSnippetById(id),
     enabled: !!id,
-  });
-}
-
-// Get snippets by IDs
-export function useSnippetsByIds(ids: string[]) {
-  return useQuery({
-    queryKey: [...snippetKeys.all, 'byIds', ids],
-    queryFn: () => getSnippetsByIds(ids),
-    enabled: ids.length > 0,
   });
 }
 

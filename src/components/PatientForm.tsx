@@ -97,14 +97,14 @@ export function PatientForm() {
   // I sort of only need this here so we are going to cbbs with usePatientStore
   const [triggerPosition, setTriggerPosition] = useState<number | null>(null);
 
-  // Check if this is a new patient (negative ID)
-  const isNewPatient = currentPatientId && currentPatientId < 0;
+  // Check if this is a new patient (starts with "new-")
+  const isNewPatient = currentPatientId && currentPatientId.startsWith('new-');
 
   // Fetch current patient data when a patient is selected (but not for new patients)
   const { data: currentPatient, isLoading: isPatientLoading } = useQuery({
     queryKey: ['getPatientbyId', currentPatientId],
     queryFn: async () => {
-      const existingPatient = await getPatientById(String(currentPatientId));
+      const existingPatient = await getPatientById(currentPatientId!);
       return existingPatient;
     },
     enabled: !!currentPatientId && !isNewPatient,

@@ -1,18 +1,23 @@
 import { createServerSupabaseClient } from '@/libs/supabase-server';
+import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q');
-    const userId = searchParams.get('userId') || '00000000-0000-0000-0000-000000000000';
 
     const supabase = createServerSupabaseClient();
 
     let dbQuery = supabase
       .from('snippets')
       .select('*')
-      .eq('user_id', userId);
+      .eq('user_id', user.id);
 
     // If there's a search query, filter by shortcut or content
     if (query) {
@@ -36,13 +41,18 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const supabase = createServerSupabaseClient();
 
     const { data, error } = await supabase
       .from('snippets')
       .insert({
-        user_id: body.userId || '00000000-0000-0000-0000-000000000000',
+        user_id: user.id,
         shortcut: body.shortcut,
         content: body.content,
       })
