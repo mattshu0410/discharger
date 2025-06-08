@@ -8,7 +8,9 @@
   "scripts": {
     "dev:spotlight": "spotlight-sidecar",
     "dev:next": "next dev",
-    "dev": "run-p dev:*",
+    "dev": "run-p dev:spotlight dev:next",
+    "dev:test": "cross-env NEXT_PUBLIC_BYPASS_AUTH=true run-p dev:spotlight dev:next",
+    "dev:auth": "cross-env NEXT_PUBLIC_BYPASS_AUTH=false run-p dev:spotlight dev:next",
     "build": "next build",
     "start": "next start",
     "build-stats": "cross-env ANALYZE=true npm run build",

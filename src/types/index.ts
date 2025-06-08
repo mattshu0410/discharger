@@ -93,6 +93,12 @@ export type DocumentSearchResult = {
   matchedText?: string;
 };
 
+export type SnippetSearchResult = {
+  snippet: Snippet;
+  relevanceScore: number;
+  matchedText?: string;
+};
+
 export type GenerateDischargeRequest = {
   patientId: string;
   context: string;

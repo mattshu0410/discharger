@@ -1,12 +1,12 @@
 import type { Document } from '@/types';
 import type { SearchDocumentsRequest, UpdateDocumentRequest } from './types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getAllDocuments,
   getDocumentById,
   getDocumentsByIds,
   searchDocuments,
-} from '@/hooks/documents';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+} from './hooks'; // Updated import path
 
 // Query Keys
 export const documentKeys = {

@@ -1,7 +1,7 @@
 'use client';
-import type { Patient } from '@/types/patient';
+import type { Patient } from '@/types';
+import { getAllPatients } from '@/api/patients/hooks';
 import { Button } from '@/components/ui/button';
-import { getAllPatients } from '@/hooks/patients';
 import { cn } from '@/libs/utils';
 import { usePatientStore } from '@/stores/patientStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -34,8 +34,8 @@ export function Sidebar() {
   const setActiveSettingsTab = useUIStore(state => state.setActiveSettingsTab);
 
   const { data: patients } = useQuery<Patient[]>({
-    queryKey: ['getPatients', { limit: 10 }],
-    queryFn: () => getAllPatients(10),
+    queryKey: ['getPatients'],
+    queryFn: () => getAllPatients(),
   });
 
   const handleSettingsNavigation = (tab: 'memory' | 'snippets' | 'profile') => {
@@ -114,12 +114,12 @@ export function Sidebar() {
                             type="button"
                             className={cn(
                               'w-full text-left px-4 py-2 cursor-pointer rounded transition-colors outline-none flex items-center gap-2',
-                              currentPatientId === p.id
+                              currentPatientId === Number(p.id)
                                 ? 'bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)]'
                                 : 'hover:bg-[var(--sidebar-accent)]',
                             )}
                             onClick={() => {
-                              setCurrentPatientId(p.id);
+                              setCurrentPatientId(Number(p.id));
                               setActiveView('patients'); // Ensure we're on patients view
                             }}
                           >

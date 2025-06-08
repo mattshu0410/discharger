@@ -1,13 +1,11 @@
 import type { CreateSnippetRequest, UpdateSnippetRequest } from './types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  createSnippet,
-  deleteSnippet,
   getAllSnippets,
   getSnippetById,
+  getSnippetsByIds,
   searchSnippets,
-  updateSnippet,
-} from '@/hooks/snippets';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+} from './hooks'; // Updated import path and only import existing functions
 
 // Query Keys
 export const snippetKeys = {
@@ -19,10 +17,19 @@ export const snippetKeys = {
 };
 
 // Get all snippets for current user
-export function useSnippets(search?: string) {
+export function useSnippets() {
   return useQuery({
-    queryKey: snippetKeys.list({ search }),
-    queryFn: () => search ? searchSnippets(search) : getAllSnippets(),
+    queryKey: snippetKeys.list({}),
+    queryFn: () => getAllSnippets(),
+  });
+}
+
+// Search snippets
+export function useSearchSnippets(query: string, enabled = true) {
+  return useQuery({
+    queryKey: [...snippetKeys.all, 'search', query],
+    queryFn: () => searchSnippets(query),
+    enabled: enabled && query.length > 0,
   });
 }
 
@@ -35,25 +42,39 @@ export function useSnippet(id: string) {
   });
 }
 
-// Create new snippet
+// Get snippets by IDs
+export function useSnippetsByIds(ids: string[]) {
+  return useQuery({
+    queryKey: [...snippetKeys.all, 'byIds', ids],
+    queryFn: () => getSnippetsByIds(ids),
+    enabled: ids.length > 0,
+  });
+}
+
+// Create new snippet (TODO: implement when needed)
 export function useCreateSnippet() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateSnippetRequest) => createSnippet(data),
+    mutationFn: async (_data: CreateSnippetRequest) => {
+      // TODO: Implement actual creation
+      throw new Error('Create snippet not implemented yet');
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: snippetKeys.lists() });
     },
   });
 }
 
-// Update snippet
+// Update snippet (TODO: implement when needed)
 export function useUpdateSnippet() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateSnippetRequest }) =>
-      updateSnippet(id, data),
+    mutationFn: async ({ id: _id, data: _data }: { id: string; data: UpdateSnippetRequest }) => {
+      // TODO: Implement actual update
+      throw new Error('Update snippet not implemented yet');
+    },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: snippetKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: snippetKeys.lists() });
@@ -61,12 +82,15 @@ export function useUpdateSnippet() {
   });
 }
 
-// Delete snippet
+// Delete snippet (TODO: implement when needed)
 export function useDeleteSnippet() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => deleteSnippet(id),
+    mutationFn: async (_id: string) => {
+      // TODO: Implement actual deletion
+      throw new Error('Delete snippet not implemented yet');
+    },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: snippetKeys.lists() });
       queryClient.removeQueries({ queryKey: snippetKeys.detail(id) });
