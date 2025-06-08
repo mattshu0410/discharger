@@ -19,8 +19,10 @@ import {
   UserCircle,
 } from '@mynaui/icons-react';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 
 export function Sidebar() {
+  const router = useRouter();
   const currentPatientId = usePatientStore(state => state.currentPatientId);
   const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
   const createNewPatient = usePatientStore(state => state.createNewPatient);
@@ -68,7 +70,10 @@ export function Sidebar() {
                 <Button
                   variant={activeView === 'patients' ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => setActiveView('patients')}
+                  onClick={() => {
+                    setActiveView('patients');
+                    router.push('/');
+                  }}
                   className="flex items-center gap-2"
                 >
                   <User size={16} />
@@ -96,6 +101,7 @@ export function Sidebar() {
                         size="sm"
                         onClick={() => {
                           createNewPatient();
+                          router.push('/');
                         }}
                       >
                         <Plus size={16} className="mr-2" />
@@ -121,6 +127,7 @@ export function Sidebar() {
                             onClick={() => {
                               setCurrentPatientId(p.id);
                               setActiveView('patients'); // Ensure we're on patients view
+                              router.push('/');
                             }}
                           >
                             <User size={18} />

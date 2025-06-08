@@ -1,12 +1,9 @@
 import type { CreateSnippetRequest, UpdateSnippetRequest } from '@/api/snippets/types';
 import type { Snippet } from '@/types';
 
-const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
-
 // Get all snippets for current user
-export async function getAllSnippets(userId?: string): Promise<Snippet[]> {
-  const actualUserId = userId || DEFAULT_USER_ID;
-  const response = await fetch(`/api/snippets?userId=${actualUserId}`);
+export async function getAllSnippets(): Promise<Snippet[]> {
+  const response = await fetch('/api/snippets');
 
   if (!response.ok) {
     throw new Error('Failed to fetch snippets');
@@ -16,13 +13,12 @@ export async function getAllSnippets(userId?: string): Promise<Snippet[]> {
 }
 
 // Search snippets
-export async function searchSnippets(query: string, userId?: string): Promise<Snippet[]> {
+export async function searchSnippets(query: string): Promise<Snippet[]> {
   if (!query.trim()) {
     return [];
   }
 
-  const actualUserId = userId || DEFAULT_USER_ID;
-  const response = await fetch(`/api/snippets?q=${encodeURIComponent(query)}&userId=${actualUserId}`);
+  const response = await fetch(`/api/snippets?q=${encodeURIComponent(query)}`);
 
   if (!response.ok) {
     throw new Error('Failed to search snippets');
@@ -46,9 +42,8 @@ export async function getSnippetById(id: string): Promise<Snippet | null> {
 }
 
 // Get snippet by shortcut
-export async function getSnippetByShortcut(shortcut: string, userId?: string): Promise<Snippet | null> {
-  const actualUserId = userId || DEFAULT_USER_ID;
-  const response = await fetch(`/api/snippets/shortcut/${encodeURIComponent(shortcut)}?userId=${actualUserId}`);
+export async function getSnippetByShortcut(shortcut: string): Promise<Snippet | null> {
+  const response = await fetch(`/api/snippets/shortcut/${encodeURIComponent(shortcut)}`);
 
   if (!response.ok) {
     if (response.status === 404) {
@@ -68,7 +63,6 @@ export async function createSnippet(data: CreateSnippetRequest): Promise<Snippet
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      userId: DEFAULT_USER_ID,
       shortcut: data.shortcut,
       content: data.content,
     }),

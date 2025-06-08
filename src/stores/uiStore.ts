@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
+export type BracketPosition = {
+  start: number;
+  end: number;
+  content: string;
+};
+
 type UIState = {
   // Sidebar state
   isSidebarOpen: boolean;
@@ -26,6 +32,10 @@ type UIState = {
   memorySearchQuery: string;
   // Highlighted citation
   highlightedCitationId: string | null;
+  // Bracket navigation state
+  bracketPositions: BracketPosition[];
+  currentBracketIndex: number;
+  isBracketNavigationActive: boolean;
   // Actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -48,6 +58,11 @@ type UIState = {
   setSnippetSearchQuery: (query: string) => void;
   setMemorySearchQuery: (query: string) => void;
   setHighlightedCitation: (citationId: string | null) => void;
+  // Bracket navigation actions
+  initializeBrackets: (textareaElement: HTMLTextAreaElement, insertedText: string, insertPosition: number) => void;
+  updateBracketPositions: (textareaElement: HTMLTextAreaElement) => void;
+  clearBrackets: () => void;
+  handleTabNavigation: (event: React.KeyboardEvent<HTMLTextAreaElement>, textareaElement: HTMLTextAreaElement) => boolean;
 };
 
 export const useUIStore = create<UIState>()(
@@ -69,6 +84,10 @@ export const useUIStore = create<UIState>()(
     snippetSearchQuery: '',
     memorySearchQuery: '',
     highlightedCitationId: null,
+    // Bracket navigation initial state
+    bracketPositions: [],
+    currentBracketIndex: -1,
+    isBracketNavigationActive: false,
     // Actions
     toggleSidebar: () => set((state) => {
       state.isSidebarOpen = !state.isSidebarOpen;
@@ -153,5 +172,111 @@ export const useUIStore = create<UIState>()(
     setHighlightedCitation: citationId => set((state) => {
       state.highlightedCitationId = citationId;
     }),
+
+    // Bracket navigation actions
+    initializeBrackets: (textareaElement, _insertedText, _insertPosition) => {
+      set((state) => {
+        state.isBracketNavigationActive = true;
+        state.currentBracketIndex = 0;
+      });
+
+      // Update positions from current textarea content
+      useUIStore.getState().updateBracketPositions(textareaElement);
+
+      // Select the first bracket
+      const positions = useUIStore.getState().bracketPositions;
+      if (positions.length > 0) {
+        const firstBracket = positions[0];
+        if (firstBracket) {
+          setTimeout(() => {
+            textareaElement.focus();
+            textareaElement.setSelectionRange(firstBracket.start, firstBracket.end);
+          }, 0);
+        }
+      }
+    },
+
+    updateBracketPositions: (textareaElement) => {
+      const text = textareaElement.value;
+      const bracketRegex = /\[([^\]]+)\]/g;
+      const positions: BracketPosition[] = [];
+      const matches = [...text.matchAll(bracketRegex)];
+      for (const match of matches) {
+        positions.push({
+          start: match.index || 0,
+          end: (match.index || 0) + match[0].length,
+          content: match[1] || '',
+        });
+      }
+
+      set((state) => {
+        const previousCount = state.bracketPositions.length;
+        const newCount = positions.length;
+
+        state.bracketPositions = positions;
+
+        // If brackets were consumed (count decreased), adjust the index
+        if (newCount < previousCount && newCount > 0) {
+          // Set to -1 so that the next tab increment lands on index 0 (first remaining bracket)
+          state.currentBracketIndex = -1;
+        } else if (state.currentBracketIndex >= positions.length) {
+          // If current index is out of bounds, reset to first bracket
+          state.currentBracketIndex = positions.length > 0 ? 0 : -1;
+        }
+
+        // Deactivate if no brackets left
+        if (positions.length === 0) {
+          state.isBracketNavigationActive = false;
+          state.currentBracketIndex = -1;
+        }
+      });
+    },
+
+    clearBrackets: () => set((state) => {
+      state.bracketPositions = [];
+      state.currentBracketIndex = -1;
+      state.isBracketNavigationActive = false;
+    }),
+
+    handleTabNavigation: (event, textareaElement) => {
+      const state = useUIStore.getState();
+
+      if (event.key !== 'Tab' || !state.isBracketNavigationActive) {
+        return false;
+      }
+
+      event.preventDefault();
+
+      // Update bracket positions first (in case text changed)
+      state.updateBracketPositions(textareaElement);
+
+      // Get updated state
+      const updatedState = useUIStore.getState();
+      if (updatedState.bracketPositions.length === 0) {
+        return false;
+      }
+
+      // Calculate next/previous index
+      const currentIndex = updatedState.currentBracketIndex;
+      const totalBrackets = updatedState.bracketPositions.length;
+      const nextIndex = event.shiftKey
+        ? (currentIndex - 1 + totalBrackets) % totalBrackets
+        : (currentIndex + 1) % totalBrackets;
+
+      const bracket = updatedState.bracketPositions[nextIndex];
+
+      if (bracket && textareaElement) {
+        // Update the current index
+        set((draft) => {
+          draft.currentBracketIndex = nextIndex;
+        });
+
+        // Focus and select the bracket
+        textareaElement.focus();
+        textareaElement.setSelectionRange(bracket.start, bracket.end);
+      }
+
+      return true;
+    },
   })),
 );

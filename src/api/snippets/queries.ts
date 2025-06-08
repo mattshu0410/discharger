@@ -1,10 +1,13 @@
 import type { CreateSnippetRequest, UpdateSnippetRequest } from './types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  createSnippet,
+  deleteSnippet,
   getAllSnippets,
   getSnippetById,
   searchSnippets,
-} from './hooks'; // Updated import path and only import existing functions
+  updateSnippet,
+} from './hooks';
 
 // Query Keys
 export const snippetKeys = {
@@ -41,30 +44,25 @@ export function useSnippet(id: string) {
   });
 }
 
-// Create new snippet (TODO: implement when needed)
+// Create new snippet
 export function useCreateSnippet() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (_data: CreateSnippetRequest) => {
-      // TODO: Implement actual creation
-      throw new Error('Create snippet not implemented yet');
-    },
+    mutationFn: (data: CreateSnippetRequest) => createSnippet(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: snippetKeys.lists() });
     },
   });
 }
 
-// Update snippet (TODO: implement when needed)
+// Update snippet
 export function useUpdateSnippet() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id: _id, data: _data }: { id: string; data: UpdateSnippetRequest }) => {
-      // TODO: Implement actual update
-      throw new Error('Update snippet not implemented yet');
-    },
+    mutationFn: ({ id, data }: { id: string; data: UpdateSnippetRequest }) =>
+      updateSnippet(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: snippetKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: snippetKeys.lists() });
@@ -72,15 +70,12 @@ export function useUpdateSnippet() {
   });
 }
 
-// Delete snippet (TODO: implement when needed)
+// Delete snippet
 export function useDeleteSnippet() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (_id: string) => {
-      // TODO: Implement actual deletion
-      throw new Error('Delete snippet not implemented yet');
-    },
+    mutationFn: (id: string) => deleteSnippet(id),
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: snippetKeys.lists() });
       queryClient.removeQueries({ queryKey: snippetKeys.detail(id) });

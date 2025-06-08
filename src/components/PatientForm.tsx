@@ -93,6 +93,10 @@ export function PatientForm() {
   const openSnippetSelector = useUIStore(state => state.openSnippetSelector);
   const closeSnippetSelector = useUIStore(state => state.closeSnippetSelector);
   const isSnippetSelectorOpen = useUIStore(state => state.isSnippetSelectorOpen);
+  const initializeBrackets = useUIStore(state => state.initializeBrackets);
+  const updateBracketPositions = useUIStore(state => state.updateBracketPositions);
+  const handleTabNavigation = useUIStore(state => state.handleTabNavigation);
+  const clearBrackets = useUIStore(state => state.clearBrackets);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // I sort of only need this here so we are going to cbbs with usePatientStore
   const [triggerPosition, setTriggerPosition] = useState<number | null>(null);
@@ -210,6 +214,12 @@ export function PatientForm() {
     updateCurrentPatientContext(e.target.value);
     form.setValue('context', e.target.value);
 
+    // Update bracket positions if navigation is active
+    const isNavigationActive = useUIStore.getState().isBracketNavigationActive;
+    if (isNavigationActive && textareaRef.current) {
+      updateBracketPositions(textareaRef.current);
+    }
+
     if (isDocumentSelectorOpen) {
       const textFromTrigger = currentPatientContext.substring(triggerPosition || 0, cursorPos);
 
@@ -236,6 +246,11 @@ export function PatientForm() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Handle bracket navigation first - pass the textarea element
+    if (handleTabNavigation(e, e.currentTarget)) {
+      return;
+    }
+
     if (e.key === '@') {
       const cursorPos = e.currentTarget.selectionStart;
       const textBefore = currentPatientContext.substring(0, cursorPos);
@@ -269,6 +284,7 @@ export function PatientForm() {
     } else if (e.key === 'Escape') {
       closeDocumentSelector();
       closeSnippetSelector();
+      clearBrackets();
       requestAnimationFrame(() => {
         textareaRef.current?.focus();
       });
@@ -298,6 +314,8 @@ export function PatientForm() {
   };
 
   const handleSnippetSelect = (snippet: Snippet) => {
+    // Clear any existing bracket navigation
+    clearBrackets();
     // Replace the "/" + any typed text with the snippet content
     const currentCursorPos = textareaRef.current?.selectionStart || 0;
     const textBeforeTrigger = currentPatientContext.substring(0, triggerPosition || 0);
@@ -307,12 +325,24 @@ export function PatientForm() {
     updateCurrentPatientContext(newContext);
     form.setValue('context', newContext);
 
-    // Refocus textarea and set cursor position after inserted content
-    setTimeout(() => {
-      textareaRef.current?.focus();
-      const newCursorPos = (triggerPosition || 0) + snippet.content.length;
-      textareaRef.current?.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
+    // Close snippet selector
+    closeSnippetSelector();
+
+    // Initialize bracket navigation if the snippet has brackets
+    if (textareaRef.current && snippet.content.includes('[')) {
+      setTimeout(() => {
+        if (textareaRef.current) {
+          initializeBrackets(textareaRef.current, snippet.content, triggerPosition || 0);
+        }
+      }, 0);
+    } else {
+      // Refocus textarea and set cursor position after inserted content if no brackets
+      setTimeout(() => {
+        textareaRef.current?.focus();
+        const newCursorPos = (triggerPosition || 0) + snippet.content.length;
+        textareaRef.current?.setSelectionRange(newCursorPos, newCursorPos);
+      }, 0);
+    }
   };
 
   if (!currentPatientId) {

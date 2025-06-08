@@ -50,6 +50,8 @@ This application enables medical professionals to efficiently generate discharge
   * Added document appears as tag below input field. ✅
 * `/` hotkey for inserting snippets (e.g., `/orthonote`). ✅
   * Features as per document selector ✅
+  * Tabbing after adding a snippet auto-highlights the next whole square bracketed items e.g. [FINDINGS] in sequence
+  * This allows people to insert a snippet tab to first [ITEM], type something to replace, tab again to the next bracket items
 
 * "Generate Discharge" button:
 
@@ -93,6 +95,7 @@ This application enables medical professionals to efficiently generate discharge
 
 * User-defined text shortcuts.
 * Inserted via `/` prefix.
+* Allow users to create and manage snippets
 
 ### 4. Profile
 
