@@ -1,6 +1,6 @@
 'use client';
 import type { Snippet } from '@/types';
-import { useSnippets } from '@/api/snippets/queries';
+import { useSearchSnippets, useSnippets } from '@/api/snippets/queries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
@@ -34,7 +34,18 @@ export function SnippetSelector({ onSelect }: SnippetSelectorProps) {
   const setSnippetSearchQuery = useUIStore(state => state.setSnippetSearchQuery);
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const { data: snippets = [], isLoading } = useSnippets(searchQuery);
+
+  // Use different hooks based on whether we have a search query
+  const { data: allSnippets = [], isLoading: isLoadingAll } = useSnippets();
+  const { data: searchResults = [], isLoading: isLoadingSearch } = useSearchSnippets(
+    searchQuery,
+    !!searchQuery.trim(),
+  );
+
+  // Determine which data to use
+  const hasSearchQuery = !!searchQuery.trim();
+  const snippets = hasSearchQuery ? searchResults.map(result => result.snippet) : allSnippets;
+  const isLoading = hasSearchQuery ? isLoadingSearch : isLoadingAll;
 
   // Reset selection when results change
   useEffect(() => {

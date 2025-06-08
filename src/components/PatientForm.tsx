@@ -1,13 +1,13 @@
 'use client';
 import type { Document, Snippet } from '@/types';
+import { getPatientById } from '@/api/patients/hooks';
 import { DocumentSelector } from '@/components/DocumentSelector';
 import { SnippetSelector } from '@/components/SnippetSelector';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 
-import { getPatientById } from '@/hooks/patients';
+import { Textarea } from '@/components/ui/textarea';
 import { useUIStore } from '@/stores';
 import { usePatientStore } from '@/stores/patientStore';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -103,7 +103,10 @@ export function PatientForm() {
   // Fetch current patient data when a patient is selected (but not for new patients)
   const { data: currentPatient, isLoading: isPatientLoading } = useQuery({
     queryKey: ['getPatientbyId', currentPatientId],
-    queryFn: () => getPatientById(currentPatientId!),
+    queryFn: async () => {
+      const existingPatient = await getPatientById(String(currentPatientId));
+      return existingPatient;
+    },
     enabled: !!currentPatientId && !isNewPatient,
   });
 

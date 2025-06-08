@@ -1,4 +1,5 @@
 import type { UpdatePreferencesRequest, UpdateProfileRequest } from './types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   addDefaultDocument,
   addFavoriteDocument,
@@ -7,8 +8,7 @@ import {
   removeFavoriteDocument,
   updateUserPreferences,
   updateUserProfile,
-} from '@/hooks/users';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+} from './hooks';
 
 // Query Keys
 export const userKeys = {

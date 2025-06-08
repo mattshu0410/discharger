@@ -1,6 +1,8 @@
-# Discharge Letter Generator
+# Discharger
 
-This is a simple discharge letter generator that uses LangChain and Google Gemini to generate discharge letters. Serves as a tool for me to learn frontend and build my first app to solve a problem that I face.
+Discharger is project created by two medical students for doctors - making it easy for doctors to write hospital-based discharge summaries.
+
+uses LangChain and Google Gemini to generate discharge letters. Serves as a tool for me to learn frontend and build my first app to solve a problem that I face.
 
 ## Deployment Requirements
 
@@ -13,6 +15,8 @@ This is a simple discharge letter generator that uses LangChain and Google Gemin
 3. Run the development server:
    ```bash
    npm run dev
+   npm run dev:test
+   npm run dev:auth
    ```
 
 ### Testing Environment Setup

@@ -5,7 +5,10 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 const isProtectedRoute = createRouteMatcher([
-  '/dashboard(.*)',
+  '/', // Protect the homepage
+  '/dashboard(.*)', // Protect dashboard and sub-routes
+  '/memory(.*)', // Protect memory pages
+  '/api(.*)', // Protect API routes
 ]);
 
 const isAuthPage = createRouteMatcher([
@@ -27,10 +30,25 @@ const aj = arcjet.withRule(
   }),
 );
 
+const BYPASS_AUTH = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
+
 export default async function middleware(
   request: NextRequest,
   event: NextFetchEvent,
 ) {
+  console.warn('🔍 Middleware running for:', request.nextUrl.pathname);
+  console.warn('🔍 BYPASS_AUTH:', BYPASS_AUTH);
+
+  // Test the route matcher
+  const isProtected = isProtectedRoute(request);
+  console.warn('🔍 Is protected route:', isProtected);
+
+  // Optional: Bypass auth for development testing
+  if (BYPASS_AUTH) {
+    console.warn('🔓 Auth bypass enabled');
+    return NextResponse.next();
+  }
+
   // Verify the request with Arcjet
   // Use `process.env` instead of Env to reduce bundle size in middleware
   if (process.env.ARCJET_KEY) {
@@ -41,14 +59,28 @@ export default async function middleware(
     }
   }
 
-  if (isAuthPage(request) || isProtectedRoute(request)) {
+  // Run Clerk middleware for routes that need it (both auth pages and protected routes)
+  const needsClerkMiddleware = isAuthPage(request) || isProtectedRoute(request);
+
+  if (needsClerkMiddleware) {
     return clerkMiddleware(async (auth, req) => {
+      // Only enforce authentication on protected routes (not auth pages)
       if (isProtectedRoute(req)) {
+        console.warn('🔍 Route is protected, checking auth...');
+
+        // Debug: Check what Clerk thinks about the current auth state
+        const authState = await auth();
+        const userId = authState.userId;
+        console.warn('🔍 Clerk userId:', userId);
+        console.warn('🔍 Is authenticated:', !!userId);
+
         const signInUrl = new URL('/sign-in', req.url);
         await auth.protect({
           unauthenticatedUrl: signInUrl.toString(),
         });
+        console.warn('🔍 Auth check passed!');
       }
+      // Auth pages (/sign-in, /sign-up) get Clerk middleware but no protection
       return NextResponse.next();
     })(request, event);
   }
