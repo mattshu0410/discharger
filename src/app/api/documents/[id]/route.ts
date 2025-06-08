@@ -1,6 +1,32 @@
 import { createServerSupabaseClient } from '@/libs/supabase-server';
 import { NextResponse } from 'next/server';
 
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const supabase = createServerSupabaseClient();
+
+    const { error } = await supabase
+      .from('documents')
+      .delete()
+      .eq('id', params.id);
+
+    if (error) {
+      console.error('Delete error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: 'Document deleted successfully' });
+  } catch (err) {
+    return NextResponse.json(
+      { error: 'Internal Server Error', details: err },
+      { status: 500 },
+    );
+  }
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } },

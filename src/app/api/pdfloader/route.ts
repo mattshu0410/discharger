@@ -1,4 +1,5 @@
 import { getVectorStore } from '@/libs/vectorStore';
+import { DocxLoader } from '@langchain/community/document_loaders/fs/docx';
 import { PDFLoader } from '@langchain/community/document_loaders/fs/pdf';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
@@ -18,11 +19,29 @@ export async function POST(req: Request) {
 
     for (const file of files) {
       const startLoad = Date.now();
-      // Step 1: Loading
-      const loader = new PDFLoader(file);
+      // Step 1: Loading - Create appropriate loader based on file type
+      const fileExtension = file.name.toLowerCase().split('.').pop();
+      let loader;
+
+      switch (fileExtension) {
+        case 'pdf':
+          loader = new PDFLoader(file);
+          break;
+        case 'docx':
+          loader = new DocxLoader(file);
+          break;
+        case 'doc':
+          // Note: .doc files may require additional processing or conversion
+          // For now, try DocxLoader which might handle some .doc files
+          loader = new DocxLoader(file);
+          break;
+        default:
+          throw new Error(`Unsupported file type: ${fileExtension}`);
+      }
+
       const docs = await loader.load();
       const endLoad = Date.now();
-      console.warn(`PDF loading took ${endLoad - startLoad} ms`);
+      console.warn(`Document loading took ${endLoad - startLoad} ms`);
       console.warn(docs[25]?.pageContent.slice(0, 6000));
       console.warn(docs[25]?.metadata);
 

@@ -1,5 +1,6 @@
 'use client';
 import type { memoryFile } from '@/types/files';
+import type { UseMutationResult } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,8 +12,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import { toast } from 'sonner';
 
-export const columns: ColumnDef<memoryFile>[] = [
+export const createColumns = (
+  deleteDocument: UseMutationResult<any, Error, string, unknown>,
+): ColumnDef<memoryFile>[] => [
   {
     header: ({ column }) => {
       return (
@@ -28,7 +32,7 @@ export const columns: ColumnDef<memoryFile>[] = [
     accessorKey: 'fileName',
     cell: ({ row }) => {
       return (
-        <div className="text-left font-medium">
+        <div className="text-left font-medium" title={row.original.fileName}>
           {row.original.fileName}
         </div>
       );
@@ -37,18 +41,25 @@ export const columns: ColumnDef<memoryFile>[] = [
   {
     header: 'Summary',
     accessorKey: 'summary',
+    cell: ({ row }) => {
+      return (
+        <div className="text-left" title={row.original.summary}>
+          {row.original.summary}
+        </div>
+      );
+    },
   },
   {
     header: 'Tags',
     accessorKey: 'tags',
     cell: ({ row }) => {
       return (
-        <div className="text-left font-medium">
+        <div className="flex flex-wrap gap-1">
           {row.original.tags.map(tag => (
             <Badge
               key={tag}
               variant="outline"
-              className="mr-1"
+              className="text-xs whitespace-nowrap"
             >
               {tag}
             </Badge>
@@ -60,6 +71,13 @@ export const columns: ColumnDef<memoryFile>[] = [
   {
     header: 'Source',
     accessorKey: 'source',
+    cell: ({ row }) => {
+      return (
+        <div className="text-left truncate" title={row.original.source}>
+          {row.original.source}
+        </div>
+      );
+    },
   },
   {
     header: '',
@@ -80,7 +98,25 @@ export const columns: ColumnDef<memoryFile>[] = [
               Copy summary
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">Remove Document</DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+              onClick={() => {
+                if (row.original.documentId) {
+                  deleteDocument.mutate(row.original.documentId, {
+                    onSuccess: () => {
+                      toast('Document deleted successfully');
+                    },
+                    onError: (error) => {
+                      toast('Error deleting document', {
+                        description: error.message,
+                      });
+                    },
+                  });
+                }
+              }}
+            >
+              Remove Document
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

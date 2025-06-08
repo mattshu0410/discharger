@@ -22,6 +22,8 @@ type UIState = {
   isSnippetSelectorOpen: boolean;
   snippetSelectorPosition: { x: number; y: number } | null;
   snippetSearchQuery: string;
+  // Memory page search
+  memorySearchQuery: string;
   // Highlighted citation
   highlightedCitationId: string | null;
   // Actions
@@ -44,6 +46,7 @@ type UIState = {
   openSnippetSelector: (position: { x: number; y: number }) => void;
   closeSnippetSelector: () => void;
   setSnippetSearchQuery: (query: string) => void;
+  setMemorySearchQuery: (query: string) => void;
   setHighlightedCitation: (citationId: string | null) => void;
 };
 
@@ -64,6 +67,7 @@ export const useUIStore = create<UIState>()(
     isSnippetSelectorOpen: false,
     snippetSelectorPosition: null,
     snippetSearchQuery: '',
+    memorySearchQuery: '',
     highlightedCitationId: null,
     // Actions
     toggleSidebar: () => set((state) => {
@@ -140,6 +144,10 @@ export const useUIStore = create<UIState>()(
 
     setSnippetSearchQuery: query => set((state) => {
       state.snippetSearchQuery = query;
+    }),
+
+    setMemorySearchQuery: query => set((state) => {
+      state.memorySearchQuery = query;
     }),
 
     setHighlightedCitation: citationId => set((state) => {

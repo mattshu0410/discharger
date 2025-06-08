@@ -1,4 +1,5 @@
 'use client';
+import { useDeleteDocument, useDocuments, useSearchDocuments } from '@/api/documents/queries';
 import { DataTable } from '@/components/DataTable';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,14 +21,16 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Protect } from '@clerk/nextjs';
+import { Input } from '@/components/ui/input';
+import { useUIStore } from '@/stores/uiStore';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Search } from '@mynaui/icons-react';
 import { CloudUpload, X } from 'lucide-react';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
-import { columns } from './columns';
+import { createColumns } from './columns';
 
 const formSchema = z.object({
   files: z
@@ -41,65 +44,6 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
-
-const mockData = [
-  {
-    id: 1,
-    fileName: '2023-aha-acc-guideline.pdf',
-    summary: 'Comprehensive update on chronic coronary disease management, including new risk stratification tools.',
-    tags: ['coronary', 'cardiology', 'risk', 'chronic'],
-    source: 'AHA/ACC 2023',
-  },
-  {
-    id: 2,
-    fileName: '2022-esc-heart-failure.pdf',
-    summary: 'Latest recommendations for diagnosis and treatment of heart failure in adults.',
-    tags: ['heart failure', 'ESC', 'treatment'],
-    source: 'ESC 2022',
-  },
-  {
-    id: 3,
-    fileName: '2021-who-diabetes.pdf',
-    summary: 'WHO guidelines for diabetes care, focusing on prevention and integrated management.',
-    tags: ['diabetes', 'WHO', 'prevention'],
-    source: 'WHO 2021',
-  },
-  {
-    id: 4,
-    fileName: '2020-nice-hypertension.pdf',
-    summary: 'NICE guidance on hypertension diagnosis and stepwise management.',
-    tags: ['hypertension', 'NICE', 'blood pressure'],
-    source: 'NICE 2020',
-  },
-  {
-    id: 5,
-    fileName: '2019-esc-afib.pdf',
-    summary: 'ESC consensus on atrial fibrillation screening, anticoagulation, and rhythm control strategies.',
-    tags: ['atrial fibrillation', 'ESC', 'stroke prevention'],
-    source: 'ESC 2019',
-  },
-  {
-    id: 6,
-    fileName: '2022-idf-obesity.pdf',
-    summary: 'Framework for clinical and public health interventions for obesity management worldwide.',
-    tags: ['obesity', 'IDF', 'public health'],
-    source: 'IDF 2022',
-  },
-  {
-    id: 7,
-    fileName: '2021-endocrine-thyroid.pdf',
-    summary: 'Clinical guidelines on hypothyroidism and hyperthyroidism diagnosis and treatment.',
-    tags: ['thyroid', 'endocrine', 'hormones'],
-    source: 'Endocrine Society 2021',
-  },
-  {
-    id: 8,
-    fileName: '2020-cdc-immunization.pdf',
-    summary: 'Annual CDC immunization schedule and updates for adult and pediatric vaccines.',
-    tags: ['vaccination', 'CDC', 'prevention'],
-    source: 'CDC 2020',
-  },
-];
 
 export default function FileUploadFormDemo() {
   // const { user } = useUser();
@@ -120,6 +64,16 @@ export default function FileUploadFormDemo() {
 
   // Create a `client` object for accessing Supabase data using the Clerk token
   // const client = createClerkSupabaseClient();
+
+  const { memorySearchQuery, setMemorySearchQuery } = useUIStore();
+  const { data: allDocuments = [], refetch } = useDocuments();
+  const { data: searchResults = [] } = useSearchDocuments(memorySearchQuery, memorySearchQuery.length > 0);
+  const deleteDocument = useDeleteDocument();
+
+  // Use search results when searching, otherwise show all documents
+  const documents = memorySearchQuery.trim()
+    ? searchResults.map(result => result.document)
+    : allDocuments;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -151,88 +105,123 @@ export default function FileUploadFormDemo() {
     data.files.forEach((file) => {
       formData.append('files', file);
     });
-    const res = await fetch('/api/pdfloader', {
+
+    // Add additional metadata
+    formData.append('summary', `Uploaded document(s): ${data.files.map(f => f.name).join(', ')}`);
+    formData.append('tags', JSON.stringify([])); // Default empty tags
+    formData.append('shareStatus', 'private'); // Default to private
+
+    const res = await fetch('/api/documents', {
       method: 'POST',
       body: formData,
     });
+
     if (res.ok) {
-      toast('Files uploaded successfully');
+      const result = await res.json();
+      toast('Files uploaded successfully', {
+        description: `${result.documents.length} document(s) uploaded${result.vectorProcessed ? ' and processed' : ''}`,
+      });
+      // Reset form after successful upload
+      form.reset();
+      // Refetch documents to show new uploads
+      refetch();
     } else {
-      toast('Error uploading files');
+      const error = await res.json();
+      toast('Error uploading files', {
+        description: error.error || 'Unknown error occurred',
+      });
     }
-  }, []);
+  }, [form, refetch]);
 
   return (
-    <Protect
-      fallback={<div>You are not authorized to upload files</div>}
-    >
-      <>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="w-full max-w-md">
-            <FormField
-              control={form.control}
-              name="files"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Attachments</FormLabel>
-                  <FormControl>
-                    <FileUpload
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      accept=".pdf,.doc,.docx"
-                      maxFiles={2}
-                      maxSize={20 * 1024 * 1024}
-                      onFileReject={(_, message) => {
-                        form.setError('files', {
-                          message,
-                        });
-                      }}
-                      multiple
-                    >
-                      <FileUploadDropzone className="flex-row flex-wrap border-dotted text-center">
-                        <CloudUpload className="size-4" />
-                        Drag and drop or
-                        <FileUploadTrigger asChild>
-                          <Button variant="link" size="sm" className="p-0">
-                            choose files
-                          </Button>
-                        </FileUploadTrigger>
-                        to upload
-                      </FileUploadDropzone>
-                      <FileUploadList>
-                        {field.value.map((file, index) => (
-                          <FileUploadItem key={index} value={file}>
-                            <FileUploadItemPreview />
-                            <FileUploadItemMetadata />
-                            <FileUploadItemDelete asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-7"
-                              >
-                                <X />
-                                <span className="sr-only">Delete</span>
-                              </Button>
-                            </FileUploadItemDelete>
-                          </FileUploadItem>
-                        ))}
-                      </FileUploadList>
-                    </FileUpload>
-                  </FormControl>
-                  <FormDescription>
-                    Upload up to 2 documents up to 20MB each.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="mt-4">
-              Submit
-            </Button>
-          </form>
-        </Form>
-        <DataTable columns={columns} data={mockData} />
-      </>
-    </Protect>
+    <div className="flex flex-col gap-4 m-16">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="w-full max-w-md">
+          <FormField
+            control={form.control}
+            name="files"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Attachments</FormLabel>
+                <FormControl>
+                  <FileUpload
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    accept=".pdf,.doc,.docx"
+                    maxFiles={2}
+                    maxSize={20 * 1024 * 1024}
+                    onFileReject={(_, message) => {
+                      form.setError('files', {
+                        message,
+                      });
+                    }}
+                    multiple
+                  >
+                    <FileUploadDropzone className="flex-row flex-wrap border-dotted text-center">
+                      <CloudUpload className="size-4" />
+                      Drag and drop or
+                      <FileUploadTrigger asChild>
+                        <Button variant="link" size="sm" className="p-0">
+                          choose files
+                        </Button>
+                      </FileUploadTrigger>
+                      to upload
+                    </FileUploadDropzone>
+                    <FileUploadList>
+                      {field.value.map((file, index) => (
+                        <FileUploadItem key={index} value={file}>
+                          <FileUploadItemPreview />
+                          <FileUploadItemMetadata />
+                          <FileUploadItemDelete asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-7"
+                            >
+                              <X />
+                              <span className="sr-only">Delete</span>
+                            </Button>
+                          </FileUploadItemDelete>
+                        </FileUploadItem>
+                      ))}
+                    </FileUploadList>
+                  </FileUpload>
+                </FormControl>
+                <FormDescription>
+                  Upload up to 2 documents up to 20MB each.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button variant="default" className="mt-4">
+            Submit
+          </Button>
+        </form>
+      </Form>
+
+      {/* Search Input */}
+      <div className="relative w-full max-w-md">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search documents by name, summary, or tags..."
+          value={memorySearchQuery}
+          onChange={e => setMemorySearchQuery(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      <DataTable
+        columns={createColumns(deleteDocument)}
+        data={documents.map((doc, index) => ({
+          id: index + 1, // Simple numeric ID for display
+          fileName: doc.filename,
+          summary: doc.summary,
+          tags: doc.tags || [],
+          source: doc.uploadedBy || doc.source,
+          documentId: doc.id, // Store the real ID for operations
+        }))}
+      />
+    </div>
   );
 }

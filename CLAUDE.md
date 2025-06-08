@@ -112,3 +112,5 @@ Required environment variables (see `.env.example`):
 - Discharge generation API: `src/app/api/discharge/route.ts`
 - Database schema: `src/models/Schema.ts`
 - Store definitions: `src/stores/`
+
+## File Structure

@@ -42,18 +42,21 @@ This application enables medical professionals to efficiently generate discharge
 #### Left Panel: Context Input
 
 * Paste patient notes.
-* `@` hotkey opens searchable document selector:
 
-  * Search updates results live.
-  * `Enter` selects first result.
-  * Arrow keys allow navigation.
-  * Added document appears as tag below input field.
-* `/` hotkey for inserting snippets (e.g., `/orthonote`).
+* `@` hotkey opens searchable document selector: ✅
+  * Search updates results live. ✅
+  * `Enter` selects first result. ✅
+  * Arrow keys allow navigation. ✅
+  * Added document appears as tag below input field. ✅
+* `/` hotkey for inserting snippets (e.g., `/orthonote`). ✅
+  * Features as per document selector ✅
+
 * "Generate Discharge" button:
 
   * Sends input context.
   * Matches documents via vector similarity.
   * Adds relevant documents to context automatically.
+
 * Context auto-saves:
 
   * On patient switch or app close.
@@ -81,6 +84,7 @@ This application enables medical professionals to efficiently generate discharge
   * Searchable index of pre-existing guidelines.
   * Upload button to add new PDFs.
   * Option to make uploaded PDF shareable.
+  * All new PDFs uploaded should be vectorised and stored.
   * Table view with metadata:
 
     * Filename, Summary, Uploader, Date Uploaded, Source (User or Community), Share Status
@@ -124,6 +128,7 @@ This application enables medical professionals to efficiently generate discharge
   * Can generate discharge summary.
   * Output is **blurred**.
   * Prompted to **login** to view full output.
+  * Currently, for build purposes default user_id is 00000000-0000-0000-0000-000000000000.
 
 ---
 

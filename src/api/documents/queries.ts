@@ -106,15 +106,21 @@ export function useUpdateDocument() {
   });
 }
 
-// Delete document (mock for now)
+// Delete document
 export function useDeleteDocument() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Mock delete
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return { success: true, id };
+      const response = await fetch(`/api/documents/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete document');
+      }
+
+      return response.json();
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
