@@ -10,9 +10,7 @@ export type BracketPosition = {
 type UIState = {
   // Sidebar state
   isSidebarOpen: boolean;
-  activeView: 'patients' | 'settings';
-  // Settings tabs
-  activeSettingsTab: 'memory' | 'snippets' | 'profile';
+  // NOTE: Removed activeView and activeSettingsTab - these are now derived from URL
   // Panels state
   isContextViewerOpen: boolean;
   contextViewerHeight: number;
@@ -39,8 +37,7 @@ type UIState = {
   // Actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
-  setActiveView: (view: UIState['activeView']) => void;
-  setActiveSettingsTab: (tab: UIState['activeSettingsTab']) => void;
+  // NOTE: Removed setActiveView and setActiveSettingsTab - navigation is now URL-driven
   toggleContextViewer: () => void;
   setContextViewerOpen: (open: boolean) => void;
   setContextViewerHeight: (height: number) => void;
@@ -69,8 +66,6 @@ export const useUIStore = create<UIState>()(
   immer(set => ({
     // Initial state
     isSidebarOpen: true,
-    activeView: 'patients',
-    activeSettingsTab: 'memory',
     isContextViewerOpen: false,
     contextViewerHeight: 200,
     isUploadModalOpen: false,
@@ -94,12 +89,6 @@ export const useUIStore = create<UIState>()(
     }),
     setSidebarOpen: open => set((state) => {
       state.isSidebarOpen = open;
-    }),
-    setActiveView: view => set((state) => {
-      state.activeView = view;
-    }),
-    setActiveSettingsTab: tab => set((state) => {
-      state.activeSettingsTab = tab;
     }),
     toggleContextViewer: () => set((state) => {
       state.isContextViewerOpen = !state.isContextViewerOpen;

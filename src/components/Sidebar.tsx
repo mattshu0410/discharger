@@ -19,31 +19,34 @@ import {
   UserCircle,
 } from '@mynaui/icons-react';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export function Sidebar() {
   const router = useRouter();
+  const pathname = usePathname();
   const currentPatientId = usePatientStore(state => state.currentPatientId);
   const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
   const createNewPatient = usePatientStore(state => state.createNewPatient);
 
-  // UI state from the new UI store
+  // UI state from the new UI store (only non-navigation state)
   const isSidebarOpen = useUIStore(state => state.isSidebarOpen);
   const toggleSidebar = useUIStore(state => state.toggleSidebar);
-  const activeView = useUIStore(state => state.activeView);
-  const setActiveView = useUIStore(state => state.setActiveView);
-  const activeSettingsTab = useUIStore(state => state.activeSettingsTab);
-  const setActiveSettingsTab = useUIStore(state => state.setActiveSettingsTab);
 
   const { data: patients } = useQuery<Patient[]>({
     queryKey: ['getPatients'],
     queryFn: () => getAllPatients(),
   });
 
-  const handleSettingsNavigation = (tab: 'memory' | 'snippets' | 'profile') => {
-    setActiveView('settings');
-    setActiveSettingsTab(tab);
-  };
+  // Derive navigation state from URL (Single Source of Truth)
+  const activeView = pathname === '/' ? 'patients' : 'settings';
+  const activeSettingsTab
+    = pathname === '/memory'
+      ? 'memory'
+      : pathname === '/snippets'
+        ? 'snippets'
+        : pathname === '/profile'
+          ? 'profile'
+          : 'memory'; // default
 
   return (
     <div
@@ -70,10 +73,7 @@ export function Sidebar() {
                 <Button
                   variant={activeView === 'patients' ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => {
-                    setActiveView('patients');
-                    router.push('/');
-                  }}
+                  onClick={() => router.push('/')}
                   className="flex items-center gap-2"
                 >
                   <User size={16} />
@@ -82,7 +82,7 @@ export function Sidebar() {
                 <Button
                   variant={activeView === 'settings' ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => setActiveView('settings')}
+                  onClick={() => router.push('/memory')}
                   className="flex items-center gap-2"
                 >
                   <Cog size={16} />
@@ -126,7 +126,6 @@ export function Sidebar() {
                             )}
                             onClick={() => {
                               setCurrentPatientId(p.id);
-                              setActiveView('patients'); // Ensure we're on patients view
                               router.push('/');
                             }}
                           >
@@ -149,37 +148,40 @@ export function Sidebar() {
                       Settings
                     </div>
                     <button
+                      type="button"
                       className={cn(
                         'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
                         activeSettingsTab === 'memory'
                           ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                           : 'hover:bg-[var(--sidebar-accent)]',
                       )}
-                      onClick={() => handleSettingsNavigation('memory')}
+                      onClick={() => router.push('/memory')}
                     >
                       <HardDrive size={16} />
                       Memory
                     </button>
                     <button
+                      type="button"
                       className={cn(
                         'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
                         activeSettingsTab === 'snippets'
                           ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                           : 'hover:bg-[var(--sidebar-accent)]',
                       )}
-                      onClick={() => handleSettingsNavigation('snippets')}
+                      onClick={() => router.push('/snippets')}
                     >
                       <FileText size={16} />
                       Snippets
                     </button>
                     <button
+                      type="button"
                       className={cn(
                         'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
                         activeSettingsTab === 'profile'
                           ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                           : 'hover:bg-[var(--sidebar-accent)]',
                       )}
-                      onClick={() => handleSettingsNavigation('profile')}
+                      onClick={() => router.push('/profile')}
                     >
                       <UserCircle size={16} />
                       Profile

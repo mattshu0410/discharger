@@ -11,6 +11,11 @@ let nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   serverExternalPackages: ['@electric-sql/pglite'],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb', // Increase from default 1mb to 50mb for large PDF uploads
+    },
+  },
 };
 
 // Conditionally enable bundle analysis

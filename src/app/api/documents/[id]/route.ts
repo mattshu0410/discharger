@@ -3,15 +3,16 @@ import { NextResponse } from 'next/server';
 
 export async function DELETE(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const supabase = createServerSupabaseClient();
 
     const { error } = await supabase
       .from('documents')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
 
     if (error) {
       console.error('Delete error:', error);
@@ -29,15 +30,16 @@ export async function DELETE(
 
 export async function GET(
   _request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const supabase = createServerSupabaseClient();
 
     const { data, error } = await supabase
       .from('documents')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (error) {

@@ -17,23 +17,39 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'No files uploaded' }), { status: 400 });
     }
 
+    // Check file sizes and reject if too large (fallback safety)
+    const MAX_FILE_SIZE = 45 * 1024 * 1024; // 45MB (slightly under our 50MB limit)
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        return new Response(
+          JSON.stringify({
+            error: `File "${file.name}" is too large (${Math.round(file.size / 1024 / 1024)}MB). Maximum size is 45MB.`,
+          }),
+          { status: 413 },
+        );
+      }
+    }
+
     for (const file of files) {
       const startLoad = Date.now();
       // Step 1: Loading - Create appropriate loader based on file type
       const fileExtension = file.name.toLowerCase().split('.').pop();
       let loader;
 
+      // Convert File to Blob for proper handling by LangChain loaders
+      const blob = new Blob([await file.arrayBuffer()], { type: file.type });
+
       switch (fileExtension) {
         case 'pdf':
-          loader = new PDFLoader(file);
+          loader = new PDFLoader(blob);
           break;
         case 'docx':
-          loader = new DocxLoader(file);
+          loader = new DocxLoader(blob);
           break;
         case 'doc':
           // Note: .doc files may require additional processing or conversion
           // For now, try DocxLoader which might handle some .doc files
-          loader = new DocxLoader(file);
+          loader = new DocxLoader(blob);
           break;
         default:
           throw new Error(`Unsupported file type: ${fileExtension}`);
