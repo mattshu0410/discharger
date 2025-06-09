@@ -1,5 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import { Settings, Sprout, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
 export default function DevToolsPage() {
@@ -38,7 +39,10 @@ export default function DevToolsPage() {
 
   return (
     <div className="p-6 max-w-2xl">
-      <h1 className="text-2xl font-bold mb-6">🔧 Development Tools</h1>
+      <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
+        <Settings className="h-6 w-6" />
+        Development Tools
+      </h1>
 
       <div className="space-y-4">
         <div className="flex gap-4">
@@ -47,7 +51,16 @@ export default function DevToolsPage() {
             disabled={loading}
             className="flex-1"
           >
-            {loading ? 'Loading...' : '🌱 Seed Development Data'}
+            {loading
+              ? (
+                  'Loading...'
+                )
+              : (
+                  <>
+                    <Sprout className="h-4 w-4 mr-2" />
+                    Seed Development Data
+                  </>
+                )}
           </Button>
 
           <Button
@@ -56,7 +69,16 @@ export default function DevToolsPage() {
             variant="destructive"
             className="flex-1"
           >
-            {loading ? 'Loading...' : '🗑️ Clear All Data'}
+            {loading
+              ? (
+                  'Loading...'
+                )
+              : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Clear All Data
+                  </>
+                )}
           </Button>
         </div>
 

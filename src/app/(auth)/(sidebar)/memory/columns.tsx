@@ -11,11 +11,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
+import { ArrowUpDown, Building2, ClipboardCopy, Eye, File, FileText, MoreHorizontal, Trash2, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const createColumns = (
   deleteDocument: UseMutationResult<any, Error, string, unknown>,
+  onPreviewDocument: (document: memoryFile) => void,
 ): ColumnDef<memoryFile>[] => [
   {
     header: ({ column }) => {
@@ -37,18 +38,18 @@ export const createColumns = (
       const getFileIcon = () => {
         switch (fileExtension) {
           case 'pdf':
-            return '📄';
+            return <File className="h-5 w-5 text-red-600" />;
           case 'doc':
           case 'docx':
-            return '📝';
+            return <FileText className="h-5 w-5 text-blue-600" />;
           default:
-            return '📄';
+            return <File className="h-5 w-5 text-gray-600" />;
         }
       };
 
       return (
         <div className="flex items-center gap-3 min-w-0">
-          <span className="text-lg">{getFileIcon()}</span>
+          {getFileIcon()}
           <div className="min-w-0 flex-1">
             <div className="font-medium truncate" title={fileName}>
               {fileName}
@@ -66,7 +67,7 @@ export const createColumns = (
     accessorKey: 'summary',
     cell: ({ row }) => {
       const summary = row.original.summary;
-      const truncatedSummary = summary.length > 100 ? `${summary.slice(0, 100)}...` : summary;
+      const truncatedSummary = summary.length > 50 ? `${summary.slice(0, 50)}...` : summary;
 
       return (
         <div className="max-w-md">
@@ -116,8 +117,22 @@ export const createColumns = (
 
       return (
         <div className="flex items-center gap-2">
-          <Badge variant={isUser ? 'default' : 'secondary'} className="text-xs">
-            {isUser ? '👤 You' : '🌐 Community'}
+          <Badge variant={isUser ? 'default' : 'secondary'} className="text-xs flex items-center gap-1">
+            {isUser
+              ? (
+                  <>
+                    <User className="h-3 w-3" />
+                    {' '}
+                    You
+                  </>
+                )
+              : (
+                  <>
+                    <Building2 className="h-3 w-3" />
+                    {' '}
+                    Community
+                  </>
+                )}
           </Badge>
         </div>
       );
@@ -137,24 +152,36 @@ export const createColumns = (
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem
+              onClick={() => onPreviewDocument(row.original)}
+              className="flex items-center gap-2"
+            >
+              <Eye className="h-4 w-4" />
+              Preview document
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
               onClick={() => {
                 navigator.clipboard.writeText(row.original.summary);
                 toast.success('Summary copied to clipboard');
               }}
+              className="flex items-center gap-2"
             >
-              📋 Copy summary
+              <ClipboardCopy className="h-4 w-4" />
+              Copy summary
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
                 navigator.clipboard.writeText(row.original.fileName);
                 toast.success('Filename copied to clipboard');
               }}
+              className="flex items-center gap-2"
             >
-              📄 Copy filename
+              <File className="h-4 w-4" />
+              Copy filename
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive flex items-center gap-2"
               onClick={() => {
                 if (row.original.documentId) {
                   deleteDocument.mutate(row.original.documentId, {
@@ -170,7 +197,8 @@ export const createColumns = (
                 }
               }}
             >
-              🗑️ Remove Document
+              <Trash2 className="h-4 w-4" />
+              Remove Document
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

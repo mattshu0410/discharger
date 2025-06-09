@@ -1,3 +1,4 @@
+import type { memoryFile } from '@/types/files';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
@@ -18,6 +19,8 @@ type UIState = {
   isUploadModalOpen: boolean;
   isPatientModalOpen: boolean;
   isSnippetModalOpen: boolean;
+  isDocumentPreviewOpen: boolean;
+  previewDocument: memoryFile | null;
   // Document selector state
   isDocumentSelectorOpen: boolean;
   documentSelectorPosition: { x: number; y: number } | null;
@@ -47,6 +50,8 @@ type UIState = {
   closePatientModal: () => void;
   openSnippetModal: () => void;
   closeSnippetModal: () => void;
+  openDocumentPreview: (document: memoryFile) => void;
+  closeDocumentPreview: () => void;
   openDocumentSelector: (position: { x: number; y: number }) => void;
   closeDocumentSelector: () => void;
   setDocumentSearchQuery: (query: string) => void;
@@ -71,6 +76,8 @@ export const useUIStore = create<UIState>()(
     isUploadModalOpen: false,
     isPatientModalOpen: false,
     isSnippetModalOpen: false,
+    isDocumentPreviewOpen: false,
+    previewDocument: null,
     isDocumentSelectorOpen: false,
     documentSelectorPosition: null,
     documentSearchQuery: '',
@@ -120,6 +127,16 @@ export const useUIStore = create<UIState>()(
 
     closeSnippetModal: () => set((state) => {
       state.isSnippetModalOpen = false;
+    }),
+
+    openDocumentPreview: document => set((state) => {
+      state.isDocumentPreviewOpen = true;
+      state.previewDocument = document;
+    }),
+
+    closeDocumentPreview: () => set((state) => {
+      state.isDocumentPreviewOpen = false;
+      state.previewDocument = null;
     }),
 
     openDocumentSelector: position => set((state) => {

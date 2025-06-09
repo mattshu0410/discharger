@@ -1,6 +1,10 @@
+import { processDocumentFile } from '@/libs/documentProcessor';
 import { createServerSupabaseClient } from '@/libs/supabase-server';
+import { getUserVectorStore } from '@/libs/vectorStore';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
@@ -19,77 +23,126 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No files uploaded' }, { status: 400 });
     }
 
-    const supabase = createServerSupabaseClient();
-    const uploadedDocuments = [];
-
+    // Check file sizes
+    const MAX_FILE_SIZE = 45 * 1024 * 1024; // 45MB
     for (const file of files) {
-      // Generate document metadata
-      const documentData = {
-        user_id: user.id,
-        filename: file.name,
-        summary: summary || `Uploaded document: ${file.name}`,
-        source: 'user',
-        share_status: shareStatus,
-        uploaded_by: user.firstName && user.lastName
-          ? `${user.firstName} ${user.lastName}`
-          : user.primaryEmailAddress?.emailAddress || 'Current User',
-        s3_url: `https://temp-url/${file.name}`, // TODO: Implement actual file storage
-        tags,
-        metadata: {
-          fileSize: file.size,
-          fileType: file.type,
-          originalName: file.name,
-        },
-      };
-
-      // Save document metadata to database
-      const { data: document, error: dbError } = await supabase
-        .from('documents')
-        .insert(documentData)
-        .select()
-        .single();
-
-      if (dbError) {
-        console.error('Database error:', dbError);
-        return NextResponse.json({ error: 'Failed to save document metadata' }, { status: 500 });
+      if (file.size > MAX_FILE_SIZE) {
+        return NextResponse.json({
+          error: `File "${file.name}" is too large (${Math.round(file.size / 1024 / 1024)}MB). Maximum size is 45MB.`,
+        }, { status: 413 });
       }
-
-      uploadedDocuments.push(document);
     }
 
-    // Process files for vector storage
-    const processingFormData = new FormData();
-    files.forEach((file) => {
-      processingFormData.append('files', file);
-    });
+    const supabase = createServerSupabaseClient();
+    const uploadedDocuments = [];
+    const vectorStore = await getUserVectorStore(user.id);
 
-    // Call the pdfloader API for vector processing
-    let vectorProcessed = false;
-    let processingError = null;
+    // Debug: Check if Supabase can see the authenticated user
+    console.warn('Clerk user ID:', user.id);
 
-    try {
-      const processingResponse = await fetch(`${request.url.replace('/api/documents', '/api/pdfloader')}`, {
-        method: 'POST',
-        body: processingFormData,
-      });
+    // Process each file atomically
+    for (const file of files) {
+      try {
+        // Step 1: Upload file to Supabase Storage (user context from JWT)
+        const fileName = `${user.id}/${Date.now()}-${file.name}`;
+        const fileBuffer = await file.arrayBuffer();
 
-      if (processingResponse.ok) {
-        vectorProcessed = true;
-      } else {
-        const errorText = await processingResponse.text();
-        processingError = `Vector processing failed: ${processingResponse.status} ${errorText}`;
-        console.error(processingError);
+        const { error: storageError } = await supabase.storage
+          .from('documents')
+          .upload(fileName, fileBuffer, {
+            contentType: file.type,
+            upsert: false,
+            metadata: {
+              originalName: file.name,
+            },
+          });
+
+        if (storageError) {
+          throw new Error(`Failed to upload file: ${storageError.message}`);
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('documents')
+          .getPublicUrl(fileName);
+
+        // Step 2: Create document metadata
+        const documentData = {
+          user_id: user.id, // Clerk ID - must match JWT sub claim
+          filename: file.name,
+          summary: summary || `Uploaded document: ${file.name}`,
+          source: 'user',
+          share_status: shareStatus,
+          uploaded_by: user.firstName && user.lastName
+            ? `${user.firstName} ${user.lastName}`
+            : user.primaryEmailAddress?.emailAddress || 'Current User',
+          s3_url: publicUrl,
+          tags,
+          metadata: {
+            fileSize: file.size,
+            fileType: file.type,
+            originalName: file.name,
+            storageKey: fileName,
+          },
+        };
+
+        const { data: document, error: dbError } = await supabase
+          .from('documents')
+          .insert(documentData)
+          .select()
+          .single();
+
+        if (dbError) {
+          // Rollback: Delete uploaded file
+          await supabase.storage.from('documents').remove([fileName]);
+          throw new Error(`Failed to save document metadata: ${dbError.message}`);
+        }
+
+        // Step 3: Process document with LangChain and store vectors
+        try {
+          const processedDoc = await processDocumentFile(file, document.id, user.id);
+
+          // Add documents to vector store and get the inserted IDs
+          const vectorIds = await vectorStore.addDocuments(processedDoc.chunks);
+
+          // Update the custom columns for each inserted vector
+          for (let i = 0; i < vectorIds.length; i++) {
+            const vectorId = vectorIds[i];
+            const chunk = processedDoc.chunks[i];
+
+            if (chunk) {
+              await supabase
+                .from('document_vecs')
+                .update({
+                  document_id: chunk.metadata.document_id,
+                  page_number: chunk.metadata.page_number || 1,
+                  chunk_index: chunk.metadata.chunk_index || 0,
+                })
+                .eq('id', vectorId);
+            }
+          }
+        } catch (vectorError) {
+          // Rollback: Delete file and document record
+          await supabase.storage.from('documents').remove([fileName]);
+          await supabase.from('documents').delete().eq('id', document.id);
+          throw new Error(`Failed to process document: ${vectorError instanceof Error ? vectorError.message : 'Unknown error'}`);
+        }
+
+        uploadedDocuments.push(document);
+      } catch (error) {
+        console.error(`Error processing file ${file.name}:`, error);
+
+        return NextResponse.json({
+          error: `Failed to process file "${file.name}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+          partialSuccess: uploadedDocuments.length > 0,
+          successfulDocuments: uploadedDocuments,
+        }, { status: 500 });
       }
-    } catch (error) {
-      processingError = `Vector processing error: ${error instanceof Error ? error.message : 'Unknown error'}`;
-      console.error(processingError);
     }
 
     return NextResponse.json({
-      message: 'Documents uploaded successfully',
+      message: 'Documents uploaded and processed successfully',
       documents: uploadedDocuments,
-      vectorProcessed,
-      processingError,
+      vectorProcessed: true,
     });
   } catch (error) {
     console.error('Upload error:', error);
@@ -115,8 +168,8 @@ export async function GET(request: Request) {
 
     let dbQuery = supabase.from('documents').select('*');
 
-    // Filter by user - show user's documents + public community documents
-    dbQuery = dbQuery.or(`user_id.eq.${user.id},share_status.eq.public`);
+    // RLS policies will automatically filter by user's documents + public documents
+    // No need for manual user filtering
 
     // If specific IDs are requested
     if (ids) {

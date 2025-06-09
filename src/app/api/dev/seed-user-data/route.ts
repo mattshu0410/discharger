@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { createServerSupabaseClient } from '@/libs/supabase-server';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
@@ -27,6 +29,24 @@ export async function POST() {
     // Clear existing development data for this user
     await supabase.from('patients').delete().eq('user_id', userId);
     await supabase.from('snippets').delete().eq('user_id', userId);
+
+    // Get existing documents to clean up storage files
+    const { data: existingDocs } = await supabase
+      .from('documents')
+      .select('s3_url')
+      .eq('user_id', userId);
+
+    // Delete existing files from storage
+    if (existingDocs && existingDocs.length > 0) {
+      const filePaths = existingDocs
+        .filter(doc => doc.s3_url && doc.s3_url.includes('/documents/'))
+        .map(doc => doc.s3_url.split('/documents/')[1]);
+
+      if (filePaths.length > 0) {
+        await supabase.storage.from('documents').remove(filePaths);
+      }
+    }
+
     await supabase.from('documents').delete().eq('user_id', userId);
 
     // Insert patient seed data for the current user
@@ -67,36 +87,81 @@ export async function POST() {
       throw new Error(`Failed to create patients: ${patientsError.message}`);
     }
 
-    // Insert document seed data for the current user
-    const { data: documents, error: documentsError } = await supabase
+    // Upload seed PDFs to storage and create document records
+    const seedFiles = [
+      {
+        filename: 'HBP-Preeclampsia-During-Pregnancy.pdf',
+        summary: 'Comprehensive guidelines for management of high blood pressure and preeclampsia during pregnancy',
+        tags: ['pregnancy', 'hypertension', 'preeclampsia', 'maternal-health'],
+      },
+      {
+        filename: 'SOMANZ-Hypertensive-Disorders-Pregnancy.pdf',
+        summary: 'SOMANZ guidelines for hypertensive disorders in pregnancy including diagnosis and management protocols',
+        tags: ['pregnancy', 'hypertension', 'SOMANZ', 'guidelines'],
+      },
+      {
+        filename: 'Screening-Prevention-Preterm-PET.pdf',
+        summary: 'Evidence-based guidelines for screening and prevention of preterm preeclampsia',
+        tags: ['preeclampsia', 'screening', 'prevention', 'preterm'],
+      },
+    ];
+
+    const documents = [];
+
+    for (const seedFile of seedFiles) {
+      try {
+        // Read the PDF file from public/assets/files/
+        const filePath = path.join(process.cwd(), 'public', 'assets', 'files', seedFile.filename);
+        const fileBuffer = fs.readFileSync(filePath);
+
+        // Generate unique storage path
+        const documentId = randomUUID();
+        const storagePath = `${userId}/${documentId}-${seedFile.filename}`;
+
+        // Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('documents')
+          .upload(storagePath, fileBuffer, {
+            contentType: 'application/pdf',
+            upsert: false,
+          });
+
+        if (uploadError) {
+          console.error(`Failed to upload ${seedFile.filename}:`, uploadError);
+          continue; // Skip this file and continue with others
+        }
+
+        // Get the public URL
+        const { data: urlData } = supabase.storage
+          .from('documents')
+          .getPublicUrl(storagePath);
+
+        // Create document record
+        documents.push({
+          id: documentId,
+          user_id: userId,
+          filename: seedFile.filename,
+          summary: seedFile.summary,
+          source: 'community',
+          share_status: 'public',
+          uploaded_by: user.primaryEmailAddress?.emailAddress || userId,
+          s3_url: urlData.publicUrl,
+          tags: seedFile.tags,
+          metadata: {
+            uploadedVia: 'dev-seed',
+            originalPath: storagePath,
+          },
+        });
+      } catch (error) {
+        console.error(`Error processing ${seedFile.filename}:`, error);
+        continue; // Skip this file and continue with others
+      }
+    }
+
+    // Insert all successfully processed documents
+    const { error: documentsError } = await supabase
       .from('documents')
-      .insert([
-        {
-          id: randomUUID(),
-          user_id: userId,
-          filename: 'Hypertension_Management_Guidelines_2024.pdf',
-          summary: 'Comprehensive guidelines for diagnosis and management of hypertension in adults',
-          source: 'community',
-          share_status: 'public',
-          uploaded_by: 'Dr. Smith',
-          s3_url: 'https://s3.example.com/doc-1.pdf',
-          tags: ['hypertension', 'cardiovascular', 'guidelines', 'blood pressure'],
-          metadata: { pageCount: 45, specialty: 'Cardiology' },
-        },
-        {
-          id: randomUUID(),
-          user_id: userId,
-          filename: 'Diabetes_Care_Standards_2024.pdf',
-          summary: 'Standards of medical care in diabetes including glycemic targets and management algorithms',
-          source: 'community',
-          share_status: 'public',
-          uploaded_by: 'Dr. Johnson',
-          s3_url: 'https://s3.example.com/doc-2.pdf',
-          tags: ['diabetes', 'endocrinology', 'glycemic control', 'insulin'],
-          metadata: { pageCount: 78, specialty: 'Endocrinology' },
-        },
-      ])
-      .select();
+      .insert(documents);
 
     if (documentsError) {
       throw new Error(`Failed to create documents: ${documentsError.message}`);
@@ -161,7 +226,7 @@ DISCHARGE INSTRUCTIONS:
         userId,
         userEmail: user.primaryEmailAddress?.emailAddress,
         patientsCreated: patients?.length || 0,
-        documentsCreated: documents?.length || 0,
+        documentsCreated: documents.length,
         snippetsCreated: snippets?.length || 0,
       },
     });
@@ -195,6 +260,23 @@ export async function DELETE() {
     const userId = user.id;
 
     console.warn(`🗑️ Clearing data for Clerk user: ${userId}`);
+
+    // Get documents to clean up storage files first
+    const { data: docsToDelete } = await supabase
+      .from('documents')
+      .select('s3_url')
+      .eq('user_id', userId);
+
+    // Delete files from storage
+    if (docsToDelete && docsToDelete.length > 0) {
+      const filePaths = docsToDelete
+        .filter(doc => doc.s3_url && doc.s3_url.includes('/documents/'))
+        .map(doc => doc.s3_url.split('/documents/')[1]);
+
+      if (filePaths.length > 0) {
+        await supabase.storage.from('documents').remove(filePaths);
+      }
+    }
 
     // Clear user data (cascading deletes will handle related records)
     await Promise.all([
