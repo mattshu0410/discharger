@@ -1,4 +1,3 @@
-import type { Document } from '@/types';
 import type { SearchDocumentsRequest, UpdateDocumentRequest } from './types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -16,6 +15,7 @@ export const documentKeys = {
   details: () => [...documentKeys.all, 'detail'] as const,
   detail: (id: string) => [...documentKeys.details(), id] as const,
   search: (query: string) => [...documentKeys.all, 'search', query] as const,
+  signedUrl: (id: string) => [...documentKeys.all, 'signedUrl', id] as const,
 };
 
 // Get all documents
@@ -53,29 +53,35 @@ export function useDocumentsByIds(ids: string[]) {
   });
 }
 
-// Upload document (mock for now)
+// Upload document
 export function useUploadDocument() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { file: File; summary: string; tags: string[]; shareStatus: 'private' | 'public' }) => {
-      // Mock upload
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    mutationFn: async (data: { files: File[]; summary: string; tags: string[]; shareStatus: 'private' | 'public' }) => {
+      const formData = new FormData();
 
-      const newDoc: Document = {
-        id: `doc-${Date.now()}`,
-        userId: 'user-1',
-        filename: data.file.name,
-        summary: data.summary,
-        source: 'user',
-        shareStatus: data.shareStatus,
-        uploadedBy: 'Current User',
-        uploadedAt: new Date(),
-        s3Url: `https://s3.example.com/doc-${Date.now()}.pdf`,
-        tags: data.tags,
-      };
+      // Add files
+      data.files.forEach((file) => {
+        formData.append('files', file);
+      });
 
-      return newDoc;
+      // Add metadata
+      formData.append('summary', data.summary);
+      formData.append('tags', JSON.stringify(data.tags));
+      formData.append('shareStatus', data.shareStatus);
+
+      const response = await fetch('/api/documents', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to upload documents');
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
@@ -126,6 +132,23 @@ export function useDeleteDocument() {
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
       queryClient.removeQueries({ queryKey: documentKeys.detail(id) });
     },
+  });
+}
+
+// Get signed URL for document
+export function useSignedUrl(documentId: string, enabled = true) {
+  return useQuery({
+    queryKey: documentKeys.signedUrl(documentId),
+    queryFn: async () => {
+      const response = await fetch(`/api/documents/${documentId}/signed-url`);
+      if (!response.ok) {
+        throw new Error('Failed to get signed URL');
+      }
+      const data = await response.json();
+      return data.signedUrl;
+    },
+    enabled: enabled && !!documentId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 

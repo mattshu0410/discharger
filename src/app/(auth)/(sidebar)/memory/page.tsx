@@ -1,6 +1,7 @@
 'use client';
-import { useDeleteDocument, useDocuments, useSearchDocuments } from '@/api/documents/queries';
+import { useDeleteDocument, useDocuments, useSearchDocuments, useUploadDocument } from '@/api/documents/queries';
 import { DataTable } from '@/components/DataTable';
+import { DocumentPreviewModal } from '@/components/DocumentPreviewModal';
 import { Button } from '@/components/ui/button';
 import {
   FileUpload,
@@ -46,11 +47,18 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function MemoryPage() {
-  const { memorySearchQuery, setMemorySearchQuery } = useUIStore();
-  const { data: allDocuments = [], refetch, isLoading } = useDocuments();
+  const {
+    memorySearchQuery,
+    setMemorySearchQuery,
+    isDocumentPreviewOpen,
+    previewDocument,
+    openDocumentPreview,
+    closeDocumentPreview,
+  } = useUIStore();
+  const { data: allDocuments = [], isLoading } = useDocuments();
   const { data: searchResults = [] } = useSearchDocuments(memorySearchQuery, memorySearchQuery.length > 0);
   const deleteDocument = useDeleteDocument();
-  const [isUploading, setIsUploading] = React.useState(false);
+  const uploadDocument = useUploadDocument();
 
   // Use search results when searching, otherwise show all documents
   const documents = memorySearchQuery.trim()
@@ -65,48 +73,26 @@ export default function MemoryPage() {
   });
 
   const onSubmit = React.useCallback(async (data: FormValues) => {
-    setIsUploading(true);
-
     try {
-      const formData = new FormData();
-      data.files.forEach((file) => {
-        formData.append('files', file);
+      await uploadDocument.mutateAsync({
+        files: data.files,
+        summary: `Uploaded document(s): ${data.files.map(f => f.name).join(', ')}`,
+        tags: [], // Default empty tags
+        shareStatus: 'private', // Default to private
       });
 
-      // Add additional metadata
-      formData.append('summary', `Uploaded document(s): ${data.files.map(f => f.name).join(', ')}`);
-      formData.append('tags', JSON.stringify([])); // Default empty tags
-      formData.append('shareStatus', 'private'); // Default to private
-
-      const res = await fetch('/api/documents', {
-        method: 'POST',
-        body: formData,
+      toast.success('Files uploaded successfully', {
+        description: `${data.files.length} document(s) uploaded and processed`,
       });
 
-      if (res.ok) {
-        const result = await res.json();
-        toast.success('Files uploaded successfully', {
-          description: `${result.documents.length} document(s) uploaded${result.vectorProcessed ? ' and processed' : ''}`,
-        });
-        // Reset form after successful upload
-        form.reset();
-        // Refetch documents to show new uploads
-        refetch();
-      } else {
-        const error = await res.json();
-        toast.error('Error uploading files', {
-          description: error.error || 'Unknown error occurred',
-        });
-      }
+      // Reset form after successful upload
+      form.reset();
     } catch (error) {
-      console.error('Upload failed', error);
-      toast.error('Upload failed', {
-        description: 'An unexpected error occurred',
+      toast.error('Error uploading files', {
+        description: error instanceof Error ? error.message : 'Unknown error occurred',
       });
-    } finally {
-      setIsUploading(false);
     }
-  }, [form, refetch]);
+  }, [form, uploadDocument]);
 
   return (
     <div className="flex flex-col m-16">
@@ -178,7 +164,7 @@ export default function MemoryPage() {
                                   </FileUploadTrigger>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                  PDF, DOC, DOCX up to 20MB each
+                                  PDF, DOC, DOCX up to 48MB each
                                 </p>
                               </div>
                             </FileUploadDropzone>
@@ -203,7 +189,7 @@ export default function MemoryPage() {
                           </FileUpload>
                         </FormControl>
                         <FormDescription>
-                          Upload up to 2 medical documents (max 20MB each)
+                          Upload your internal hospital or ward-specific guidelines (max 48MB each).
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -212,9 +198,9 @@ export default function MemoryPage() {
                   <Button
                     type="submit"
                     className="w-full"
-                    disabled={isUploading || form.watch('files').length === 0}
+                    disabled={uploadDocument.isPending || form.watch('files').length === 0}
                   >
-                    {isUploading
+                    {uploadDocument.isPending
                       ? (
                           <>
                             <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
@@ -284,14 +270,16 @@ export default function MemoryPage() {
                     )
                   : (
                       <DataTable
-                        columns={createColumns(deleteDocument)}
+                        columns={createColumns(deleteDocument, openDocumentPreview)}
                         data={documents.map((doc, index) => ({
                           id: index + 1,
                           fileName: doc.filename,
                           summary: doc.summary,
                           tags: doc.tags || [],
-                          source: doc.uploadedBy || doc.source,
+                          source: 'user',
                           documentId: doc.id,
+                          fileUrl: doc.s3Url,
+                          uploadedAt: doc.uploadedAt,
                         }))}
                       />
                     )}
@@ -299,6 +287,13 @@ export default function MemoryPage() {
           </div>
         </div>
       </div>
+
+      {/* Document Preview Modal */}
+      <DocumentPreviewModal
+        document={previewDocument}
+        isOpen={isDocumentPreviewOpen}
+        onClose={closeDocumentPreview}
+      />
     </div>
   );
 }

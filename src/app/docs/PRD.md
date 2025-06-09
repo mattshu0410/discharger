@@ -50,14 +50,21 @@ This application enables medical professionals to efficiently generate discharge
   * Added document appears as tag below input field. ✅
 * `/` hotkey for inserting snippets (e.g., `/orthonote`). ✅
   * Features as per document selector ✅
-  * Tabbing after adding a snippet auto-highlights the next whole square bracketed items e.g. [FINDINGS] in sequence
-  * This allows people to insert a snippet tab to first [ITEM], type something to replace, tab again to the next bracket items
+  * Tabbing after adding a snippet auto-highlights the next whole square bracketed items e.g. [FINDINGS] in sequence ✅
+  * This allows people to insert a snippet tab to first [ITEM], type something to replace, tab again to the next bracket items ✅
 
 * "Generate Discharge" button:
 
-  * Sends input context.
+  * Sends input context too LLM API.
   * Matches documents via vector similarity.
   * Adds relevant documents to context automatically.
+  * Prompts LLM to return structured JSON
+  * The prompt is a templated structure based on LangChain template with
+    * Current Clinical Context
+    * Latest Discharge Summary (initially empty)
+    * Relevant Documents
+    * Extra Feedback Provided
+    * Rules saved from Memory
 
 * Context auto-saves:
 
@@ -66,7 +73,14 @@ This application enables medical professionals to efficiently generate discharge
 
 #### Right Panel: Discharge Summary Viewer
 
-* Parses structured JSON response to readable HTML sections.
+* Parses structured JSON response from LLM to readable separate HTML sections.
+* Mini one way input in the bottom that serves as a quick way to give instructions to modify the output be re-running the LLM.
+* When users provides a feedback e.g. "All medications should be formatted as "medication | dosage | frequency"
+  * This is inserted into templated prompt and discharge summary is regenerated
+  * Feedback should ideally only affect elements reference and keep other parts of the summary the same
+  * There will be a small floating banner above the feedback input box that asks something like "would you like this to be rule..."
+  * A clean version of the rule is saved into Memory
+
 * Each section has a **copy button**.
 * Clicking any output section:
 
@@ -78,6 +92,10 @@ This application enables medical professionals to efficiently generate discharge
 * Displays all sources in context:
 
   * Clear UI distinction between guidelines and notes.
+
+#### Citations Feature Function
+
+*
 
 ### 2. Documents & Memory
 
@@ -93,9 +111,9 @@ This application enables medical professionals to efficiently generate discharge
 
 ### 3. Snippets
 
-* User-defined text shortcuts.
-* Inserted via `/` prefix.
-* Allow users to create and manage snippets
+* User-defined text shortcuts. ✅
+* Inserted via `/` prefix. ✅
+* Allow users to create and manage snippets ✅
 
 ### 4. Profile
 
@@ -113,15 +131,31 @@ This application enables medical professionals to efficiently generate discharge
 
 ### Document Ingestion
 
-* **Raw PDFs** → stored in **AWS S3**
-* **Text chunks + embeddings** → stored in **Supabase**:
+* All uploaded PDFs/documents will be both embedded with vectors stored in table w/ pgvector AND stored in **Supabase Storage** as parsed raw text and as raw PDF
+* Resumable uploads should be used.
+* All CRUD of documents in Storage table should be exclusively through Supabase API
+* In Memory, one table action is looking at the PDF in a pop-up modal which retrieves from Storage.
 
+* **Text chunks + embeddings** → stored in **Supabase**:
   ```
   pdf_id | chunk_index | text_chunk   | page_number | embedding       | metadata
   -------------------------------------------------------------------------------
   abc123 | 0           | "Chunk text" | 1           | [0.123, ...]     | {...}
   ```
 * Processed using **Langchain** (text + vector extraction)
+
+### Document Retrieval
+
+* We will use Parent Document Retrieval
+* We will use embedding similarity search than retrieve the full text from Supabase Storage
+* Remember that they can only search over vectors that are either public or belong to PDFs they uploaded
+
+#### Research
+* There is some research to suggest rank fusion of BM25 and embedding similarity performs best
+* Beyond that adding contextual retrieval (i.e. storying LLM generated context with each chunk) + reranker after rank fusion boosts performance even more
+* https://www.anthropic.com/news/contextual-retrieval
+* However given the long-context window, it's possible Parent Document Retrieval (PDR) may just be the solution.
+* Therefore, for our use case, I will use PDR mostly because it is pretty straightforward and will get us to MVP.
 
 ### User Access Logic
 

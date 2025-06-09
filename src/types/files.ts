@@ -7,6 +7,8 @@ export const fileSchema = z.object({
   tags: z.array(z.string()),
   source: z.string(),
   documentId: z.string().optional(), // Real document ID for operations
+  fileUrl: z.string().optional(), // Supabase Storage URL
+  uploadedAt: z.string().optional(), // Upload timestamp
 });
 
 export type memoryFile = z.infer<typeof fileSchema>;
