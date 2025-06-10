@@ -1,4 +1,5 @@
 import type { Patient } from '@/types';
+import type { CreatePatientRequest, UpdatePatientRequest } from './types';
 
 // Get all patients, optionally limit the number returned
 export async function getAllPatients(limit?: number): Promise<Patient[]> {
@@ -35,7 +36,7 @@ export async function getPatientById(id: string): Promise<Patient> {
 }
 
 // Create a new patient
-export async function createPatient(data: Omit<Patient, 'id' | 'createdAt' | 'updatedAt'>): Promise<Patient> {
+export async function createPatient(data: CreatePatientRequest): Promise<Patient> {
   const response = await fetch('/api/patients', {
     method: 'POST',
     headers: {
@@ -45,14 +46,15 @@ export async function createPatient(data: Omit<Patient, 'id' | 'createdAt' | 'up
   });
 
   if (!response.ok) {
-    throw new Error('Failed to create patient');
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`Failed to create patient: ${response.status} ${errorData.error || 'Unknown error'}`);
   }
 
   return response.json();
 }
 
 // Update an existing patient
-export async function updatePatient(id: string, data: Partial<Omit<Patient, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Promise<Patient> {
+export async function updatePatient(id: string, data: UpdatePatientRequest): Promise<Patient> {
   if (!id) {
     throw new Error('Patient ID is required');
   }

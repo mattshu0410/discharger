@@ -28,6 +28,9 @@ export function Sidebar() {
   const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
   const createNewPatient = usePatientStore(state => state.createNewPatient);
 
+  // Check if this is a new/temporary patient
+  const isNewPatient = currentPatientId && typeof currentPatientId === 'string' && currentPatientId.startsWith('new-');
+
   // UI state from the new UI store (only non-navigation state)
   const isSidebarOpen = useUIStore(state => state.isSidebarOpen);
   const toggleSidebar = useUIStore(state => state.toggleSidebar);
@@ -36,6 +39,21 @@ export function Sidebar() {
     queryKey: ['getPatients'],
     queryFn: () => getAllPatients(),
   });
+
+  // Create temporary patient entry for the sidebar
+  const temporaryPatient = isNewPatient
+    ? {
+        id: currentPatientId!,
+        name: 'New Patient',
+        context: 'Creating new patient...',
+        isTemporary: true,
+      }
+    : null;
+
+  // Combine temporary patient with existing patients
+  const allPatients = temporaryPatient
+    ? [temporaryPatient, ...(patients || [])]
+    : (patients || []);
 
   // Derive navigation state from URL (Single Source of Truth)
   const activeView = pathname === '/' ? 'patients' : 'settings';
@@ -114,7 +132,7 @@ export function Sidebar() {
                       Patients
                     </div>
                     <ul className="space-y-1">
-                      {patients?.map(p => (
+                      {allPatients.map(p => (
                         <li key={p.id} className="list-none">
                           <button
                             type="button"
@@ -123,16 +141,32 @@ export function Sidebar() {
                               currentPatientId === p.id
                                 ? 'bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)]'
                                 : 'hover:bg-[var(--sidebar-accent)]',
+                              // Special styling for temporary patient
+                              'isTemporary' in p && p.isTemporary && 'border-2 border-dashed border-yellow-400/50 bg-yellow-50/10',
                             )}
                             onClick={() => {
                               setCurrentPatientId(p.id);
                               router.push('/');
                             }}
                           >
-                            <User size={18} />
+                            {/* Different icon for temporary patient */}
+                            {'isTemporary' in p && p.isTemporary
+                              ? (
+                                  <div className="w-[18px] h-[18px] rounded-full bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center">
+                                    <Plus size={10} className="text-yellow-800" />
+                                  </div>
+                                )
+                              : (
+                                  <User size={18} />
+                                )}
                             <div className="flex flex-col overflow-hidden flex-1">
-                              <div className="font-medium text-base leading-tight">
+                              <div className="font-medium text-base leading-tight flex items-center gap-2">
                                 {p.name}
+                                {'isTemporary' in p && p.isTemporary && (
+                                  <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] rounded-full border">
+                                    Temp
+                                  </span>
+                                )}
                               </div>
                               <div className="text-xs text-muted-foreground truncate">{p.context}</div>
                             </div>

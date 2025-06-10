@@ -60,6 +60,7 @@ export async function PUT(
         sex: body.sex,
         context: body.context,
         discharge_text: body.discharge_text,
+        document_ids: body.document_ids,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)

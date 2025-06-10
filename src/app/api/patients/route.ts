@@ -46,8 +46,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const supabase = createServerSupabaseClient();
 
-    // Validate required fields based on migration
-    if (!body.name || !body.age || !body.sex) {
+    // Validate required fields
+    if (!body.name || body.age === undefined || body.age === null || !body.sex) {
       return NextResponse.json(
         { error: 'Missing required fields: name, age, sex' },
         { status: 400 },
@@ -63,6 +63,7 @@ export async function POST(request: Request) {
         sex: body.sex,
         context: body.context || null,
         discharge_text: body.discharge_text || null,
+        document_ids: body.document_ids || [],
       })
       .select()
       .single();
