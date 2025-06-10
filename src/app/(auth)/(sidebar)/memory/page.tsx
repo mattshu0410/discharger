@@ -279,7 +279,7 @@ export default function MemoryPage() {
                           source: 'user',
                           documentId: doc.id,
                           fileUrl: doc.s3Url,
-                          uploadedAt: doc.uploadedAt,
+                          uploadedAt: doc.uploadedAt.toISOString(),
                         }))}
                       />
                     )}
