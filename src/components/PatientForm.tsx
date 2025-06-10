@@ -1,15 +1,16 @@
 'use client';
 import type { Document, Snippet } from '@/types';
 import { getPatientById } from '@/api/patients/hooks';
+import { AutoSaveIndicator } from '@/components/AutoSaveIndicator';
 import { DocumentSelector } from '@/components/DocumentSelector';
 import { SnippetSelector } from '@/components/SnippetSelector';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-
 import { Textarea } from '@/components/ui/textarea';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import { useUIStore } from '@/stores';
-import { usePatientStore } from '@/stores/patientStore';
+import { setAutoSaveFunction, usePatientStore } from '@/stores/patientStore';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Loader2, X } from 'lucide-react';
@@ -86,6 +87,9 @@ export function PatientForm() {
   const addDocument = usePatientStore(state => state.addDocument);
   const removeDocument = usePatientStore(state => state.removeDocument);
 
+  // Initialize autosave
+  const { savePatientContext } = useAutoSave();
+
   // UI state from uiStore
   const openDocumentSelector = useUIStore(state => state.openDocumentSelector);
   const closeDocumentSelector = useUIStore(state => state.closeDocumentSelector);
@@ -102,7 +106,7 @@ export function PatientForm() {
   const [triggerPosition, setTriggerPosition] = useState<number | null>(null);
 
   // Check if this is a new patient (starts with "new-")
-  const isNewPatient = currentPatientId && currentPatientId.startsWith('new-');
+  const isNewPatient = currentPatientId && typeof currentPatientId === 'string' && currentPatientId.startsWith('new-');
 
   // Fetch current patient data when a patient is selected (but not for new patients)
   const { data: currentPatient, isLoading: isPatientLoading } = useQuery({
@@ -131,6 +135,7 @@ export function PatientForm() {
   });
   type FormValues = z.infer<typeof formSchema>;
 
+  // Set up the autosave function in the store with patient name access
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -138,6 +143,14 @@ export function PatientForm() {
       context: currentPatientContext || '',
     },
   });
+
+  useEffect(() => {
+    const saveWithName = async (patientId: string, context: string) => {
+      const patientName = form.getValues('name');
+      await savePatientContext(patientId, context, patientName);
+    };
+    setAutoSaveFunction(saveWithName);
+  }, [savePatientContext, form]);
 
   // Update form values when patient or context changes
   useEffect(() => {
@@ -406,7 +419,10 @@ export function PatientForm() {
             name="context"
             render={({ field: _field }) => (
               <FormItem className="flex-1 flex flex-col">
-                <FormLabel>Clinical Context</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Clinical Context</FormLabel>
+                  <AutoSaveIndicator />
+                </div>
 
                 {/* Document Tags */}
                 {selectedDocuments.length > 0 && (

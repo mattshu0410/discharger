@@ -4,6 +4,11 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
+// Configuration for autosave behavior
+const AUTOSAVE_DEBOUNCE_DELAY = 2000; // 2 seconds - adjust this to make autosave faster/slower
+
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+
 type PatientState = {
   // Current patient selection
   currentPatientId: string | null;
@@ -20,6 +25,11 @@ type PatientState = {
   // UI state
   isGenerating: boolean;
 
+  // Autosave status tracking
+  saveStatus: SaveStatus;
+  lastSaved: Date | null;
+  saveError: string | null;
+
   // Actions
   setCurrentPatientId: (id: string | null) => void;
   updateCurrentPatientContext: (context: string) => void;
@@ -29,17 +39,29 @@ type PatientState = {
   addDocument: (document: Document) => void;
   removeDocument: (documentId: string) => void;
   clearDocuments: () => void;
+  setSaveStatus: (status: SaveStatus) => void;
+  setSaveError: (error: string | null) => void;
+  setLastSaved: (date: Date | null) => void;
 };
 
+// Store a reference to the auto-save function that will be set from the component
+let autoSaveFunction: ((patientId: string, context: string, patientName?: string) => Promise<void>) | null = null;
+
+export function setAutoSaveFunction(fn: (patientId: string, context: string, patientName?: string) => Promise<void>) {
+  autoSaveFunction = fn;
+}
+
 // Debounced save function for auto-saving context
-const debouncedSave = debounce((patientId: string, context: string) => {
-  // This will be called by the API layer to save to server
-  // Only save if there's actual content
-  if (context.trim()) {
+const debouncedSave = debounce(async (patientId: string, context: string, patientName?: string) => {
+  if (context.trim() && autoSaveFunction) {
     console.warn('Auto-saving context for patient:', patientId, `${context.slice(0, 50)}...`);
-    // TODO: Implement actual API call to save context
+    try {
+      await autoSaveFunction(patientId, context, patientName);
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    }
   }
-}, 1000);
+}, AUTOSAVE_DEBOUNCE_DELAY);
 
 const usePatientStore = create<PatientState>()(
   // persist is Zustand middleware that stores the state in localStorage saved to their device so if they reopen the browser, Zustand rehydrates the saved state from localStorage
@@ -52,6 +74,9 @@ const usePatientStore = create<PatientState>()(
       isContextLoadedFromBackend: false,
       selectedDocuments: [],
       isGenerating: false, // is discharge being generated basically
+      saveStatus: 'idle' as SaveStatus,
+      lastSaved: null,
+      saveError: null,
 
       // Actions
       setCurrentPatientId: id => set((state) => {
@@ -68,6 +93,8 @@ const usePatientStore = create<PatientState>()(
           state.currentPatientContext = ''; // Reset context, will be loaded from server
           state.isContextLoadedFromBackend = false; // Reset the loaded flag
           state.selectedDocuments = []; // Clear documents when switching patients
+          state.saveStatus = 'idle'; // Reset save status
+          state.saveError = null; // Clear any previous errors
         }
         state.currentPatientId = id;
         console.warn('Current patient ID set to', id);
@@ -110,6 +137,8 @@ const usePatientStore = create<PatientState>()(
         state.currentPatientContext = '';
         state.isContextLoadedFromBackend = false;
         state.selectedDocuments = [];
+        state.saveStatus = 'idle';
+        state.saveError = null;
       }),
 
       addDocument: document => set((state) => {
@@ -125,6 +154,18 @@ const usePatientStore = create<PatientState>()(
 
       clearDocuments: () => set((state) => {
         state.selectedDocuments = [];
+      }),
+
+      setSaveStatus: status => set((state) => {
+        state.saveStatus = status;
+      }),
+
+      setSaveError: error => set((state) => {
+        state.saveError = error;
+      }),
+
+      setLastSaved: date => set((state) => {
+        state.lastSaved = date;
       }),
     })),
     {
