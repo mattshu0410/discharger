@@ -28,50 +28,29 @@ export const shareStatusEnum = pgEnum('share_status', ['private', 'public']);
 export const sourceTypeEnum = pgEnum('source_type', ['document', 'note', 'snippet']);
 export const themeEnum = pgEnum('theme', ['light', 'dark', 'system']);
 
-// User profiles table
-export const userProfiles = pgTable('user_profiles', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  clerkUserId: varchar('clerk_user_id', { length: 255 }).notNull().unique(),
-  email: varchar('email', { length: 255 }).notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  organization: varchar('organization', { length: 255 }),
-  role: varchar('role', { length: 255 }),
-  preferences: jsonb('preferences').notNull().default({
-    defaultDocumentIds: [],
-    favoriteDocumentIds: [],
-    theme: 'system',
-  }),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'date' })
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-}, table => ({
-  clerkUserIdIdx: index('clerk_user_id_idx').on(table.clerkUserId),
-}));
-
-// Patients table
+// Patients table - matches actual database structure
 export const patients = pgTable('patients', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => userProfiles.id, { onDelete: 'cascade' }),
+  user_id: text('user_id').notNull(), // Clerk user ID
   name: text('name').notNull(),
   age: integer('age').notNull(),
   sex: sexEnum('sex').notNull(),
   context: text('context'),
-  dischargeText: text('discharge_text'),
+  discharge_text: text('discharge_text'),
+  document_ids: jsonb('document_ids').notNull().default([]),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'date' })
     .defaultNow()
     .$onUpdate(() => new Date())
     .notNull(),
 }, table => ({
-  userIdIdx: index('patient_user_id_idx').on(table.userId),
+  userIdIdx: index('patient_user_id_idx').on(table.user_id),
 }));
 
 // Documents table
 export const documents = pgTable('documents', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => userProfiles.id, { onDelete: 'set null' }),
+  userId: text('user_id'), // Clerk user ID, nullable for community docs
   filename: varchar('filename', { length: 255 }).notNull(),
   summary: text('summary').notNull(),
   source: sourceEnum('source').notNull(),
@@ -103,7 +82,7 @@ export const documentChunks = pgTable('document_chunks', {
 // Snippets table
 export const snippets = pgTable('snippets', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => userProfiles.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull(), // Clerk user ID
   shortcut: varchar('shortcut', { length: 50 }).notNull(),
   content: text('content').notNull(),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
@@ -131,7 +110,7 @@ export const dischargeSummaries = pgTable('discharge_summaries', {
 // Analytics events table
 export const analyticsEvents = pgTable('analytics_events', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').references(() => userProfiles.id, { onDelete: 'set null' }),
+  userId: text('user_id'), // Clerk user ID, nullable
   eventType: varchar('event_type', { length: 100 }).notNull(),
   eventData: jsonb('event_data'),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),

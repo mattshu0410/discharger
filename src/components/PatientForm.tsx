@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useAutoSave } from '@/hooks/useAutoSave';
+import { useNewPatient } from '@/hooks/useNewPatient';
 import { useUIStore } from '@/stores';
 import { setAutoSaveFunction, usePatientStore } from '@/stores/patientStore';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -89,6 +90,9 @@ export function PatientForm() {
 
   // Initialize autosave
   const { savePatientContext } = useAutoSave();
+
+  // Iniitalize new patient creation
+  const { createNewPatient: createPatientAPI, isCreating } = useNewPatient();
 
   // UI state from uiStore
   const openDocumentSelector = useUIStore(state => state.openDocumentSelector);
@@ -371,28 +375,40 @@ export function PatientForm() {
       {/* Patient Info Header */}
       {isNewPatient
         ? (
-            <div className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-              <strong>New Patient</strong>
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <div className="flex items-center gap-2 mb-1">
+                <strong className="text-yellow-800">New Patient (Temporary)</strong>
+              </div>
+              <p className="text-sm text-yellow-700">
+                Patient will be created when you click "Generate Discharge Summary"
+              </p>
             </div>
           )
         : currentPatient && (
-          <div className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-            <strong>{currentPatient.name}</strong>
-            {actualIsLoading && <span className="ml-2">Loading...</span>}
+          <div className="p-3 bg-muted rounded-md">
+            <strong className="text-sm">{currentPatient.name}</strong>
+            {actualIsLoading && <span className="ml-2 text-xs text-muted-foreground">Loading...</span>}
           </div>
         )}
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(({ context, name }: FormValues) => {
-            if (isNewPatient) {
-              // TODO: Create new patient first, then generate discharge
-              console.warn('Creating new patient:', name, 'with context:', `${context.slice(0, 50)}...`);
+          onSubmit={form.handleSubmit(async ({ context, name }: FormValues) => {
+            try {
+              if (isNewPatient) {
+                // Create new patient first before generating discharge
+                await createPatientAPI(name, context);
+                // After creation, the store will have the real patient ID
+                // and we can proceed with discharge generation
+              }
+              generateDischargeText.mutate({
+                context,
+                documentIds: selectedDocuments.map((d: Document) => d.id),
+              });
+            } catch (error) {
+              console.error('Failed to create patient:', error);
+              // Error is already handled by the useNewPatient hook with toast
             }
-            generateDischargeText.mutate({
-              context,
-              documentIds: selectedDocuments.map((d: Document) => d.id),
-            });
           })}
           className="space-y-6 flex-1 flex flex-col"
         >
@@ -404,12 +420,18 @@ export function PatientForm() {
                 <FormLabel>Patient Name</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter patient name"
+                    placeholder={isNewPatient ? 'Enter patient name (required)' : 'Enter patient name'}
                     {..._field}
-                    disabled={actualIsLoading}
+                    disabled={actualIsLoading || (!isNewPatient && !currentPatient)}
+                    className={isNewPatient ? 'ring-2 ring-primary/20' : ''}
                   />
                 </FormControl>
                 <FormMessage />
+                {isNewPatient && !_field.value && (
+                  <p className="text-xs text-muted-foreground">
+                    Patient name is required to create a new patient
+                  </p>
+                )}
               </FormItem>
             )}
           />
@@ -467,19 +489,23 @@ export function PatientForm() {
 
           <Button
             type="submit"
-            disabled={generateDischargeText.isPending || !currentPatientContext.trim() || actualIsLoading}
+            disabled={generateDischargeText.isPending || !currentPatientContext.trim() || actualIsLoading || isCreating}
             className="w-full"
           >
-            {generateDischargeText.isPending || isGenerating
+            {generateDischargeText.isPending || isGenerating || isCreating
               ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
+                    {isCreating ? 'Creating Patient...' : 'Generating Summary...'}
                   </>
                 )
-              : (
-                  'Generate Discharge Summary'
-                )}
+              : isNewPatient
+                ? (
+                    'Create Patient & Generate Discharge Summary'
+                  )
+                : (
+                    'Generate Discharge Summary'
+                  )}
           </Button>
         </form>
       </Form>

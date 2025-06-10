@@ -25,13 +25,11 @@ export function useAutoSave() {
         }
 
         const newPatient = await createPatient.mutateAsync({
-          userId: '', // This will be set by the API from current user
           name: patientName,
           age: 0, // Default values - these should be updated later
           sex: 'other' as const,
           context,
-          documentIds: [],
-          snippetIds: [],
+          document_ids: [],
         });
 
         // Update the store with the real patient ID

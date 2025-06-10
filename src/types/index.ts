@@ -2,16 +2,17 @@
 
 export type Patient = {
   id: string;
-  userId: string;
+  user_id: string; // Maps to user_id in database (Clerk user ID)
   name: string;
   age: number;
   sex: 'male' | 'female' | 'other';
-  context: string;
-  documentIds: string[];
-  snippetIds: string[];
+  context?: string; // Optional in database
+  discharge_text?: string; // Optional in database
+  document_ids: string[]; // Maps to document_ids jsonb in database
+  created_at: Date; // Maps to created_at in database
+  updated_at: Date; // Maps to updated_at in database
+  // Computed fields (not in database)
   dischargeSummary?: DischargeSummary;
-  createdAt: Date;
-  updatedAt: Date;
 };
 
 export type Document = {

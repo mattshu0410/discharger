@@ -4,6 +4,7 @@ import { ReactQueryClientProvider } from '@/components/query/ReactQueryClientPro
 import { PatientProvider } from '@/context/PatientContext';
 import { Funnel_Sans, Lexend } from 'next/font/google';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import { Toaster } from 'sonner';
 import '@/styles/global.css';
 
 const lexend = Lexend({
@@ -54,6 +55,7 @@ export default async function RootLayout(props: {
           <PostHogProvider>
             <NuqsAdapter>
               <PatientProvider>
+                <Toaster />
                 {props.children}
               </PatientProvider>
             </NuqsAdapter>
