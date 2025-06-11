@@ -27,6 +27,7 @@ export default antfu(
     // Ignored paths
     ignores: [
       'migrations/**/*',
+      '**/*.md',
     ],
   },
   // --- Next.js Specific Rules ---

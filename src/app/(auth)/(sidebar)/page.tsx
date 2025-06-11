@@ -1,5 +1,5 @@
 'use client';
-import { DischargeSummary } from '@/components/DischargeSummary';
+import { DischargeSummaryPanel } from '@/components/DischargeSummary/DischargeSummaryPanel';
 import { PatientForm } from '@/components/PatientForm';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
@@ -33,8 +33,8 @@ export default function Index() {
           <ResizableHandle withHandle />
 
           {/* Right: Discharge Summary */}
-          <ResizablePanel defaultSize={50} className="w-1/2 p-8 overflow-y-auto">
-            <DischargeSummary />
+          <ResizablePanel defaultSize={50} className="w-1/2 overflow-y-auto">
+            <DischargeSummaryPanel />
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>

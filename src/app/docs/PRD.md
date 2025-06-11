@@ -55,15 +55,15 @@ This application enables medical professionals to efficiently generate discharge
 
 * "Generate Discharge" button:
 
-  * Sends input context too LLM API.
-  * Matches documents via vector similarity.
-  * Adds relevant documents to context automatically.
+  * Encodes typed patient context and matches chunks via vector similarity.
+  * Retrieves parent documents of matched chunks and combines with user added documents
+  * Displays additional documents in the PatientForm
   * Prompts LLM to return structured JSON
   * The prompt is a templated structure based on LangChain template with
     * Current Clinical Context
     * Latest Discharge Summary (initially empty)
-    * Relevant Documents
-    * Extra Feedback Provided
+    * Combined Relevant Documents w/ Full Text
+    * Extra Feedback Provided by User (initially empty)
     * Rules saved from Memory
 
 * Context auto-saves:
