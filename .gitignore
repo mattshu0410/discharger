@@ -58,3 +58,6 @@ storybook-static
 /test-results/
 /playwright-report/
 /playwright/.cache/
+
+# MCP configuration (local development)
+.mcp.json

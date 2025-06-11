@@ -1,5 +1,6 @@
 'use client';
 import type { Document, Snippet } from '@/types';
+import type { GenerateDischargeSummaryResponse } from '@/types/discharge';
 import { getPatientById } from '@/api/patients/hooks';
 import { AutoSaveIndicator } from '@/components/AutoSaveIndicator';
 import { DocumentSelector } from '@/components/DocumentSelector';
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useNewPatient } from '@/hooks/useNewPatient';
-import { useUIStore } from '@/stores';
+import { useDischargeSummaryStore, useUIStore } from '@/stores';
 import { setAutoSaveFunction, usePatientStore } from '@/stores/patientStore';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -87,6 +88,11 @@ export function PatientForm() {
   const selectedDocuments = usePatientStore(state => state.selectedDocuments);
   const addDocument = usePatientStore(state => state.addDocument);
   const removeDocument = usePatientStore(state => state.removeDocument);
+
+  // Discharge summary store
+  const setDischargeSummary = useDischargeSummaryStore(state => state.setDischargeSummary);
+  const setDischargeIsGenerating = useDischargeSummaryStore(state => state.setIsGenerating);
+  const setDischargeError = useDischargeSummaryStore(state => state.setError);
 
   // Initialize autosave
   const { savePatientContext } = useAutoSave();
@@ -203,6 +209,9 @@ export function PatientForm() {
   const generateDischargeText = useMutation({
     mutationFn: async ({ context, documentIds }: { context: string; documentIds?: string[] }) => {
       setIsGenerating(true);
+      setDischargeIsGenerating(true);
+      setDischargeError(null);
+
       const res = await fetch('/api/discharge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -212,17 +221,26 @@ export function PatientForm() {
           documentIds: documentIds || [],
         }),
       });
+
       if (!res.ok) {
-        throw new Error('Failed to generate discharge');
+        const errorText = await res.text();
+        throw new Error(errorText || 'Failed to generate discharge');
       }
-      return res.text();
+
+      const response: GenerateDischargeSummaryResponse = await res.json();
+      return response;
     },
-    onSuccess: (text) => {
-      console.warn('Generated discharge summary:', text);
-      // TODO: Update discharge summary in the right panel
+    onSuccess: (response) => {
+      console.warn('Generated discharge summary:', response.summary);
+      setDischargeSummary(response.summary);
+    },
+    onError: (error) => {
+      console.error('Failed to generate discharge summary:', error);
+      setDischargeError(error instanceof Error ? error.message : 'Failed to generate discharge summary');
     },
     onSettled: () => {
       setIsGenerating(false);
+      setDischargeIsGenerating(false);
     },
   });
 
