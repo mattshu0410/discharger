@@ -19,16 +19,27 @@ export type DischargeSection = {
   isEditable?: boolean;
 };
 
-export type Citation = {
+export type ContextCitation = {
   id: string;
-  marker: string; // e.g., "[1]", "[2]"
-  documentId: string;
-  chunkId?: string;
   text: string;
   context: string;
   relevanceScore: number;
+  sourceType: 'user-context';
+  contextSection?: string; // which part of user input
+};
+
+export type DocumentCitation = {
+  id: string;
+  text: string;
+  context: string;
+  relevanceScore: number;
+  sourceType: 'selected-document' | 'retrieved-document';
+  documentId: string;
+  chunkId?: string;
   pageNumber?: number;
 };
+
+export type Citation = ContextCitation | DocumentCitation;
 
 export type FeedbackItem = {
   id: string;

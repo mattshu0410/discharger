@@ -1,4 +1,5 @@
 // Core Types for Discharger Application
+import type { DischargeSummary } from './discharge';
 
 export type Patient = {
   id: string;
@@ -48,29 +49,11 @@ export type Snippet = {
   updatedAt: Date;
 };
 
-export type DischargeSummary = {
-  id: string;
-  patientId: string;
-  content: string;
-  sections: DischargeSection[];
-  citations: Citation[];
-  generatedAt: Date;
-};
+// DischargeSummary type moved to types/discharge.ts
 
-export type DischargeSection = {
-  id: string;
-  title: string;
-  content: string;
-  citationIds: string[];
-};
+// DischargeSection type moved to types/discharge.ts
 
-export type Citation = {
-  id: string;
-  sourceType: 'document' | 'note' | 'snippet';
-  sourceId: string;
-  sourceText: string;
-  pageNumber?: number;
-};
+// Citation type moved to types/discharge.ts
 
 export type UserProfile = {
   id: string;
