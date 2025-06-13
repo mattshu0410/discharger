@@ -1,4 +1,11 @@
 'use client';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Search } from '@mynaui/icons-react';
+import { CloudUpload, FileText, Plus, Upload, X } from 'lucide-react';
+import * as React from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as z from 'zod';
 import { useDeleteDocument, useDocuments, useSearchDocuments, useUploadDocument } from '@/api/documents/queries';
 import { DataTable } from '@/components/DataTable';
 import { DocumentPreviewModal } from '@/components/DocumentPreviewModal';
@@ -24,13 +31,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { useUIStore } from '@/stores/uiStore';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Search } from '@mynaui/icons-react';
-import { CloudUpload, FileText, Plus, Upload, X } from 'lucide-react';
-import * as React from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import * as z from 'zod';
 import { createColumns } from './columns';
 
 const formSchema = z.object({
@@ -170,7 +170,7 @@ export default function MemoryPage() {
                             </FileUploadDropzone>
                             <FileUploadList className="mt-4">
                               {field.value.map((file, index) => (
-                                <FileUploadItem key={index} value={file} className="border rounded-lg p-3">
+                                <FileUploadItem key={`${file.name}-${index}`} value={file} className="border rounded-lg p-3">
                                   <FileUploadItemPreview />
                                   <FileUploadItemMetadata />
                                   <FileUploadItemDelete asChild>

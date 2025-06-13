@@ -1,8 +1,8 @@
 import type { NextFetchEvent, NextRequest } from 'next/server';
-import arcjet from '@/libs/Arcjet';
 import { detectBot } from '@arcjet/next';
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import arcjet from '@/libs/Arcjet';
 
 const isProtectedRoute = createRouteMatcher([
   '/', // Protect the homepage
@@ -66,14 +66,6 @@ export default async function middleware(
     return clerkMiddleware(async (auth, req) => {
       // Only enforce authentication on protected routes (not auth pages)
       if (isProtectedRoute(req)) {
-        console.warn('🔍 Route is protected, checking auth...');
-
-        // Debug: Check what Clerk thinks about the current auth state
-        const authState = await auth();
-        const userId = authState.userId;
-        console.warn('🔍 Clerk userId:', userId);
-        console.warn('🔍 Is authenticated:', !!userId);
-
         const signInUrl = new URL('/sign-in', req.url);
         await auth.protect({
           unauthenticatedUrl: signInUrl.toString(),

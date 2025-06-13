@@ -1,5 +1,7 @@
 'use client';
 import type { Snippet } from '@/types';
+import { Slash } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchSnippets, useSnippets } from '@/api/snippets/queries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +9,6 @@ import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/libs/utils';
 import { useUIStore } from '@/stores/uiStore';
-import { Slash } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
 
 type SnippetSelectorProps = {
   onSelect: (snippet: Snippet) => void;
@@ -49,7 +49,9 @@ export function SnippetSelector({ onSelect }: SnippetSelectorProps) {
 
   // Reset selection when results change
   useEffect(() => {
-    setSelectedIndex(0);
+    if (snippets.length > 0) {
+      setSelectedIndex(0);
+    }
     itemRefs.current = [];
   }, [snippets, searchQuery]);
 
