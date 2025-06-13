@@ -1,5 +1,4 @@
 'use client';
-import type { Patient } from '@/types';
 import {
   BookOpen,
   Cog,
@@ -13,9 +12,8 @@ import {
   User,
   UserCircle,
 } from '@mynaui/icons-react';
-import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
-import { getAllPatients } from '@/api/patients/hooks';
+import { usePatients } from '@/api/patients/queries';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
 import { usePatientStore } from '@/stores/patientStore';
@@ -35,10 +33,7 @@ export function Sidebar() {
   const isSidebarOpen = useUIStore(state => state.isSidebarOpen);
   const toggleSidebar = useUIStore(state => state.toggleSidebar);
 
-  const { data: patients } = useQuery<Patient[]>({
-    queryKey: ['getPatients'],
-    queryFn: () => getAllPatients(),
-  });
+  const { data: patients } = usePatients();
 
   // Create temporary patient entry for the sidebar
   const temporaryPatient = isNewPatient
@@ -92,7 +87,10 @@ export function Sidebar() {
                 <Button
                   variant={activeView === 'patients' ? 'default' : 'ghost'}
                   size="sm"
-                  onClick={() => router.push('/')}
+                  onClick={() => {
+                    console.warn('Navigating to patients page');
+                    router.push('/');
+                  }}
                   className="flex items-center gap-2"
                 >
                   <User size={16} />

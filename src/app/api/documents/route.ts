@@ -1,8 +1,8 @@
+import { currentUser } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 import { processDocumentFile } from '@/libs/documentProcessor';
 import { createServerSupabaseClient } from '@/libs/supabase-server';
 import { getUserVectorStore } from '@/libs/vectorStore';
-import { currentUser } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 

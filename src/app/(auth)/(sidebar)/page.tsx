@@ -1,23 +1,23 @@
 'use client';
+import { Eye, EyeOff } from 'lucide-react';
 import { DischargeSummaryPanel } from '@/components/DischargeSummary/DischargeSummaryPanel';
 import { PatientForm } from '@/components/PatientForm';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { useUIStore } from '@/stores';
-import { Eye, EyeOff } from 'lucide-react';
 
 export default function Index() {
   const isContextViewerOpen = useUIStore((state: any) => state.isContextViewerOpen);
   const toggleContextViewer = useUIStore((state: any) => state.toggleContextViewer);
 
   return (
-    <ResizablePanelGroup direction="vertical" className="h-screen w-full">
+    <ResizablePanelGroup direction="vertical" className="h-full w-full">
       <ResizablePanel defaultSize={isContextViewerOpen ? 70 : 100}>
         {/* Main content */}
         <ResizablePanelGroup direction="horizontal" className="flex-1 flex flex-row bg-background">
           {/* Left: Patient Form */}
-          <ResizablePanel defaultSize={50} className="w-1/2 p-8 flex flex-col gap-6 border-r border-border">
-            <div className="flex items-center justify-between">
+          <ResizablePanel defaultSize={50} className="w-1/2 border-r border-border flex flex-col">
+            <div className="flex items-center justify-between p-8 pb-4">
               <h2 className="text-lg font-semibold">Clinical Notes</h2>
               <Button
                 variant="outline"
@@ -27,13 +27,15 @@ export default function Index() {
                 {isContextViewerOpen ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
-            <PatientForm />
+            <div className="flex-1 overflow-y-auto px-8 pb-8">
+              <PatientForm />
+            </div>
           </ResizablePanel>
 
           <ResizableHandle withHandle />
 
           {/* Right: Discharge Summary */}
-          <ResizablePanel defaultSize={50} className="w-1/2 overflow-y-auto">
+          <ResizablePanel defaultSize={50} className="w-1/2">
             <DischargeSummaryPanel />
           </ResizablePanel>
         </ResizablePanelGroup>

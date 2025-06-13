@@ -279,7 +279,7 @@ export default function MemoryPage() {
                           source: 'user',
                           documentId: doc.id,
                           fileUrl: doc.s3Url,
-                          uploadedAt: doc.uploadedAt.toISOString(),
+                          uploadedAt: doc.uploadedAt ? new Date(doc.uploadedAt).toISOString() : new Date().toISOString(),
                         }))}
                       />
                     )}
