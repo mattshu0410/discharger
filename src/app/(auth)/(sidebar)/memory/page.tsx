@@ -170,7 +170,7 @@ export default function MemoryPage() {
                             </FileUploadDropzone>
                             <FileUploadList className="mt-4">
                               {field.value.map((file, index) => (
-                                <FileUploadItem key={index} value={file} className="border rounded-lg p-3">
+                                <FileUploadItem key={`${file.name}-${index}`} value={file} className="border rounded-lg p-3">
                                   <FileUploadItemPreview />
                                   <FileUploadItemMetadata />
                                   <FileUploadItemDelete asChild>
@@ -279,7 +279,7 @@ export default function MemoryPage() {
                           source: 'user',
                           documentId: doc.id,
                           fileUrl: doc.s3Url,
-                          uploadedAt: doc.uploadedAt.toISOString(),
+                          uploadedAt: doc.uploadedAt ? new Date(doc.uploadedAt).toISOString() : new Date().toISOString(),
                         }))}
                       />
                     )}

@@ -4,7 +4,6 @@ import {
   jsonb,
   pgEnum,
   pgTable,
-  serial,
   text,
   timestamp,
   uuid,
@@ -119,14 +118,3 @@ export const analyticsEvents = pgTable('analytics_events', {
   eventTypeIdx: index('analytics_event_type_idx').on(table.eventType),
   createdAtIdx: index('analytics_created_at_idx').on(table.createdAt),
 }));
-
-// Legacy counter table (keeping for compatibility)
-export const counterSchema = pgTable('counter', {
-  id: serial('id').primaryKey(),
-  count: integer('count').default(0),
-  updatedAt: timestamp('updated_at', { mode: 'date' })
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-});

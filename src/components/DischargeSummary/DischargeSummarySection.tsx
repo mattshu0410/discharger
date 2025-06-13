@@ -24,22 +24,22 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
     }
 
     let content = section.content;
-    
+
     // Replace <CIT id="citationId">text</CIT> with clickable highlighted spans
     const citRegex = /<CIT id="([^"]+)">([^<]+)<\/CIT>/g;
-    
+
     content = content.replace(citRegex, (_match, _citationLlmId, citedText) => {
       // Find the actual citation object by matching the LLM ID to our processed citation
-      const citation = section.citations.find(c => {
+      const citation = section.citations.find((c) => {
         // The LLM uses simple IDs like "c1", "d1", we need to find the matching citation
         return c.text === citedText; // Match by text for now, could be improved
       });
-      
+
       if (citation) {
         const citationColor = citation.sourceType === 'user-context' ? 'blue' : 'green';
         return `<span class="citation-highlight citation-highlight-${citationColor} cursor-pointer px-1 rounded-sm hover:bg-opacity-80 transition-colors" data-citation-id="${citation.id}">${citedText}</span>`;
       }
-      
+
       // Fallback if citation not found
       return citedText;
     });
@@ -67,7 +67,7 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
       event.stopPropagation();
       const citationId = target.getAttribute('data-citation-id');
       const citation = section.citations.find(c => c.id === citationId);
-      
+
       if (citation) {
         highlightCitation(citation);
         setContextViewerOpen(true);
@@ -111,7 +111,7 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
         </Button>
       </div>
 
-      <div 
+      <div
         className="prose prose-sm max-w-none"
         onClick={handleCitationClick}
         onKeyDown={(e) => {
@@ -121,7 +121,7 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
         }}
         role="presentation"
       >
-        <div 
+        <div
           className="whitespace-pre-wrap"
           dangerouslySetInnerHTML={{ __html: renderedContent }}
         />
@@ -132,7 +132,10 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
         <div className="mt-3 pt-3 border-t">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>
-              {section.citations.length} citation{section.citations.length > 1 ? 's' : ''}
+              {section.citations.length}
+              {' '}
+              citation
+              {section.citations.length > 1 ? 's' : ''}
             </span>
             <div className="flex gap-1">
               {section.citations.some(c => c.sourceType === 'user-context') && (

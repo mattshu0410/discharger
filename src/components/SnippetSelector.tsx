@@ -49,7 +49,9 @@ export function SnippetSelector({ onSelect }: SnippetSelectorProps) {
 
   // Reset selection when results change
   useEffect(() => {
-    setSelectedIndex(0);
+    if (snippets.length > 0) {
+      setSelectedIndex(0);
+    }
     itemRefs.current = [];
   }, [snippets, searchQuery]);
 

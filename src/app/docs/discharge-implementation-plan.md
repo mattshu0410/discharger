@@ -278,18 +278,30 @@ src/
 
 ## Progress Tracking
 
-### Current Status: Phase 1 Complete
+### Current Status: Phase 2 Complete ✅
 - [x] Architecture design complete
-- [x] Type definitions drafted
-- [x] Component hierarchy planned
+- [x] Type definitions with discriminated union Citation types
+- [x] Component hierarchy fully implemented
 - [x] Phase 1 implementation complete
-- [ ] Phase 2 implementation started
+- [x] Phase 2 implementation complete
+- [x] Working inline citation highlighting system
+- [x] Bidirectional citation navigation
+- [x] Context viewer with source highlighting
 
-### Next Steps
-1. Test the basic discharge generation flow
-2. Start Phase 2: Core Interactivity
-3. Implement copy-to-clipboard functionality
-4. Build working feedback input system
+### What Works Now
+1. ✅ **End-to-End Discharge Generation**: Patient context → LLM → Structured sections
+2. ✅ **Inline Citation Highlighting**: `<CIT>` tags render as blue/green clickable highlights
+3. ✅ **Bidirectional Navigation**: Click citation → auto-opens context viewer with highlighted source
+4. ✅ **Working Feedback System**: Type feedback → regenerates summary with modifications
+5. ✅ **Copy-to-Clipboard**: Each section can be copied individually
+6. ✅ **Type Safety**: Full TypeScript coverage with discriminated union types
+7. ✅ **Gemini 2.0 Compatibility**: Simplified Zod schema that works with Google's model
+
+### Next Steps (Phase 3)
+1. Connect to real document content via vector search
+2. Implement citation popovers with more details
+3. Add smooth scrolling to highlighted citations
+4. Build feedback history display
 
 ## Notes & Considerations
 

@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/libs/supabase-server';
+import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 export async function DELETE(
@@ -6,10 +7,15 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const supabase = createServerSupabaseClient();
 
-    // First, get the document to retrieve the file path
+    // First, get the document to retrieve the file path (user filtering handled by RLS)
     const { data: document, error: fetchError } = await supabase
       .from('documents')
       .select('s3_url')
@@ -61,6 +67,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
     const supabase = createServerSupabaseClient();
 

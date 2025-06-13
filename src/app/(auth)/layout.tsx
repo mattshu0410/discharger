@@ -20,7 +20,6 @@ export default async function AuthLayout(props: {
       <BaseTemplate>
         {props.children}
       </BaseTemplate>
-
     </ClerkProvider>
   );
 }
