@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/libs/utils';
 import { useUIStore } from '@/stores/uiStore';
 import { FileText, Search as SearchIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type DocumentSelectorProps = {
   onSelect: (document: DocumentSearchResult['document']) => void;
@@ -38,7 +38,9 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
   const { data: searchResults = [], isLoading } = useSearchDocuments(searchQuery, isOpen);
 
   useEffect(() => {
-    setSelectedIndex(0);
+    if (searchResults.length > 0) {
+      setSelectedIndex(0);
+    }
     itemRefs.current = [];
   }, [searchResults, searchQuery]);
 
@@ -51,11 +53,11 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
     }
   }, [isOpen]);
 
-  const handleSelect = (doc: DocumentSearchResult['document']) => {
+  const handleSelect = useCallback((doc: DocumentSearchResult['document']) => {
     onSelect(doc);
     setDocumentSearchQuery('');
     closeDocumentSelector();
-  };
+  }, [onSelect, setDocumentSearchQuery, closeDocumentSelector]);
 
   useEffect(() => {
     if (!isOpen) {

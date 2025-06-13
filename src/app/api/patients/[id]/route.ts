@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/libs/supabase-server';
+import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 export async function GET(
@@ -6,6 +7,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const supabase = createServerSupabaseClient();
     const { id } = await params;
 
@@ -18,6 +24,7 @@ export async function GET(
       .from('patients')
       .select('*')
       .eq('id', id)
+      .eq('user_id', user.id)
       .single();
 
     if (error) {
@@ -43,6 +50,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const supabase = createServerSupabaseClient();
     const { id } = await params;
@@ -64,6 +76,7 @@ export async function PUT(
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
+      .eq('user_id', user.id)
       .select()
       .single();
 
@@ -87,6 +100,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const user = await currentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const supabase = createServerSupabaseClient();
     const { id } = await params;
 
@@ -98,7 +116,8 @@ export async function DELETE(
     const { error } = await supabase
       .from('patients')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Supabase error:', error);

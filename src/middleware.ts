@@ -36,13 +36,6 @@ export default async function middleware(
   request: NextRequest,
   event: NextFetchEvent,
 ) {
-  console.warn('🔍 Middleware running for:', request.nextUrl.pathname);
-  console.warn('🔍 BYPASS_AUTH:', BYPASS_AUTH);
-
-  // Test the route matcher
-  const isProtected = isProtectedRoute(request);
-  console.warn('🔍 Is protected route:', isProtected);
-
   // Optional: Bypass auth for development testing
   if (BYPASS_AUTH) {
     console.warn('🔓 Auth bypass enabled');
@@ -66,14 +59,6 @@ export default async function middleware(
     return clerkMiddleware(async (auth, req) => {
       // Only enforce authentication on protected routes (not auth pages)
       if (isProtectedRoute(req)) {
-        console.warn('🔍 Route is protected, checking auth...');
-
-        // Debug: Check what Clerk thinks about the current auth state
-        const authState = await auth();
-        const userId = authState.userId;
-        console.warn('🔍 Clerk userId:', userId);
-        console.warn('🔍 Is authenticated:', !!userId);
-
         const signInUrl = new URL('/sign-in', req.url);
         await auth.protect({
           unauthenticatedUrl: signInUrl.toString(),

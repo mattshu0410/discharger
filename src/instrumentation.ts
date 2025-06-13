@@ -1,9 +1,13 @@
-import * as Sentry from '@sentry/nextjs';
+// Temporarily disabled for development - Sentry dependency issue
+// import * as Sentry from '@sentry/nextjs';
 
-export const onRequestError = Sentry.captureRequestError;
+// export const onRequestError = Sentry.captureRequestError;
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
+    // Sentry temporarily disabled - dependency missing
+    console.warn('Instrumentation loaded - Sentry disabled for development');
+    /*
     // Node.js Sentry configuration
     Sentry.init({
       // Sentry DSN
@@ -18,10 +22,13 @@ export async function register() {
       // Setting this option to true will print useful information to the console while you're setting up Sentry.
       debug: false,
     });
+    */
   }
 
   if (process.env.NEXT_RUNTIME === 'edge') {
-    // Edge Sentry configuration
+    // Edge Sentry configuration - temporarily disabled
+    console.warn('Edge runtime instrumentation loaded - Sentry disabled');
+    /*
     Sentry.init({
       // Sentry DSN
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -35,5 +42,6 @@ export async function register() {
       // Setting this option to true will print useful information to the console while you're setting up Sentry.
       debug: false,
     });
+    */
   }
 }
