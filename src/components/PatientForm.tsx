@@ -224,6 +224,7 @@ export function PatientForm() {
 
       if (!res.ok) {
         const errorText = await res.text();
+        console.warn(errorText);
         throw new Error(errorText || 'Failed to generate discharge');
       }
 

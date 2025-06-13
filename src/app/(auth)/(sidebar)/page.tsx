@@ -1,5 +1,6 @@
 'use client';
 import { DischargeSummaryPanel } from '@/components/DischargeSummary/DischargeSummaryPanel';
+import { ContextViewer } from '@/components/ContextViewer';
 import { PatientForm } from '@/components/PatientForm';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
@@ -53,10 +54,8 @@ export default function Index() {
                 Documents and snippets used in this patient's context
               </p>
             </div>
-            <div className="flex-1 p-4 overflow-y-auto">
-              <p className="text-sm text-muted-foreground">
-                Context viewer will show documents and snippets here
-              </p>
+            <div className="flex-1 overflow-y-auto">
+              <ContextViewer />
             </div>
           </ResizablePanel>
         </>

@@ -128,7 +128,7 @@ ContextViewer (Bottom Panel)
 - useSaveFeedbackRule() (future)
 
 // src/api/discharge/types.ts
-- Request/Response types with Zod validation
+- Request Response types with Zod validation
 - DischargeSummarySchema
 - FeedbackSchema
 - CitationSchema
@@ -195,18 +195,18 @@ Highlights Matching Text
 - [x] Implement loading and empty states
 - [x] Connect store to PatientForm generation
 
-### Phase 2: Core Interactivity 🚧 [STATUS: Not Started]
-- [ ] Implement copy-to-clipboard for each section
-- [ ] Build working feedback input component
-- [ ] Add feedback → regeneration flow
-- [ ] Create citation markers in content (visual only)
-- [ ] Build basic context viewer with document tabs
+### Phase 2: Core Interactivity ✅ [STATUS: Complete]
+- [x] Implement copy-to-clipboard for each section
+- [x] Build working feedback input component
+- [x] Add feedback → regeneration flow
+- [x] Create citation markers in content (visual only)
+- [x] Build basic context viewer with document tabs
 - [ ] Add feedback history display
 
-### Phase 3: Advanced Citations 🔮 [STATUS: Not Started]
-- [ ] Implement citation popovers with details
-- [ ] Add bidirectional citation highlighting
-- [ ] Build citation relevance indicators
+### Phase 3: Advanced Citations 🚧 [STATUS: In Progress]
+- [ ] Implement citation popovers with details  
+- [x] Add bidirectional citation highlighting
+- [x] Build citation relevance indicators
 - [ ] Create smooth scrolling to citations
 - [ ] Add citation filtering/search
 
@@ -242,8 +242,9 @@ Highlights Matching Text
 - **Streaming**: Consider streaming for long summaries (future)
 - **Caching**: React Query handles caching with appropriate invalidation
 
-### 4. Citation System
-- **Inline Markers**: Small numbered superscripts in content
+### 4. Citation System  
+- **Inline Highlighting**: Citation text highlighted inline with colored backgrounds
+- **No Markers**: Removed [C1] style markers for cleaner UI
 - **Bidirectional**: Click either summary or source to highlight both
 - **Performance**: Index citations for fast lookup
 
@@ -368,16 +369,22 @@ const structuredModel = model.withStructuredOutput(dischargeSectionsSchema, {
 **File Structure Created**:
 ```
 src/
-├── types/discharge.ts (✅ Complete)
+├── types/discharge.ts (✅ Complete - with discriminated union Citation types)
 ├── stores/dischargeSummaryStore.ts (✅ Complete)
 ├── components/DischargeSummary/
 │   ├── DischargeSummaryPanel.tsx (✅ Complete)
 │   ├── DischargeSummaryHeader.tsx (✅ Complete)
 │   ├── DischargeSummaryContent.tsx (✅ Complete)
-│   ├── DischargeSummarySection.tsx (✅ Complete)
-│   ├── FeedbackInput.tsx (✅ Complete - placeholder)
+│   ├── DischargeSummarySection.tsx (✅ Complete - with inline citation highlighting)
+│   ├── FeedbackInput.tsx (✅ Complete - functional regeneration)
 │   └── index.ts (✅ Complete)
-└── app/api/discharge/route.ts (✅ Fixed with Zod)
+├── components/ContextViewer/
+│   ├── ContextViewer.tsx (✅ Complete)
+│   ├── ContextViewerHeader.tsx (✅ Complete)
+│   ├── UserContextPanel.tsx (✅ Complete)
+│   ├── DocumentListPanel.tsx (✅ Complete)
+│   └── index.ts (✅ Complete)
+└── app/api/discharge/route.ts (✅ Fixed with Zod and inline citations)
 ```
 
 **Integration Points**:
@@ -479,7 +486,70 @@ src/
 - All components accept props for testability
 - Store connections are isolated to top-level components
 
+### Phase 2 Implementation Details (COMPLETED)
+
+#### Citation System Redesign
+**Problem**: Original [C1] style markers were cluttering the discharge summary text.
+
+**Solution**: Implemented inline citation highlighting with `<CIT>` tags:
+
+```typescript
+// LLM output format
+<CIT id="c1">highlighted medical claim text</CIT>
+
+// Zod schema simplified for Gemini compatibility
+const citationSchema = z.object({
+  id: z.string(),
+  text: z.string(), 
+  context: z.string()
+});
+```
+
+**Key Changes**:
+- Removed `marker` field from Citation types
+- LLM generates inline `<CIT>` tags instead of superscript markers
+- API enriches citations with metadata (sourceType, documentId, etc.)
+- UI parses `<CIT>` tags and renders highlighted, clickable text
+- Blue highlighting for user context, green for documents
+
+#### Discriminated Union Citation Types
+```typescript
+type Citation = ContextCitation | DocumentCitation;
+
+type ContextCitation = {
+  id: string;
+  text: string;
+  context: string;
+  relevanceScore: number;
+  sourceType: 'user-context';
+  contextSection?: string;
+};
+
+type DocumentCitation = {
+  id: string;
+  text: string;
+  context: string;
+  relevanceScore: number;
+  sourceType: 'selected-document' | 'retrieved-document';
+  documentId: string;
+  chunkId?: string;
+  pageNumber?: number;
+};
+```
+
+#### Context Viewer Implementation
+- Split view for user context vs documents
+- Click citation → highlights source text
+- Auto-opens context viewer on citation click
+- Clean UI without redundant "Highlighted Citation" boxes
+
+#### Gemini 2.0 Compatibility Issues
+- Discriminated unions not supported in Zod schema for Gemini
+- Solution: Simplified schema, determine sourceType from ID prefix
+- LLM generates: c1, c2 for context; d1, d2 for documents
+- API processes and adds proper sourceType
+
 ---
 
-Last Updated: 2024-01-11
-Status: Phase 1 Complete - Ready for Testing
+Last Updated: 2025-01-13
+Status: Phase 2 Complete - Citations Working

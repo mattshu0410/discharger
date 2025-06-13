@@ -178,6 +178,34 @@
   }
 }
 
+@layer components {
+  /* Citation highlight styles for inline text */
+  .citation-highlight {
+    @apply inline cursor-pointer underline decoration-2 underline-offset-2;
+  }
+
+  .citation-highlight-blue {
+    @apply bg-blue-50 text-blue-900 decoration-blue-400;
+  }
+
+  .citation-highlight-blue:hover {
+    @apply bg-blue-100 decoration-blue-500;
+  }
+
+  .citation-highlight-green {
+    @apply bg-green-50 text-green-900 decoration-green-400;
+  }
+
+  .citation-highlight-green:hover {
+    @apply bg-green-100 decoration-green-500;
+  }
+
+  /* Highlighted citation in context viewer */
+  .citation-highlighted {
+    @apply bg-yellow-200 text-yellow-900 border border-yellow-400;
+  }
+}
+
 @layer utilities {
   .bg-muted {
     background-color: var(--muted);
