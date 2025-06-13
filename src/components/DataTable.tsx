@@ -4,8 +4,16 @@ import type {
   ColumnDef,
   SortingState,
 } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
+import {
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
 
+import React from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -14,14 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import React from 'react';
 
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[];

@@ -1,7 +1,7 @@
 'use client';
 
-import { useDischargeSummaryStore } from '@/stores';
 import { Loader2 } from 'lucide-react';
+import { useDischargeSummaryStore } from '@/stores';
 import { DischargeSummaryContent } from './DischargeSummaryContent';
 import { DischargeSummaryHeader } from './DischargeSummaryHeader';
 import { FeedbackInput } from './FeedbackInput';
@@ -34,7 +34,7 @@ export function DischargeSummaryPanel() {
   // Empty state
   if (!currentSummary) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+      <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
         <p>No discharge summary generated yet.</p>
         <p className="text-sm mt-2">Enter patient context and click "Generate Discharge Summary"</p>
       </div>

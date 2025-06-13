@@ -1,16 +1,16 @@
 'use client';
 
 import type { Snippet } from '@/types';
-import { useCreateSnippet, useDeleteSnippet, useSnippets, useUpdateSnippet } from '@/api/snippets/queries';
+import { Edit, Plus, Search, Trash2 } from 'lucide-react';
 
+import { useState } from 'react';
+import { useCreateSnippet, useDeleteSnippet, useSnippets, useUpdateSnippet } from '@/api/snippets/queries';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useUIStore } from '@/stores';
-import { Edit, Plus, Search, Trash2 } from 'lucide-react';
-import { useState } from 'react';
 
 type SnippetFormData = {
   shortcut: string;

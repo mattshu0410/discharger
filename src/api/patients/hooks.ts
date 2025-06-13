@@ -1,5 +1,5 @@
-import type { Patient } from '@/types';
 import type { CreatePatientRequest, UpdatePatientRequest } from './types';
+import type { Patient } from '@/types';
 
 // Get all patients, optionally limit the number returned
 export async function getAllPatients(limit?: number): Promise<Patient[]> {

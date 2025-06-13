@@ -1,6 +1,5 @@
 'use client';
 
-import { cn } from '@/libs/utils';
 import { Slot } from '@radix-ui/react-slot';
 import {
   FileArchiveIcon,
@@ -12,6 +11,7 @@ import {
   FileVideoIcon,
 } from 'lucide-react';
 import * as React from 'react';
+import { cn } from '@/libs/utils';
 
 const ROOT_NAME = 'FileUpload';
 const DROPZONE_NAME = 'FileUploadDropzone';
@@ -78,16 +78,16 @@ type StoreState = {
   invalid: boolean;
 };
 
-type StoreAction =
-  | { variant: 'ADD_FILES'; files: File[] }
-  | { variant: 'SET_FILES'; files: File[] }
-  | { variant: 'SET_PROGRESS'; file: File; progress: number }
-  | { variant: 'SET_SUCCESS'; file: File }
-  | { variant: 'SET_ERROR'; file: File; error: string }
-  | { variant: 'REMOVE_FILE'; file: File }
-  | { variant: 'SET_DRAG_OVER'; dragOver: boolean }
-  | { variant: 'SET_INVALID'; invalid: boolean }
-  | { variant: 'CLEAR' };
+type StoreAction
+  = | { variant: 'ADD_FILES'; files: File[] }
+    | { variant: 'SET_FILES'; files: File[] }
+    | { variant: 'SET_PROGRESS'; file: File; progress: number }
+    | { variant: 'SET_SUCCESS'; file: File }
+    | { variant: 'SET_ERROR'; file: File; error: string }
+    | { variant: 'REMOVE_FILE'; file: File }
+    | { variant: 'SET_DRAG_OVER'; dragOver: boolean }
+    | { variant: 'SET_INVALID'; invalid: boolean }
+    | { variant: 'CLEAR' };
 
 function createStore(
   listeners: Set<() => void>,

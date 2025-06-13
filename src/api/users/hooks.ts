@@ -1,5 +1,5 @@
-import type { UserProfile } from '@/types';
 import type { UpdatePreferencesRequest, UpdateProfileRequest } from './types';
+import type { UserProfile } from '@/types';
 
 // Use the same UUID as in the database migration
 const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';

@@ -1,43 +1,27 @@
-import type { PgliteDatabase } from 'drizzle-orm/pglite';
-import path from 'node:path';
-import * as schema from '@/models/Schema';
-import { PGlite } from '@electric-sql/pglite';
-import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
-import { migrate as migratePg } from 'drizzle-orm/node-postgres/migrator';
-import { drizzle as drizzlePglite } from 'drizzle-orm/pglite';
-import { migrate as migratePglite } from 'drizzle-orm/pglite/migrator';
-import { PHASE_PRODUCTION_BUILD } from 'next/dist/shared/lib/constants';
+// This application uses Supabase for data persistence
+// All database operations should use the Supabase client instead of this file
+// This file is kept for any legacy compatibility but should not be used
+
+import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
+import * as schema from '@/models/Schema';
 import { Env } from './Env';
 
-let client;
-let drizzle;
+// Simplified DB setup - only for legacy compatibility
+// New code should use Supabase client from @/libs/supabase-server.ts or @/libs/supabase-client.ts
+let db: ReturnType<typeof drizzle>;
 
-if (process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD && Env.DATABASE_URL) {
-  client = new Client({
+if (Env.DATABASE_URL) {
+  const client = new Client({
     connectionString: Env.DATABASE_URL,
   });
-  await client.connect();
 
-  drizzle = drizzlePg(client, { schema });
-  await migratePg(drizzle, {
-    migrationsFolder: path.join(process.cwd(), 'migrations'),
-  });
+  // Note: Not connecting here to avoid build-time connection issues
+  // This should only be used if absolutely necessary for legacy code
+  db = drizzle(client, { schema });
 } else {
-  // Stores the db connection in the global scope to prevent multiple instances due to hot reloading with Next.js
-  const global = globalThis as unknown as { client: PGlite; drizzle: PgliteDatabase<typeof schema> };
-
-  if (!global.client) {
-    global.client = new PGlite();
-    await global.client.waitReady;
-
-    global.drizzle = drizzlePglite(global.client, { schema });
-  }
-
-  drizzle = global.drizzle;
-  await migratePglite(global.drizzle, {
-    migrationsFolder: path.join(process.cwd(), 'migrations'),
-  });
+  // Throw error if DATABASE_URL is not available
+  throw new Error('DATABASE_URL is required but not provided. Please use Supabase client instead.');
 }
 
-export const db = drizzle;
+export { db };

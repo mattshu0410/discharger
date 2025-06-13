@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { createServerSupabaseClient } from '@/libs/supabase-server';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/libs/supabase-server';
 
 // Development-only endpoint to seed data for the current logged-in user
 export async function POST() {

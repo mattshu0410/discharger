@@ -36,13 +36,6 @@ export default async function middleware(
   request: NextRequest,
   event: NextFetchEvent,
 ) {
-  console.warn('🔍 Middleware running for:', request.nextUrl.pathname);
-  console.warn('🔍 BYPASS_AUTH:', BYPASS_AUTH);
-
-  // Test the route matcher
-  const isProtected = isProtectedRoute(request);
-  console.warn('🔍 Is protected route:', isProtected);
-
   // Optional: Bypass auth for development testing
   if (BYPASS_AUTH) {
     console.warn('🔓 Auth bypass enabled');

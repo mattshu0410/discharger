@@ -1,7 +1,7 @@
-import { useCreatePatient } from '@/api/patients/queries';
-import { usePatientStore } from '@/stores/patientStore';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
+import { useCreatePatient } from '@/api/patients/queries';
+import { usePatientStore } from '@/stores/patientStore';
 
 export function useNewPatient() {
   const createPatient = useCreatePatient();

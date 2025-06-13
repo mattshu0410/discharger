@@ -1,10 +1,10 @@
 'use client';
 
 import type { DischargeSection } from '@/types/discharge';
-import { Button } from '@/components/ui/button';
-import { useDischargeSummaryStore } from '@/stores';
 import { Check, Copy } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { useDischargeSummaryStore } from '@/stores';
 
 type DischargeSummarySectionProps = {
   section: DischargeSection;

@@ -1,6 +1,6 @@
+import { useCallback } from 'react';
 import { useCreatePatient, useUpdatePatient } from '@/api/patients/queries';
 import { usePatientStore } from '@/stores/patientStore';
-import { useCallback } from 'react';
 
 export function useAutoSave() {
   const createPatient = useCreatePatient();
