@@ -1,5 +1,7 @@
 'use client';
 import type { DocumentSearchResult } from '@/types';
+import { FileText, Search as SearchIcon } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchDocuments } from '@/api/documents/queries';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,8 +10,6 @@ import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/libs/utils';
 import { useUIStore } from '@/stores/uiStore';
-import { FileText, Search as SearchIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 
 type DocumentSelectorProps = {
   onSelect: (document: DocumentSearchResult['document']) => void;
@@ -38,7 +38,9 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
   const { data: searchResults = [], isLoading } = useSearchDocuments(searchQuery, isOpen);
 
   useEffect(() => {
-    setSelectedIndex(0);
+    if (searchResults.length > 0) {
+      setSelectedIndex(0);
+    }
     itemRefs.current = [];
   }, [searchResults, searchQuery]);
 
@@ -51,11 +53,11 @@ export function DocumentSelector({ onSelect }: DocumentSelectorProps) {
     }
   }, [isOpen]);
 
-  const handleSelect = (doc: DocumentSearchResult['document']) => {
+  const handleSelect = useCallback((doc: DocumentSearchResult['document']) => {
     onSelect(doc);
     setDocumentSearchQuery('');
     closeDocumentSelector();
-  };
+  }, [onSelect, setDocumentSearchQuery, closeDocumentSelector]);
 
   useEffect(() => {
     if (!isOpen) {

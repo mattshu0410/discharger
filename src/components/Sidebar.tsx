@@ -1,10 +1,5 @@
 'use client';
 import type { Patient } from '@/types';
-import { getAllPatients } from '@/api/patients/hooks';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/libs/utils';
-import { usePatientStore } from '@/stores/patientStore';
-import { useUIStore } from '@/stores/uiStore';
 import {
   BookOpen,
   Cog,
@@ -20,6 +15,11 @@ import {
 } from '@mynaui/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
+import { getAllPatients } from '@/api/patients/hooks';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/libs/utils';
+import { usePatientStore } from '@/stores/patientStore';
+import { useUIStore } from '@/stores/uiStore';
 
 export function Sidebar() {
   const router = useRouter();
@@ -75,6 +75,7 @@ export function Sidebar() {
     >
       {/* Toggle button */}
       <button
+        type="button"
         className="m-2 p-1 rounded hover:bg-[var(--sidebar-accent)] transition-colors"
         onClick={toggleSidebar}
         aria-label="Toggle sidebar"
