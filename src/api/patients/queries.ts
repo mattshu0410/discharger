@@ -2,6 +2,7 @@ import type { CreatePatientRequest, UpdatePatientRequest } from './types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createPatient,
+  deletePatient,
   getAllPatients,
   getPatientById,
   updatePatient,
@@ -54,6 +55,19 @@ export function useUpdatePatient() {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: patientKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: patientKeys.lists() });
+    },
+  });
+}
+
+// Delete patient
+export function useDeletePatient() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deletePatient(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: patientKeys.lists() });
+      queryClient.removeQueries({ queryKey: patientKeys.detail(id) });
     },
   });
 }
