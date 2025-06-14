@@ -1,9 +1,4 @@
 'use client';
-import { usePatients } from '@/api/patients/queries';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/libs/utils';
-import { usePatientStore } from '@/stores/patientStore';
-import { useUIStore } from '@/stores/uiStore';
 import {
   BookOpen,
   Cog,
@@ -16,8 +11,15 @@ import {
   SidebarAlt,
   User,
   UserCircle,
+  X,
 } from '@mynaui/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { useDeletePatient, usePatients } from '@/api/patients/queries';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/libs/utils';
+import { usePatientStore } from '@/stores/patientStore';
+import { useUIStore } from '@/stores/uiStore';
 
 export function Sidebar() {
   const router = useRouter();
@@ -34,6 +36,7 @@ export function Sidebar() {
   const toggleSidebar = useUIStore(state => state.toggleSidebar);
 
   const { data: patients } = usePatients();
+  const deletePatientMutation = useDeletePatient();
 
   // Create temporary patient entry for the sidebar
   const temporaryPatient = isNewPatient
@@ -44,6 +47,35 @@ export function Sidebar() {
         isTemporary: true,
       }
     : null;
+
+  // Handle patient deletion
+  const handleDeletePatient = async (patientId: string, patientName: string) => {
+    toast(`Delete patient "${patientName}"?`, {
+      description: 'This action cannot be undone.',
+      action: {
+        label: 'Delete',
+        onClick: async () => {
+          try {
+            await deletePatientMutation.mutateAsync(patientId);
+            // If the deleted patient was currently selected, clear the selection
+            if (currentPatientId === patientId) {
+              setCurrentPatientId(null);
+            }
+            toast.success(`Patient "${patientName}" has been deleted successfully.`);
+          } catch (error) {
+            console.error('Failed to delete patient:', error);
+            toast.error('Failed to delete patient. Please try again.');
+          }
+        },
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => {
+          // Do nothing, toast will close
+        },
+      },
+    });
+  };
 
   // Combine temporary patient with existing patients
   const allPatients = temporaryPatient
@@ -133,43 +165,62 @@ export function Sidebar() {
                     <ul className="space-y-1">
                       {allPatients.map(p => (
                         <li key={p.id} className="list-none">
-                          <button
-                            type="button"
+                          <div
                             className={cn(
-                              'w-full text-left px-4 py-2 cursor-pointer rounded transition-colors outline-none flex items-center gap-2',
+                              'w-full px-4 py-2 rounded transition-colors outline-none flex items-center gap-2 group',
                               currentPatientId === p.id
                                 ? 'bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)]'
                                 : 'hover:bg-[var(--sidebar-accent)]',
                               // Special styling for temporary patient
                               'isTemporary' in p && p.isTemporary && 'border-2 border-dashed border-yellow-400/50 bg-yellow-50/10',
                             )}
-                            onClick={() => {
-                              setCurrentPatientId(p.id);
-                              router.push('/');
-                            }}
                           >
-                            {/* Different icon for temporary patient */}
-                            {'isTemporary' in p && p.isTemporary
-                              ? (
-                                  <div className="w-[18px] h-[18px] rounded-full bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center">
-                                    <Plus size={10} className="text-yellow-800" />
-                                  </div>
-                                )
-                              : (
-                                  <User size={18} />
-                                )}
-                            <div className="flex flex-col overflow-hidden flex-1">
-                              <div className="font-medium text-base leading-tight flex items-center gap-2">
-                                {p.name}
-                                {'isTemporary' in p && p.isTemporary && (
-                                  <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] rounded-full border">
-                                    Temp
-                                  </span>
-                                )}
+                            <button
+                              type="button"
+                              className="flex items-center gap-2 flex-1 text-left cursor-pointer"
+                              onClick={() => {
+                                setCurrentPatientId(p.id);
+                                router.push('/');
+                              }}
+                            >
+                              {/* Different icon for temporary patient */}
+                              {'isTemporary' in p && p.isTemporary
+                                ? (
+                                    <div className="w-[18px] h-[18px] rounded-full bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center">
+                                      <Plus size={10} className="text-yellow-800" />
+                                    </div>
+                                  )
+                                : (
+                                    <User size={18} />
+                                  )}
+                              <div className="flex flex-col overflow-hidden flex-1">
+                                <div className="font-medium text-base leading-tight flex items-center gap-2">
+                                  {p.name}
+                                  {'isTemporary' in p && p.isTemporary && (
+                                    <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] rounded-full border">
+                                      Temp
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground truncate">{p.context}</div>
                               </div>
-                              <div className="text-xs text-muted-foreground truncate">{p.context}</div>
-                            </div>
-                          </button>
+                            </button>
+
+                            {/* Delete button - only show for non-temporary patients */}
+                            {!('isTemporary' in p && p.isTemporary) && (
+                              <button
+                                type="button"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500 hover:text-white rounded text-muted-foreground"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeletePatient(p.id, p.name);
+                                }}
+                                title={`Delete ${p.name}`}
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+                          </div>
                         </li>
                       ))}
                     </ul>

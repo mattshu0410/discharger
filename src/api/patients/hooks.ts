@@ -1,5 +1,5 @@
-import type { Patient } from '@/types';
 import type { CreatePatientRequest, UpdatePatientRequest } from './types';
+import type { Patient } from '@/types';
 
 // Get all patients, optionally limit the number returned
 export async function getAllPatients(limit?: number): Promise<Patient[]> {
@@ -75,4 +75,22 @@ export async function updatePatient(id: string, data: UpdatePatientRequest): Pro
   }
 
   return response.json();
+}
+
+// Delete a patient
+export async function deletePatient(id: string): Promise<void> {
+  if (!id) {
+    throw new Error('Patient ID is required');
+  }
+
+  const response = await fetch(`/api/patients/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error('Patient not found');
+    }
+    throw new Error('Failed to delete patient');
+  }
 }
