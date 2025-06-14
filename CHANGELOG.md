@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/mattshu0410/discharger/compare/v1.0.0...v1.0.1) (2025-06-14)
+
+
+### Bug Fixes
+
+* replace Clerk user profile navigation with modal ([5c647e8](https://github.com/mattshu0410/discharger/commit/5c647e88f2463d28fcafaf2c5a4b2638ef4cfb99))
+
 # 1.0.0 (2025-06-14)
 
 
