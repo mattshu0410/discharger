@@ -60,6 +60,9 @@ jobs:
       - name: Type checking
         run: npm run check-types
 
+      - name: Check formatting with Prettier
+        run: npm run format -- --check
+
       - name: Run unit tests
         run: npm run test -- --coverage
 
