@@ -1,13 +1,12 @@
 'use client';
 import { useClerk, UserProfile, useUser } from '@clerk/nextjs';
 import { format } from 'date-fns';
-import { Calendar, LogOut, Mail, Settings, User, X } from 'lucide-react';
+import { Calendar, LogOut, Mail, Settings, User } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useUpdateUserPreferences, useUserProfile } from '@/api/users/queries';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
@@ -225,26 +224,37 @@ export default function ProfilePage() {
       </div>
 
       {/* User Profile Modal */}
-      <Dialog open={showUserProfile} onOpenChange={setShowUserProfile}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              Account Settings
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowUserProfile(false)}
-                className="h-6 w-6"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            <UserProfile />
+      {showUserProfile && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+          onClick={() => setShowUserProfile(false)}
+          onKeyDown={e => e.key === 'Escape' && setShowUserProfile(false)}
+          role="button"
+          aria-label="Close modal"
+          tabIndex={0}
+        >
+          <div
+            className="overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+            onKeyDown={e => e.stopPropagation()}
+            role="button"
+            tabIndex={0}
+          >
+            <UserProfile
+              routing="hash"
+              appearance={{
+                elements: {
+                  rootBox: 'w-full',
+                  card: 'shadow-none border-0 bg-transparent',
+                  navbar: 'hidden',
+                  pageScrollBox: 'padding: 0',
+                  page: 'padding: 24px',
+                },
+              }}
+            />
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 }
