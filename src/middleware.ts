@@ -1,8 +1,8 @@
 import type { NextFetchEvent, NextRequest } from 'next/server';
-import arcjet from '@/libs/Arcjet';
 import { detectBot } from '@arcjet/next';
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import arcjet from '@/libs/Arcjet';
 
 const isProtectedRoute = createRouteMatcher([
   '/', // Protect the homepage
@@ -63,7 +63,6 @@ export default async function middleware(
         await auth.protect({
           unauthenticatedUrl: signInUrl.toString(),
         });
-        console.warn('🔍 Auth check passed!');
       }
       // Auth pages (/sign-in, /sign-up) get Clerk middleware but no protection
       return NextResponse.next();
