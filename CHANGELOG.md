@@ -1,3 +1,30 @@
+# 1.0.0 (2025-06-14)
+
+
+### Bug Fixes
+
+* fixed linting issues ([28a1ed9](https://github.com/mattshu0410/discharger/commit/28a1ed940b7189e115eb7f9131071dcc38dd1cb3))
+* prevent duplicate patient creation on autosave ([aaf3b9e](https://github.com/mattshu0410/discharger/commit/aaf3b9edf8ed9ff63c68b757457b8a45cbc97a17))
+* resolve TypeScript errors and add CLAUDE.md documentation ([1c22ee2](https://github.com/mattshu0410/discharger/commit/1c22ee2c1151844f3f8c3ab58a63a3998bbe8612))
+* routing and UI issues ([e27ff8c](https://github.com/mattshu0410/discharger/commit/e27ff8c209fe5415f9916425d5859d4977059820))
+
+
+### Features
+
+* add basic UI and LangChain request ([34b489e](https://github.com/mattshu0410/discharger/commit/34b489e50479bdcc956192e575909103bbb9b16c))
+* add delete patient functionality ([b7e886b](https://github.com/mattshu0410/discharger/commit/b7e886bf9756baee3a5b8195b2de5f38b071546b))
+* adding new user ([18c5232](https://github.com/mattshu0410/discharger/commit/18c5232abd6e00b0459078c2b0bf80513e8ef6d2))
+* auth verification and hooks refactor ([7f824ec](https://github.com/mattshu0410/discharger/commit/7f824ec6dafa32c9d91242c8698379dfb23c3793))
+* implement discharge summary feedback and regeneration system ([ddeb27c](https://github.com/mattshu0410/discharger/commit/ddeb27c5acbe34d37a0840a3c7c459deb1a2347f))
+* implement document upload functionality with multi-format support ([85d6765](https://github.com/mattshu0410/discharger/commit/85d6765244a44e2cde65fc41a0fcbab631b926b4))
+* implement inline citation highlighting system for discharge summaries ([023dc38](https://github.com/mattshu0410/discharger/commit/023dc385c2c75ef888cf4c6c86433b1a92faa059))
+* implement secure document upload system with PDF preview ([a03c6d0](https://github.com/mattshu0410/discharger/commit/a03c6d034aea4901ce159361706cff47f3594126))
+* implement snippet bracket navigation and management UI ([ec402ad](https://github.com/mattshu0410/discharger/commit/ec402ad3a0ffb4580ddb33f571d0f0217ddabc11))
+* implement snippet selector with / hotkey ([9a0c9c2](https://github.com/mattshu0410/discharger/commit/9a0c9c20a231a88d1e85659c7066fb46db2b5d1c))
+* redesign memory page and refactor sidebar routing ([a6b74ba](https://github.com/mattshu0410/discharger/commit/a6b74bac03fe4c658dc7599c5ecb12fee062c35e))
+* refactor patient database from integer to UUID with user authentication ([e509995](https://github.com/mattshu0410/discharger/commit/e509995b1819880726e5fa004bb8586c6decfb93))
+* zustand debounce in patient context ([dc7c753](https://github.com/mattshu0410/discharger/commit/dc7c753de422c2e61674d0fdeff12d9763a70a7a))
+
 ## [3.66.5](https://github.com/ixartz/Next-js-Boilerplate/compare/v3.66.4...v3.66.5) (2025-05-04)
 
 
