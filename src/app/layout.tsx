@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import { PostHogProvider } from '@/components/analytics/PostHogProvider';
-import { ReactQueryClientProvider } from '@/components/query/ReactQueryClientProvider';
-import { PatientProvider } from '@/context/PatientContext';
 import { Funnel_Sans, Lexend } from 'next/font/google';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Toaster } from 'sonner';
+import { PostHogProvider } from '@/components/analytics/PostHogProvider';
+import { ReactQueryClientProvider } from '@/components/query/ReactQueryClientProvider';
+import { PatientProvider } from '@/context/PatientContext';
 import '@/styles/global.css';
 
 const lexend = Lexend({

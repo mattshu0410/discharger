@@ -1,11 +1,11 @@
 'use client';
+import { Eye, EyeOff } from 'lucide-react';
 import { ContextViewer } from '@/components/ContextViewer';
 import { DischargeSummaryPanel } from '@/components/DischargeSummary/DischargeSummaryPanel';
 import { PatientForm } from '@/components/PatientForm';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { useUIStore } from '@/stores';
-import { Eye, EyeOff } from 'lucide-react';
 
 export default function Index() {
   const isContextViewerOpen = useUIStore((state: any) => state.isContextViewerOpen);

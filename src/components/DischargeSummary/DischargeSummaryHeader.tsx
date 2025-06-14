@@ -1,9 +1,9 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { useDischargeSummaryStore } from '@/stores';
 import { format } from 'date-fns';
 import { Clock, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useDischargeSummaryStore } from '@/stores';
 
 export function DischargeSummaryHeader() {
   const { lastGeneratedAt, isRegenerating } = useDischargeSummaryStore();

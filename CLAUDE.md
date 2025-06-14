@@ -33,14 +33,19 @@ npm run test:e2e    # Run E2E tests with Playwright
 
 ### Database Management
 ```bash
-# Generate database migrations
+# Generate database migrations (creates SQL migration files)
 npm run db:generate
 
-# Run migrations (production)
+# Push migrations to database
 npm run db:migrate
 
-# Open Drizzle Studio for database inspection
+# Open Supabase Studio for database inspection
 npm run db:studio
+
+# Alternative Supabase commands:
+supabase db diff -f <migration_name>  # Generate migration
+supabase db push                      # Push to database
+supabase studio                       # Open studio
 ```
 
 ## Architecture Overview

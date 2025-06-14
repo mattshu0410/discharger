@@ -2,8 +2,8 @@
 
 import type { Document } from '@/types';
 import type { Citation } from '@/types/discharge';
-import { Button } from '@/components/ui/button';
 import { ExternalLink, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 type DocumentListPanelProps = {
   documents: Document[];

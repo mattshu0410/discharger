@@ -106,6 +106,20 @@ export const dischargeSummaries = pgTable('discharge_summaries', {
   patientIdIdx: index('discharge_patient_id_idx').on(table.patientId),
 }));
 
+// Profiles table - matches existing Supabase structure and adds preferences
+export const profiles = pgTable('profiles', {
+  id: text('id').primaryKey().notNull(), // Clerk user ID from auth.jwt()
+  email: text('email'),
+  fullName: text('full_name'),
+  organization: text('organization'), // New field we'll add
+  role: text('role'), // New field we'll add
+  theme: themeEnum('theme').default('system'), // New field we'll add
+  defaultDocumentIds: jsonb('default_document_ids').default([]), // New field we'll add
+  favoriteDocumentIds: jsonb('favorite_document_ids').default([]), // New field we'll add
+  createdAt: timestamp('created_at', { mode: 'date', withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date', withTimezone: true }).defaultNow().notNull(),
+});
+
 // Analytics events table
 export const analyticsEvents = pgTable('analytics_events', {
   id: uuid('id').primaryKey().defaultRandom(),

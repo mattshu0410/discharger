@@ -1,8 +1,8 @@
 'use client';
 
+import { FileText, MessageSquare, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useDischargeSummaryStore } from '@/stores';
-import { FileText, MessageSquare, X } from 'lucide-react';
 
 export function ContextViewerHeader() {
   const { highlightedCitation, highlightCitation } = useDischargeSummaryStore();

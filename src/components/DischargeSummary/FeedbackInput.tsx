@@ -1,10 +1,10 @@
 'use client';
 
+import { Loader2, Send } from 'lucide-react';
 import { useRegenerateDischargeSummary } from '@/api/discharge/queries';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useDischargeSummaryStore, usePatientStore } from '@/stores';
-import { Loader2, Send } from 'lucide-react';
 
 export function FeedbackInput() {
   const {

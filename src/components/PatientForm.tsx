@@ -1,6 +1,12 @@
 'use client';
 import type { Document, Snippet } from '@/types';
 import type { GenerateDischargeSummaryResponse } from '@/types/discharge';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { Loader2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { getPatientById } from '@/api/patients/hooks';
 import { AutoSaveIndicator } from '@/components/AutoSaveIndicator';
 import { DocumentSelector } from '@/components/DocumentSelector';
@@ -13,12 +19,6 @@ import { useAutoSave } from '@/hooks/useAutoSave';
 import { useNewPatient } from '@/hooks/useNewPatient';
 import { useDischargeSummaryStore, useUIStore } from '@/stores';
 import { setAutoSaveFunction, usePatientStore } from '@/stores/patientStore';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { Loader2, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 // This giant behemoth of a function literally just calculates the position of the cursor. Is it hacky, yes. Does it work, yes. Do I care, no.
 const calculateCursorPosition = (textarea: HTMLTextAreaElement, cursorPos: number) => {
