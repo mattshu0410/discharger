@@ -1,8 +1,8 @@
 import type { Document } from '@/types';
-import { debounce } from '@/utils/debounce';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import { debounce } from '@/utils/debounce';
 
 // Configuration for autosave behavior
 const AUTOSAVE_DEBOUNCE_DELAY = 2000; // 2 seconds - adjust this to make autosave faster/slower

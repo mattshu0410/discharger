@@ -1,5 +1,5 @@
-import { BaseTemplate } from '@/templates/BaseTemplate';
 import { ClerkProvider } from '@clerk/nextjs';
+import { BaseTemplate } from '@/templates/BaseTemplate';
 
 export default async function AuthLayout(props: {
   children: React.ReactNode;

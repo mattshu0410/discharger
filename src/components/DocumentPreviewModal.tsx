@@ -1,6 +1,10 @@
 'use client';
 
 import type { memoryFile } from '@/types/files';
+import { Building2, Calendar, Download, ExternalLink, File, FileText as FileIcon, FileText, Tag, User, ZoomIn, ZoomOut } from 'lucide-react';
+import * as React from 'react';
+import { Document, Page, pdfjs } from 'react-pdf';
+import { toast } from 'sonner';
 import { useSignedUrl } from '@/api/documents/queries';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,10 +17,6 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Building2, Calendar, Download, ExternalLink, File, FileText as FileIcon, FileText, Tag, User, ZoomIn, ZoomOut } from 'lucide-react';
-import * as React from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import { toast } from 'sonner';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 

@@ -1,6 +1,6 @@
-import { createServerSupabaseClient } from '@/libs/supabase-server';
 import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/libs/supabase-server';
 
 export async function GET(request: Request) {
   try {

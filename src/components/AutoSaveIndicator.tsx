@@ -1,6 +1,6 @@
 'use client';
-import { usePatientStore } from '@/stores/patientStore';
 import { AlertCircle, Check, Loader2 } from 'lucide-react';
+import { usePatientStore } from '@/stores/patientStore';
 
 export function AutoSaveIndicator() {
   const saveStatus = usePatientStore(state => state.saveStatus);

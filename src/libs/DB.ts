@@ -2,9 +2,9 @@
 // All database operations should use the Supabase client instead of this file
 // This file is kept for any legacy compatibility but should not be used
 
-import * as schema from '@/models/Schema';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Client } from 'pg';
+import * as schema from '@/models/Schema';
 import { Env } from './Env';
 
 // Simplified DB setup - only for legacy compatibility

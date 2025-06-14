@@ -1,11 +1,7 @@
 import type { UpdatePreferencesRequest, UpdateProfileRequest } from './types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  addDefaultDocument,
-  addFavoriteDocument,
   getCurrentUser,
-  removeDefaultDocument,
-  removeFavoriteDocument,
   updateUserPreferences,
   updateUserProfile,
 } from './hooks';
@@ -56,11 +52,19 @@ export function useToggleFavoriteDocument() {
 
   return useMutation({
     mutationFn: async ({ documentId, isFavorite }: { documentId: string; isFavorite: boolean }) => {
+      const currentUser = await getCurrentUser();
+      const favoriteIds = currentUser.preferences.favoriteDocumentIds || [];
+
+      let updatedFavoriteIds;
       if (isFavorite) {
-        return removeFavoriteDocument(documentId);
+        // Remove from favorites
+        updatedFavoriteIds = favoriteIds.filter(id => id !== documentId);
       } else {
-        return addFavoriteDocument(documentId);
+        // Add to favorites
+        updatedFavoriteIds = [...favoriteIds, documentId];
       }
+
+      return updateUserPreferences({ favoriteDocumentIds: updatedFavoriteIds });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userKeys.current() });
@@ -74,11 +78,19 @@ export function useToggleDefaultDocument() {
 
   return useMutation({
     mutationFn: async ({ documentId, isDefault }: { documentId: string; isDefault: boolean }) => {
+      const currentUser = await getCurrentUser();
+      const defaultIds = currentUser.preferences.defaultDocumentIds || [];
+
+      let updatedDefaultIds;
       if (isDefault) {
-        return removeDefaultDocument(documentId);
+        // Remove from defaults
+        updatedDefaultIds = defaultIds.filter(id => id !== documentId);
       } else {
-        return addDefaultDocument(documentId);
+        // Add to defaults
+        updatedDefaultIds = [...defaultIds, documentId];
       }
+
+      return updateUserPreferences({ defaultDocumentIds: updatedDefaultIds });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userKeys.current() });
@@ -113,3 +125,7 @@ export function useUpdateTheme() {
     },
   });
 }
+
+// Export aliases for backward compatibility
+export const useUserProfile = useCurrentUser;
+export const useUpdateUserPreferences = useUpdatePreferences;
