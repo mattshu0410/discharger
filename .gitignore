@@ -61,3 +61,5 @@ storybook-static
 
 # MCP configuration (local development)
 .mcp.json
+
+.env.local
