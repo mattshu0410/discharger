@@ -201,8 +201,11 @@
   }
 
   /* Highlighted citation in context viewer */
-  .citation-highlighted {
-    @apply bg-yellow-200 text-yellow-900 border border-yellow-400;
+  .citation-highlighted-green {
+    @apply bg-green-200 text-green-900 border border-green-400;
+  }
+  .citation-highlighted-blue {
+    @apply bg-blue-200 text-blue-900 border border-blue-400;
   }
 }
 

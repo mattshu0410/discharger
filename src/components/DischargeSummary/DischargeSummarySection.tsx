@@ -17,6 +17,9 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
 
   const isHighlighted = highlightedSection === section.id;
 
+  // Debug logging for citations
+  console.warn(`📋 Section "${section.title}" citations:`, section.citations);
+
   // Parse content and render <CIT> tags as clickable highlighted elements
   const renderedContent = useMemo(() => {
     if (!section.citations.length) {
@@ -28,11 +31,18 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
     // Replace <CIT id="citationId">text</CIT> with clickable highlighted spans
     const citRegex = /<CIT id="([^"]+)">([^<]+)<\/CIT>/g;
 
-    content = content.replace(citRegex, (_match, _citationLlmId, citedText) => {
-      // Find the actual citation object by matching the LLM ID to our processed citation
+    content = content.replace(citRegex, (_match, citationLlmId, citedText) => {
+      // Find the actual citation object by matching the LLM ID directly to the ID field
       const citation = section.citations.find((c) => {
-        // The LLM uses simple IDs like "c1", "d1", we need to find the matching citation
-        return c.text === citedText; // Match by text for now, could be improved
+        // Match the LLM ID from the <CIT> tag to the citation ID
+        return c.id === citationLlmId;
+      });
+
+      console.warn(`🔗 Processing citation: llmId=${citationLlmId}, found=${!!citation}`, {
+        citationLlmId,
+        citedText,
+        citation,
+        allCitationIds: section.citations.map(c => c.id),
       });
 
       if (citation) {

@@ -21,7 +21,6 @@ export type DischargeSection = {
 
 export type ContextCitation = {
   id: string;
-  text: string;
   context: string;
   relevanceScore: number;
   sourceType: 'user-context';
@@ -30,7 +29,6 @@ export type ContextCitation = {
 
 export type DocumentCitation = {
   id: string;
-  text: string;
   context: string;
   relevanceScore: number;
   sourceType: 'selected-document' | 'retrieved-document';

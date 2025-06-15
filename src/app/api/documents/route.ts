@@ -101,6 +101,16 @@ export async function POST(request: Request) {
         try {
           const processedDoc = await processDocumentFile(file, document.id, user.id);
 
+          // Update the document with full text
+          const { error: updateError } = await supabase
+            .from('documents')
+            .update({ full_text: processedDoc.fullText })
+            .eq('id', document.id);
+
+          if (updateError) {
+            throw new Error(`Failed to update document with full text: ${updateError.message}`);
+          }
+
           // Add documents to vector store and get the inserted IDs
           const vectorIds = await vectorStore.addDocuments(processedDoc.chunks);
 

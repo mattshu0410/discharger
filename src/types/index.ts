@@ -28,6 +28,7 @@ export type Document = {
   s3Url: string;
   metadata?: Record<string, any>;
   tags: string[];
+  full_text?: string; // Full text content of the document
 };
 
 export type DocumentChunk = {

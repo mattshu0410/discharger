@@ -7,6 +7,7 @@ export type ProcessedDocument = {
   chunks: Document[];
   pageCount: number;
   chunkCount: number;
+  fullText: string;
 };
 
 export async function processDocumentFile(
@@ -39,6 +40,9 @@ export async function processDocumentFile(
   const docs = await loader.load();
   console.warn(`Loaded ${docs.length} pages from ${file.name}`);
 
+  // Extract full text from all pages
+  const fullText = docs.map(doc => doc.pageContent).join('\n\n');
+
   // Split documents into chunks
   const textSplitter = new RecursiveCharacterTextSplitter({
     chunkSize: 1024,
@@ -65,5 +69,6 @@ export async function processDocumentFile(
     chunks: chunksWithMetadata,
     pageCount: docs.length,
     chunkCount: allSplits.length,
+    fullText,
   };
 }

@@ -28,13 +28,6 @@ export function ContextViewerHeader() {
               </>
             )}
 
-        {highlightedCitation && (
-          <span className="text-sm text-muted-foreground">
-            Citation: "
-            {highlightedCitation.text.substring(0, 30)}
-            ..."
-          </span>
-        )}
       </div>
 
       {highlightedCitation && (

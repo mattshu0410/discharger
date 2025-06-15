@@ -7,6 +7,7 @@ import { Loader2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { useDocumentsByIds } from '@/api/documents/queries';
 import { getPatientById } from '@/api/patients/hooks';
 import { AutoSaveIndicator } from '@/components/AutoSaveIndicator';
 import { DocumentSelector } from '@/components/DocumentSelector';
@@ -88,6 +89,7 @@ export function PatientForm() {
   const selectedDocuments = usePatientStore(state => state.selectedDocuments);
   const addDocument = usePatientStore(state => state.addDocument);
   const removeDocument = usePatientStore(state => state.removeDocument);
+  const addDocumentsFromGeneration = usePatientStore(state => state.addDocumentsFromGeneration);
 
   // Discharge summary store
   const setDischargeSummary = useDischargeSummaryStore(state => state.setDischargeSummary);
@@ -114,6 +116,18 @@ export function PatientForm() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   // I sort of only need this here so we are going to cbbs with usePatientStore
   const [triggerPosition, setTriggerPosition] = useState<number | null>(null);
+  const [documentsToFetch, setDocumentsToFetch] = useState<string[]>([]);
+
+  // Fetch documents when document IDs are set after discharge generation
+  const { data: fetchedDocuments = [] } = useDocumentsByIds(documentsToFetch);
+
+  // Update patient store when documents are fetched
+  useEffect(() => {
+    if (fetchedDocuments.length > 0 && documentsToFetch.length > 0) {
+      addDocumentsFromGeneration(fetchedDocuments);
+      setDocumentsToFetch([]); // Clear to prevent re-fetching
+    }
+  }, [fetchedDocuments, documentsToFetch.length, addDocumentsFromGeneration]);
 
   // Check if this is a new patient (starts with "new-")
   const isNewPatient = currentPatientId && typeof currentPatientId === 'string' && currentPatientId.startsWith('new-');
@@ -234,6 +248,13 @@ export function PatientForm() {
     onSuccess: (response) => {
       console.warn('Generated discharge summary:', response.summary);
       setDischargeSummary(response.summary);
+
+      // Trigger fetching of all documents used in generation (selected + RAG-retrieved)
+      const usedDocumentIds = response.summary.metadata.documentIds;
+      if (usedDocumentIds.length > 0) {
+        console.warn('Triggering fetch for documents used in generation:', usedDocumentIds);
+        setDocumentsToFetch(usedDocumentIds);
+      }
     },
     onError: (error) => {
       console.error('Failed to generate discharge summary:', error);

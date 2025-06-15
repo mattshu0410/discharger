@@ -1,15 +1,18 @@
 import type { DischargeSection, GenerateDischargeSummaryRequest, GenerateDischargeSummaryResponse } from '@/types/discharge';
+import { currentUser } from '@clerk/nextjs/server';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { z } from 'zod';
+import { createServerSupabaseClient } from '@/libs/supabase-server';
+import { getVectorStore } from '@/libs/vectorStore';
 
 export const dynamic = 'force-dynamic';
 
 // Define Zod schema for LLM output (only what LLM should generate)
 const citationSchema = z.object({
   id: z.string().describe('Unique citation ID like c1, d1, etc.'),
-  text: z.string().describe('The specific text being cited'),
   context: z.string().describe('Surrounding context for the citation'),
+  documentUuid: z.string().optional().describe('Document UUID for document citations (required for d1, d2, etc.)'),
 });
 
 const dischargeSectionsSchema = z.object({
@@ -28,6 +31,8 @@ CITATION REQUIREMENTS:
 - Use inline citations with <CIT id="c1">highlighted text</CIT> format
 - Use IDs starting with "c" for user-typed clinical context (c1, c2, etc.)
 - Use IDs starting with "d" for uploaded documents (d1, d2, etc.)
+- For document citations (d1, d2, etc.), you MUST include the documentUuid field with the exact UUID from the document
+- For context citations (c1, c2, etc.), do NOT include documentUuid field
 - Wrap the exact text being cited with <CIT> tags and provide matching citation objects
 - Be specific about what text is being cited and why it's relevant
 - Every significant medical claim should have an appropriate citation
@@ -89,6 +94,67 @@ export async function POST(req: Request) {
   try {
     const { patientId, context, documentIds = [], feedback = '', currentSummary }: GenerateDischargeSummaryRequest = await req.json();
 
+    // Get the current user
+    const user = await currentUser();
+    if (!user) {
+      return Response.json(
+        { error: 'Unauthorized' },
+        { status: 401 },
+      );
+    }
+
+    const supabase = createServerSupabaseClient();
+
+    // Step 1: Perform RAG similarity search if context is provided
+    let ragDocumentIds: string[] = [];
+    if (context && context.trim().length > 0) {
+      try {
+        const vectorStore = await getVectorStore(user.id);
+        const similarDocs = await vectorStore.similaritySearch(context, 5); // Get top 5 similar chunks
+
+        // Extract unique document IDs from the similar chunks
+        const uniqueDocIds = new Set<string>();
+        similarDocs.forEach((doc) => {
+          if (doc.metadata?.document_id) {
+            uniqueDocIds.add(doc.metadata.document_id);
+          }
+        });
+        ragDocumentIds = Array.from(uniqueDocIds);
+        console.warn('RAG found document IDs:', ragDocumentIds);
+      } catch (error) {
+        console.error('RAG search error:', error);
+        // Continue without RAG results if there's an error
+      }
+    }
+
+    // Step 2: Combine user-selected documents with RAG-retrieved documents
+    const allDocumentIds = [...new Set([...documentIds, ...ragDocumentIds])];
+    console.warn('All document IDs to retrieve:', allDocumentIds);
+
+    // Step 3: Retrieve full text for all documents
+    let documentContents = 'No documents available.';
+    const availableDocuments = new Map<string, string>(); // Map UUID to filename for validation
+
+    if (allDocumentIds.length > 0) {
+      const { data: documents, error } = await supabase
+        .from('documents')
+        .select('id, filename, full_text')
+        .in('id', allDocumentIds);
+
+      if (error) {
+        console.error('Error fetching documents:', error);
+      } else if (documents && documents.length > 0) {
+        // Format documents for the prompt with UUIDs for LLM reference
+        documentContents = documents
+          .map((doc) => {
+            availableDocuments.set(doc.id, doc.filename); // Store for validation
+            return `Document UUID: ${doc.id} (Filename: ${doc.filename}):\n${doc.full_text || 'No content available'}`;
+          })
+          .join('\n\n---\n\n');
+        console.warn(`Retrieved ${documents.length} documents with full text`);
+      }
+    }
+
     const model = new ChatGoogleGenerativeAI({
       model: 'gemini-2.0-flash',
       temperature: 0.3,
@@ -120,7 +186,7 @@ export async function POST(req: Request) {
       invokeParams = {
         currentSummary: formattedCurrentSummary,
         context,
-        documentContents: 'No documents selected', // Placeholder for now
+        documentContents,
         feedback,
       };
     } else {
@@ -132,7 +198,7 @@ export async function POST(req: Request) {
 
       invokeParams = {
         context,
-        documentContents: 'No documents selected', // Placeholder for now
+        documentContents,
       };
     }
 
@@ -148,13 +214,12 @@ export async function POST(req: Request) {
       title: section.title,
       content: section.content,
       order: index + 1,
-      citations: section.citations.map((citation, citationIndex) => {
+      citations: section.citations.map((citation) => {
         // Determine source type from ID prefix (c1, c2 = context; d1, d2 = document)
         const isContextCitation = citation.id.startsWith('c');
 
         const baseCitation = {
-          id: `citation_${dischargeSummaryId}_${index + 1}_${citationIndex + 1}`,
-          text: citation.text,
+          id: citation.id, // Use original LLM ID (c1, d1, etc.) directly
           context: citation.context,
           relevanceScore: 1.0, // Default high relevance for now
         };
@@ -166,10 +231,18 @@ export async function POST(req: Request) {
             contextSection: 'main', // Default section
           };
         } else {
+          // Use document UUID from LLM response, validate it exists
+          const documentId = citation.documentUuid || 'unknown-doc-id';
+          const isValidDocument = availableDocuments.has(documentId);
+
+          if (!isValidDocument && citation.documentUuid) {
+            console.warn(`LLM referenced unknown document UUID: ${citation.documentUuid}`);
+          }
+
           return {
             ...baseCitation,
             sourceType: 'selected-document' as const,
-            documentId: 'placeholder-doc-id', // Will be filled in later with real documents
+            documentId,
             chunkId: undefined,
             pageNumber: undefined,
           };
@@ -184,8 +257,8 @@ export async function POST(req: Request) {
         sections,
         metadata: {
           generatedAt: currentTimestamp,
-          llmModel: 'gemini-1.5-flash',
-          documentIds,
+          llmModel: 'gemini-2.0-flash',
+          documentIds: allDocumentIds, // Include both selected and RAG-retrieved documents
           feedbackApplied: isModification && feedback
             ? [...(currentSummary?.metadata.feedbackApplied || []), feedback]
             : [],

@@ -203,12 +203,13 @@ Highlights Matching Text
 - [x] Build basic context viewer with document tabs
 - [ ] Add feedback history display
 
-### Phase 3: Advanced Citations 🚧 [STATUS: In Progress]
-- [ ] Implement citation popovers with details  
+### Phase 3: Advanced Citations ⚠️ [STATUS: Needs Citation ID Fix]
+- [x] Implement enhanced citation display with context
 - [x] Add bidirectional citation highlighting
 - [x] Build citation relevance indicators
-- [ ] Create smooth scrolling to citations
-- [ ] Add citation filtering/search
+- [x] Integrate RAG-based document retrieval
+- [x] Store and retrieve full document text
+- [ ] **Fix citation-to-document mapping**: Separate citation IDs from document UUIDs
 
 ### Phase 4: Rules System 🔮 [STATUS: Not Started]
 - [ ] Design rule suggestion algorithm
@@ -561,7 +562,219 @@ type DocumentCitation = {
 - LLM generates: c1, c2 for context; d1, d2 for documents
 - API processes and adds proper sourceType
 
+### Phase 3 Implementation Details (COMPLETED)
+
+#### Document Full Text Storage
+**Problem**: Need to store and retrieve full document text for proper citation context.
+
+**Solution**: 
+1. Added `full_text` column to documents table in Supabase
+2. Updated `documentProcessor.ts` to extract full text from PDFs/DOCX files
+3. Modified document upload API to store full text in database
+
+#### RAG Integration for Document Retrieval
+**Implementation**:
+1. Used `VectorStoreRetriever` from LangChain for similarity search
+2. Combined user-selected documents with RAG-retrieved documents
+3. Retrieved full text for all relevant documents to pass to LLM
+
+**Key Code Changes**:
+- `src/app/api/discharge/route.ts`: Added RAG similarity search
+- `src/libs/documentProcessor.ts`: Added fullText extraction
+- `src/app/api/documents/route.ts`: Store full text on upload
+
+#### Citation Mapping System [UPDATED - Phase 3.1]
+**Problem**: Original system created 1:1 mapping between citation IDs (d1, d2, d3) and document UUIDs, preventing multiple citations from referencing the same document.
+
+**Original flawed approach**:
+```typescript
+// OLD: 1:1 mapping prevents multiple citations per document
+let documentMap = new Map<number, string>();
+documents.forEach((doc, index) => {
+  const docNumber = index + 1;
+  documentMap.set(docNumber, doc.id); // d1 → uuid1, d2 → uuid2, etc.
+});
+```
+
+**New Solution**: Separate citation IDs from document identification
+- **Citation IDs** (d1, d2, d3): Used for LLM parsing and UI interaction
+- **Document UUIDs**: Included in prompt context and stored in `DocumentCitation.documentId`
+- **Many-to-one relationship**: Multiple citations (d1, d5, d7) can reference same document
+
+```typescript
+// NEW: Include document UUIDs in prompt, populate documentId correctly
+const documentWithUuid = {
+  id: 'd1',                    // Citation ID for LLM parsing
+  documentId: 'uuid-abc-123',  // Actual document UUID from prompt context
+  context: '...',
+  sourceType: 'selected-document'
+};
+```
+
+#### Enhanced Context Viewer
+**Updates**:
+- Added full_text to Document type definition
+- Enhanced DocumentListPanel to show citation context
+- Improved citation display with source information
+- Distinguished between user-selected and RAG-retrieved documents
+
+## Key Files Reference
+
+### Core API Endpoints
+
+#### `/src/app/api/discharge/route.ts`
+**Purpose**: Main discharge summary generation endpoint
+- Handles POST requests for generating/regenerating discharge summaries
+- Performs RAG similarity search on patient context
+- Retrieves full text from selected and RAG-discovered documents
+- Formats documents for LLM prompt with proper citation IDs (d1, d2, etc.)
+- Maps LLM-generated citation IDs to actual document UUIDs
+- Returns structured JSON with sections, citations, and metadata
+
+#### `/src/app/api/documents/route.ts`
+**Purpose**: Document management endpoint
+- POST: Handles file uploads, extracts full text, stores in database and vector store
+- GET: Retrieves documents with search/filter capabilities
+- Stores document metadata and full_text in Supabase
+- Creates vector embeddings for RAG search
+
+#### `/src/app/api/documents/[id]/route.ts`
+**Purpose**: Individual document operations
+- DELETE: Removes document from database and storage
+- Handles cleanup of vector embeddings
+
+#### `/src/app/api/documents/[id]/signed-url/route.ts`
+**Purpose**: Secure document access
+- Generates signed URLs for private document access
+- 5-minute expiration for security
+
+### State Management
+
+#### `/src/stores/dischargeSummaryStore.ts`
+**Purpose**: Central state for discharge summary feature
+- Manages current discharge summary and generation state
+- Handles feedback input and regeneration flow
+- Tracks highlighted citations for context viewer
+- Coordinates UI state between components
+
+#### `/src/stores/patientStore.ts`
+**Purpose**: Patient-related state management
+- Tracks current patient selection
+- Manages patient context (auto-save with debouncing)
+- Handles selected documents for current patient
+- Integrates with discharge generation flow
+
+### Type Definitions
+
+#### `/src/types/discharge.ts`
+**Purpose**: TypeScript definitions for discharge system
+- `DischargeSummary`: Main summary structure with sections and metadata
+- `DischargeSection`: Individual section with citations
+- `Citation`: Discriminated union for context vs document citations
+- Request/response types for API endpoints
+
+#### `/src/types/index.ts`
+**Purpose**: Core application types
+- `Document`: Document model with full_text field
+- `Patient`: Patient model with context and discharge text
+- Other core types (Snippet, UserProfile, etc.)
+
+### Components - Discharge Summary
+
+#### `/src/components/DischargeSummary/DischargeSummaryPanel.tsx`
+**Purpose**: Main container for discharge summary display
+- Orchestrates header, content, and feedback components
+- Connects to discharge store for state
+- Handles loading and empty states
+
+#### `/src/components/DischargeSummary/DischargeSummarySection.tsx`
+**Purpose**: Individual section rendering
+- Parses and renders inline citations (`<CIT>` tags)
+- Handles citation click events
+- Copy-to-clipboard functionality
+- Highlights citations on hover/click
+
+#### `/src/components/DischargeSummary/FeedbackInput.tsx`
+**Purpose**: User feedback interface
+- Text input for modification instructions
+- Triggers regeneration with feedback
+- Updates discharge store with pending feedback
+
+### Components - Context Viewer
+
+#### `/src/components/ContextViewer/ContextViewer.tsx`
+**Purpose**: Bottom panel container
+- Switches between user context and document views
+- Responds to citation highlights from discharge summary
+
+#### `/src/components/ContextViewer/DocumentListPanel.tsx`
+**Purpose**: Document citation display
+- Shows highlighted citation with full context
+- Lists all selected documents
+- Indicates citation source (user-selected vs RAG-retrieved)
+- Visual highlighting of relevant document
+
+#### `/src/components/ContextViewer/UserContextPanel.tsx`
+**Purpose**: User context citation display
+- Highlights cited text within patient context
+- Shows surrounding context for citations
+
+### Document Processing
+
+#### `/src/libs/documentProcessor.ts`
+**Purpose**: File processing for uploads
+- Extracts text from PDFs and DOCX files
+- Splits documents into chunks for vector storage
+- Returns full text for database storage
+- Adds metadata (page numbers, chunk indices)
+
+#### `/src/libs/vectorStore.ts`
+**Purpose**: Vector storage interface
+- Creates Supabase vector store with OpenAI embeddings
+- Configures user-specific filtering
+- Interfaces with match_documents function
+
+### Database & Storage
+
+#### Supabase Tables:
+- `documents`: Stores document metadata and full_text
+- `document_vecs`: Vector embeddings for RAG search
+- `patients`: Patient records with context
+- `profiles`: User profiles and preferences
+
+#### Supabase Functions:
+- `match_documents`: Performs vector similarity search
+- Returns matching chunks with similarity scores
+
+### Integration Points
+
+#### `/src/components/PatientForm.tsx`
+**Purpose**: Main patient interface
+- Text area for patient context with auto-save
+- Document selector integration
+- "Generate Discharge Summary" button
+- Calls discharge API and updates store
+
+#### `/src/app/(auth)/(sidebar)/page.tsx`
+**Purpose**: Main application layout
+- Three-panel layout (Patient Form, Discharge Summary, Context Viewer)
+- Responsive design with resizable panels
+- Integrates all major components
+
+### Utilities
+
+#### `/src/utils/debounce.ts`
+**Purpose**: Debouncing utility
+- Used for auto-saving patient context
+- Prevents excessive API calls during typing
+
+### Environment Configuration
+- `OPENAI_API_KEY`: For text embeddings
+- `GOOGLE_API_KEY`: For Gemini LLM
+- `NEXT_PUBLIC_SUPABASE_*`: Database connection
+- `NEXT_PUBLIC_CLERK_*`: Authentication
+
 ---
 
-Last Updated: 2025-01-13
-Status: Phase 2 Complete - Citations Working
+Last Updated: 2025-01-14
+Status: Phase 3 Complete - Document Citations Working

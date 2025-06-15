@@ -81,17 +81,17 @@ This application enables medical professionals to efficiently generate discharge
   * There will be a small floating banner above the feedback input box that asks something like "would you like this to be rule..."
   * A clean version of the rule is saved into Memory
 
-* Each section has a **copy button**.
+* Each section has a **copy button**. ✅
 * Clicking any output section:
 
-  * Highlights source in context viewer.
-  * Based on in-prompt citations parsed from LLM output.
+  * Highlights source in context viewer. ✅
+  * Based on in-prompt citations parsed from LLM output. ✅
 
 #### Bottom Panel: Context Viewer
 
-* Displays all sources in context:
+* Displays all sources in context: ✅
 
-  * Clear UI distinction between guidelines and notes.
+  * Clear UI distinction between guidelines and notes. ✅
 
 #### Citations Feature Function
 
@@ -104,7 +104,7 @@ This application enables medical professionals to efficiently generate discharge
   * Searchable index of pre-existing guidelines.
   * Upload button to add new PDFs.
   * Option to make uploaded PDF shareable.
-  * All new PDFs uploaded should be vectorised and stored.
+  * All new PDFs uploaded should be vectorised and stored. ✅
   * Table view with metadata:
 
     * Filename, Summary, Uploader, Date Uploaded, Source (User or Community), Share Status

@@ -39,6 +39,7 @@ type PatientState = {
   addDocument: (document: Document) => void;
   removeDocument: (documentId: string) => void;
   clearDocuments: () => void;
+  addDocumentsFromGeneration: (documents: Document[]) => void;
   setSaveStatus: (status: SaveStatus) => void;
   setSaveError: (error: string | null) => void;
   setLastSaved: (date: Date | null) => void;
@@ -154,6 +155,17 @@ const usePatientStore = create<PatientState>()(
 
       clearDocuments: () => set((state) => {
         state.selectedDocuments = [];
+      }),
+
+      addDocumentsFromGeneration: documents => set((state) => {
+        // Add all documents from generation (user-selected + RAG-retrieved)
+        // without duplicates
+        documents.forEach((document) => {
+          if (!state.selectedDocuments.find((d: Document) => d.id === document.id)) {
+            state.selectedDocuments.push(document);
+          }
+        });
+        console.warn(`Added ${documents.length} documents from generation, total: ${state.selectedDocuments.length}`);
       }),
 
       setSaveStatus: status => set((state) => {

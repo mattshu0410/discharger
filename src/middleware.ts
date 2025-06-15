@@ -3,7 +3,6 @@ import { detectBot } from '@arcjet/next';
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import arcjet from '@/libs/Arcjet';
-import { ensureUserProfile } from '@/libs/ensureUserProfile';
 
 const isProtectedRoute = createRouteMatcher([
   '/', // Protect the homepage
@@ -65,16 +64,8 @@ export default async function middleware(
           unauthenticatedUrl: signInUrl.toString(),
         });
 
-        // Ensure user profile exists after authentication
-        // Skip for API routes to avoid blocking them
-        if (!req.nextUrl.pathname.startsWith('/api/')) {
-          try {
-            await ensureUserProfile();
-          } catch (error) {
-            console.error('Failed to ensure user profile in middleware:', error);
-            // Don't block the request if profile creation fails
-          }
-        }
+        // User profiles are now created via Clerk webhooks
+        // No need to ensure profile creation in middleware
       }
       // Auth pages (/sign-in, /sign-up) get Clerk middleware but no protection
       return NextResponse.next();
