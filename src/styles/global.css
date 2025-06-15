@@ -213,6 +213,18 @@
   .bg-muted {
     background-color: var(--muted);
   }
+
+  /* Hide scrollbar utility class */
+  .hide-scrollbar {
+    /* Firefox */
+    scrollbar-width: none;
+    /* Safari and Chrome */
+    -ms-overflow-style: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 html {

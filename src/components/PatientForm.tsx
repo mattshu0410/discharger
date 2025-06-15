@@ -554,7 +554,7 @@ export function PatientForm() {
                         ? 'Loading patient data...'
                         : 'Enter clinical notes here... Use @ to add documents and / to add snippets'
                     }
-                    className="flex-1 min-h-[400px] resize-none"
+                    className="flex-1 min-h-[400px] resize-none hide-scrollbar"
                     value={currentPatientContext}
                     onChange={handleContextChange}
                     onKeyDown={handleKeyDown}

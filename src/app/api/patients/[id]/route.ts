@@ -77,15 +77,18 @@ export async function PUT(
       })
       .eq('id', id)
       .eq('user_id', user.id)
-      .select()
-      .single();
+      .select();
 
     if (error) {
       console.error('Supabase error:', error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(data);
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Patient not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(data[0]);
   } catch (error) {
     console.error('API error:', error);
     return NextResponse.json(

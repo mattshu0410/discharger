@@ -28,7 +28,7 @@ export default function Index() {
                 {isContextViewerOpen ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
-            <div className="flex-1 overflow-y-auto px-8 pb-8">
+            <div className="flex-1 overflow-y-auto px-8 pb-8 hide-scrollbar">
               <PatientForm />
             </div>
           </ResizablePanel>
@@ -56,7 +56,7 @@ export default function Index() {
                 Documents and snippets used in this patient's context
               </p>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto hide-scrollbar">
               <ContextViewer />
             </div>
           </ResizablePanel>

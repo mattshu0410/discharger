@@ -71,7 +71,8 @@ export async function updatePatient(id: string, data: UpdatePatientRequest): Pro
     if (response.status === 404) {
       throw new Error('Patient not found');
     }
-    throw new Error('Failed to update patient');
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`Failed to update patient: ${response.status} ${errorData.error || 'Unknown error'}`);
   }
 
   return response.json();
