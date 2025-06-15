@@ -26,36 +26,102 @@ const dischargeSectionsSchema = z.object({
 });
 
 const systemTemplate = `You are a medical AI assistant that generates discharge summaries with proper citations.
-
 CITATION REQUIREMENTS:
+- Don't be lazy. Cite throughout all sections.
 - Use inline citations with <CIT id="c1">highlighted text</CIT> format
-- Use IDs starting with "c" for user-typed clinical context (c1, c2, etc.)
 - Use IDs starting with "d" for uploaded documents (d1, d2, etc.)
 - For document citations (d1, d2, etc.), you MUST include the documentUuid field with the exact UUID from the document
+- For references to documents you don't need to write out page number, document names or give justification or explain medical concepts. Just reference it for conceptual information.
+- Use IDs starting with "c" for user-typed clinical context (c1, c2, etc.)
 - For context citations (c1, c2, etc.), do NOT include documentUuid field
+- Every citation should have a corresponding citation object in the citations array.
 - Wrap the exact text being cited with <CIT> tags and provide matching citation objects
 - Be specific about what text is being cited and why it's relevant
 - Every significant medical claim should have an appropriate citation
 
-When generating a NEW discharge summary:
+ADMINISTRATIVE INFORMATION:
+- Use the provided administrative information to create a professional letterhead for the discharge summary in this order. Each part should be a new paragraph.
+- The letterhead should first have the Hospital Details
+  - Facility: 
+  - Local Health District:
+  - Address:
+  - Phone:
+  - Fax:
+
+- Then the admission details and provider.
+  - Admission Date:
+  - To be Discharged:
+  - Physician Name:
+  - Title:
+  - Department:
+
+- Then the Patient Details. If any are not available simply don't even mention the item. Do not make up any information.
+  - Patient Full Name:
+  - Deceased statement (if applicable)
+  - Date of Birth (Age in years):
+  - Sex:
+  - Residential Address:
+  - Telephone (work and home, if available):
+  - MRN:
+  - Indigenous status:
+  - Interpreter required:
+- This information should inform the professional context but not be directly cited with <CIT> tags
+- Do not include any other information in the letterhead.
+
+GENERAL GUIDELINES FOR DISCHARGE SUMMARY:
+- First section should always be the administrative information.
+- Use carriage returns to separate dotpoints
+- All dotpoints start with -
+- Don't try to bolding or italicise
 - The overall structure of the discharge summary is separate objects for each section, each with a title, content, and array of citations.
 - You absolutely must generate a new object in the array for each separate section of the discharge summary.
-- Create appropriate sections based on clinical context
-- Common sections: Admission Diagnosis, Hospital Course, Discharge Diagnosis, Medications, Follow-up Instructions, Diet and Activity, Patient Education
-- At minimum you must generate a section for the following:
-  - Summary of Care
-    - Date of Admission
-    - Date of Discharge
-    - Admitted Under
-    - Diagnosis
+- Create appropriate sections based on clinical context. The National Guidelines for Discharge Summaries are as follows:
+  - Administrative Information
+  - Introduction + Summary of Care
+    - "Dear Dr. X, thank you for reviewing [patient name] a [patient age] year old [patient sex] to be discharged on [discharge date] from [department] at [facility]. The summary of their presentation and condition is documented below." 
+    -  Cover the following concepts in dotpoint format. Each dotpoint should be a complete sentence rather than starting with Item:
+      - Principal diagnosis
+      - Reason for presention i.e. symptoms that led to the admission and events including any treatment en route/before
+      - Secondary diagnoses i.e. the list of problems and diagnoses in addition to the principal diagnosis that was treated at the hospital
+      - Additional complications i.e. any additional patient condition or adverse events that affected the hospital treatment
+      - Past medical history i.e. previous patient conditions that are relevant to treatment provided at hospital and important for primary healthcare provider to be aware of.
+      - Summary of salient points of the patient care.
+        - Which departments were consulted e.g. Orthopedics, Cardiology, etc.
+        - Positive findings on imaging, labs, etc.
+        - Major procedures performed, including any complications, and any other significant events.
+        - Any other significant events or findings that are relevant to the patient's care.
   - Discharge Plan
-    - Follow-up Instructions
-    - Medication Changes
-      - New
-      - Ceased
-    - Red Flag Symptoms
-- You have text from patient clinical context and a text from uploaded documents.
-- Generate comprehensive discharge summary with embedded citations
+    - Should be in a dotpoint format.
+    - Only for items that is a clinic/service/specialist write referral sent, patient will be contacted regarding this appointment
+    - Do NOT include medications.
+    - You must then cover the following in dotpoint format:
+      - Any follow up with specific clinics or services
+      - Any follow up pathology or labs that need ot be done
+      - Any referrals to other services or specialists
+  - Issues List
+    - Not always necessary if the presentation is not complex
+    - Include relevant pathology/imaging, bedside findings or subjective tests e.g. ECOG, of significance but do not make up any values. Include specific dates where available.
+    - Include relevant negative findings from above tests
+    - Finish with plan for ongoing care and follow up appointments
+  - Allergies/Adverse Reactions
+    - Include any allergies or adverse reactions to medications or treatments that were noted.
+    - Include the type of reaction e.g. allergic, adverse, etc.
+    - Describe the negative effect e.g. urticaria, anaphylaxis, etc.
+  - Medications
+    - Should be structured in four paragraphs of dotpoints
+      - New medications
+      - Changed medications
+      - Unchanged medications
+      - Ceased medications should end with capitalised "CEASED" at end of each line
+    - List medications in alphabetical order
+    - Where a medicines list was not obtained, the section should NOT be left blank, this should be indicated with a line saying: Medication list unable to be obtained during admission OR medication reconciliation has not been completed for this patient OR patient is not on regular medication.
+    - Medication should include generic name (Australian commercial name, strength, type of tablet e.g. Modified Release, Immediate Release) dosage, route, frequency. Use full names and do not abbreviate.
+  - Information Provided to the Patient
+    - Describe any education/information that was provided to the patient during their stay.
+    - You can write education that is relevant to the patient's condition and the department and leave it to the operator to decide what to include
+    - Understanding of instructions and health literacy. Awareness of condition and management.
+
+GUIDELINES FOR IN-LINE CITATIONS:
 - When you reference or rely on a specific piece of clinical context or document cite as: 
   - <CIT id="c1">text</CIT> for clinical context
   - <CIT id="d1">text</CIT> for documents
@@ -73,7 +139,9 @@ When MODIFYING an existing discharge summary (feedback provided):
 - Add new citations as needed for any new content
 - Preserve medical accuracy of unchanged content`;
 
-const generateNewSummaryTemplate = `Patient Clinical Context: {context}
+const generateNewSummaryTemplate = `Administrative Information: {administrative}
+
+Patient Clinical Context: {context}
 
 Selected Documents: {documentContents}
 
@@ -81,6 +149,8 @@ Generate a comprehensive discharge summary with inline citations. Use <CIT id="c
 
 const modifyExistingTemplate = `Current Discharge Summary:
 {currentSummary}
+
+Administrative Information: {administrative}
 
 Patient Clinical Context: {context}
 
@@ -105,7 +175,46 @@ export async function POST(req: Request) {
 
     const supabase = createServerSupabaseClient();
 
-    // Step 1: Perform RAG similarity search if context is provided
+    // Step 1: Get user profile and hospital information for administrative section
+    let administrativeInfo = '';
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select(`
+          full_name,
+          title,
+          department,
+          hospital_id,
+          hospitals (
+            name,
+            address,
+            phone,
+            fax,
+            local_health_district
+          )
+        `)
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        const hospitalInfo = profile.hospitals as any;
+        administrativeInfo = [
+          profile.full_name && `Physician: ${profile.full_name}`,
+          profile.title && `Position: ${profile.title}`,
+          profile.department && `Department: ${profile.department}`,
+          hospitalInfo?.name && `Hospital: ${hospitalInfo.name}`,
+          hospitalInfo?.address && `Address: ${hospitalInfo.address}`,
+          hospitalInfo?.phone && `Phone: ${hospitalInfo.phone}`,
+          hospitalInfo?.fax && `Fax: ${hospitalInfo.fax}`,
+          hospitalInfo?.local_health_district && `Health District: ${hospitalInfo.local_health_district}`,
+        ].filter(Boolean).join('\n');
+      }
+    } catch (error) {
+      console.error('Error fetching user profile for administrative info:', error);
+      // Continue without administrative info if there's an error
+    }
+
+    // Step 2: Perform RAG similarity search if context is provided
     let ragDocumentIds: string[] = [];
     if (context && context.trim().length > 0) {
       try {
@@ -120,18 +229,18 @@ export async function POST(req: Request) {
           }
         });
         ragDocumentIds = Array.from(uniqueDocIds);
-        console.warn('RAG found document IDs:', ragDocumentIds);
+        // console.warn('RAG found document IDs:', ragDocumentIds);
       } catch (error) {
         console.error('RAG search error:', error);
         // Continue without RAG results if there's an error
       }
     }
 
-    // Step 2: Combine user-selected documents with RAG-retrieved documents
+    // Step 3: Combine user-selected documents with RAG-retrieved documents
     const allDocumentIds = [...new Set([...documentIds, ...ragDocumentIds])];
-    console.warn('All document IDs to retrieve:', allDocumentIds);
+    // console.warn('All document IDs to retrieve:', allDocumentIds);
 
-    // Step 3: Retrieve full text for all documents
+    // Step 4: Retrieve full text for all documents
     let documentContents = 'No documents available.';
     const availableDocuments = new Map<string, string>(); // Map UUID to filename for validation
     const missingDocuments: string[] = [];
@@ -150,7 +259,7 @@ export async function POST(req: Request) {
         missingDocuments.push(...allDocumentIds.filter(id => !foundDocumentIds.has(id)));
 
         if (missingDocuments.length > 0) {
-          console.warn(`Some referenced documents are no longer available: ${missingDocuments.join(', ')}`);
+          // console.warn(`Some referenced documents are no longer available: ${missingDocuments.join(', ')}`);
         }
 
         // Format available documents for the prompt with UUIDs for LLM reference
@@ -166,17 +275,17 @@ export async function POST(req: Request) {
           documentContents += `\n\n[Note: ${missingDocuments.length} previously referenced document(s) are no longer available and have been excluded from this generation.]`;
         }
 
-        console.warn(`Retrieved ${documents.length} documents with full text. ${missingDocuments.length} documents unavailable.`);
+        // console.warn(`Retrieved ${documents.length} documents with full text. ${missingDocuments.length} documents unavailable.`);
       } else {
         // All documents are missing
         missingDocuments.push(...allDocumentIds);
-        console.warn(`All referenced documents (${allDocumentIds.length}) are no longer available`);
+        // console.warn(`All referenced documents (${allDocumentIds.length}) are no longer available`);
         documentContents = '[Note: Previously referenced documents are no longer available. Generating discharge summary based on clinical context only.]';
       }
     }
 
     const model = new ChatGoogleGenerativeAI({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash-preview-05-20',
       temperature: 0.3,
     });
 
@@ -205,6 +314,7 @@ export async function POST(req: Request) {
 
       invokeParams = {
         currentSummary: formattedCurrentSummary,
+        administrative: administrativeInfo,
         context,
         documentContents,
         feedback,
@@ -217,6 +327,7 @@ export async function POST(req: Request) {
       ]);
 
       invokeParams = {
+        administrative: administrativeInfo,
         context,
         documentContents,
       };
@@ -224,6 +335,11 @@ export async function POST(req: Request) {
 
     const chain = prompt.pipe(structuredModel);
     const llmResponse = await chain.invoke(invokeParams);
+
+    // DEBUG: Log the raw LLM response
+    // console.warn('=== DEBUG: Raw LLM Response ===');
+    // console.warn(JSON.stringify(llmResponse, null, 2));
+    // console.warn('=== END DEBUG ===');
 
     // Build structured response with API-generated metadata
     const dischargeSummaryId = `discharge_${Date.now()}`;
@@ -256,7 +372,7 @@ export async function POST(req: Request) {
           const isValidDocument = availableDocuments.has(documentId);
 
           if (!isValidDocument && citation.documentUuid) {
-            console.warn(`LLM referenced unknown document UUID: ${citation.documentUuid}`);
+            // console.warn(`LLM referenced unknown document UUID: ${citation.documentUuid}`);
           }
 
           return {

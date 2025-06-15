@@ -19,7 +19,7 @@ export function usePatientCleanup() {
     if (shouldDeleteEmptyPatient(patientId, context, name)) {
       try {
         await deletePatient.mutateAsync(patientId);
-        console.warn('Cleaned up empty patient:', patientId);
+        // console.warn('Cleaned up empty patient:', patientId);
       } catch (error) {
         console.error('Failed to cleanup empty patient:', error);
         // Don't show error to user - this is background cleanup

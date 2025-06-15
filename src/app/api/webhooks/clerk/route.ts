@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   // Handle the webhook
   const { type, data } = evt;
 
-  console.warn('Received webhook:', type, data?.id);
+  // console.warn('Received webhook:', type, data?.id);
 
   try {
     const supabase = createServerSupabaseClient();
@@ -72,7 +72,28 @@ export async function POST(req: NextRequest) {
               favorite_document_ids: [],
             });
 
-          console.warn('Created profile for user:', data.id);
+          // console.warn('Created profile for user:', data.id);
+
+          // Auto-seed data for new users
+          try {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || 'http://localhost:3000';
+            const seedResponse = await fetch(`${baseUrl}/api/dev/seed-user-data`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-User-ID': data.id, // Pass user ID for seeding
+              },
+            });
+
+            if (seedResponse.ok) {
+              console.warn(`Auto-seeded data for new user: ${data.id}`);
+            } else {
+              console.error(`Failed to auto-seed data for user ${data.id}:`, await seedResponse.text());
+            }
+          } catch (error) {
+            console.error(`Error auto-seeding data for user ${data.id}:`, error);
+            // Don't fail the webhook if seeding fails
+          }
         }
         break;
       }
@@ -88,7 +109,7 @@ export async function POST(req: NextRequest) {
           })
           .eq('id', data.id);
 
-        console.warn('Updated profile for user:', data.id);
+        // console.warn('Updated profile for user:', data.id);
         break;
 
       case 'user.deleted':
@@ -98,11 +119,11 @@ export async function POST(req: NextRequest) {
           .delete()
           .eq('id', data.id);
 
-        console.warn('Deleted profile for user:', data.id);
+        // console.warn('Deleted profile for user:', data.id);
         break;
 
       default:
-        console.warn('Unhandled webhook type:', type);
+        // console.warn('Unhandled webhook type:', type);
     }
 
     return NextResponse.json({ received: true });

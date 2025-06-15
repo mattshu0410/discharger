@@ -55,7 +55,7 @@ export function setAutoSaveFunction(fn: (patientId: string, context: string, pat
 // Debounced save function for auto-saving context
 const debouncedSave = debounce(async (patientId: string, context: string, patientName?: string) => {
   if (context.trim() && autoSaveFunction) {
-    console.warn('Auto-saving context for patient:', patientId, `${context.slice(0, 50)}...`);
+    // console.warn('Auto-saving context for patient:', patientId, `${context.slice(0, 50)}...`);
     try {
       await autoSaveFunction(patientId, context, patientName);
     } catch (error) {
@@ -98,7 +98,7 @@ const usePatientStore = create<PatientState>()(
           state.saveError = null; // Clear any previous errors
         }
         state.currentPatientId = id;
-        console.warn('Current patient ID set to', id);
+        // console.warn('Current patient ID set to', id);
       }),
 
       updateCurrentPatientContext: context => set((state) => {
@@ -117,7 +117,7 @@ const usePatientStore = create<PatientState>()(
         if (!state.isContextLoadedFromBackend) {
           state.currentPatientContext = context;
           state.isContextLoadedFromBackend = true;
-          console.warn('Context loaded from backend for patient', state.currentPatientId);
+          // console.warn('Context loaded from backend for patient', state.currentPatientId);
         }
       }),
 
@@ -165,7 +165,7 @@ const usePatientStore = create<PatientState>()(
             state.selectedDocuments.push(document);
           }
         });
-        console.warn(`Added ${documents.length} documents from generation, total: ${state.selectedDocuments.length}`);
+        // console.warn(`Added ${documents.length} documents from generation, total: ${state.selectedDocuments.length}`);
       }),
 
       setSaveStatus: status => set((state) => {

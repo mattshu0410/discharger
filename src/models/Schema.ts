@@ -27,6 +27,19 @@ export const shareStatusEnum = pgEnum('share_status', ['private', 'public']);
 export const sourceTypeEnum = pgEnum('source_type', ['document', 'note', 'snippet']);
 export const themeEnum = pgEnum('theme', ['light', 'dark', 'system']);
 
+// Hospitals table
+export const hospitals = pgTable('hospitals', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  address: text('address').notNull(),
+  phone: text('phone'),
+  fax: text('fax'),
+  localHealthDistrict: text('local_health_district').notNull(),
+}, table => ({
+  nameIdx: index('hospital_name_idx').on(table.name),
+  lhdIdx: index('hospital_lhd_idx').on(table.localHealthDistrict),
+}));
+
 // Patients table - matches actual database structure
 export const patients = pgTable('patients', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -111,14 +124,19 @@ export const profiles = pgTable('profiles', {
   id: text('id').primaryKey().notNull(), // Clerk user ID from auth.jwt()
   email: text('email'),
   fullName: text('full_name'),
-  organization: text('organization'), // New field we'll add
-  role: text('role'), // New field we'll add
-  theme: themeEnum('theme').default('system'), // New field we'll add
-  defaultDocumentIds: jsonb('default_document_ids').default([]), // New field we'll add
-  favoriteDocumentIds: jsonb('favorite_document_ids').default([]), // New field we'll add
+  title: text('title'), // Medical title (Intern, Registrar, Consultant, etc.)
+  department: text('department'), // Clinical department
+  hospitalId: uuid('hospital_id').references(() => hospitals.id), // Foreign key to hospitals
+  organization: text('organization'), // Kept for backwards compatibility
+  role: text('role'), // Kept for backwards compatibility
+  theme: themeEnum('theme').default('system'),
+  defaultDocumentIds: jsonb('default_document_ids').default([]),
+  favoriteDocumentIds: jsonb('favorite_document_ids').default([]),
   createdAt: timestamp('created_at', { mode: 'date', withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'date', withTimezone: true }).defaultNow().notNull(),
-});
+}, table => ({
+  hospitalIdIdx: index('profile_hospital_id_idx').on(table.hospitalId),
+}));
 
 // Analytics events table
 export const analyticsEvents = pgTable('analytics_events', {

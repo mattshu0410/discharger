@@ -18,7 +18,7 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
   const isHighlighted = highlightedSection === section.id;
 
   // Debug logging for citations
-  console.warn(`📋 Section "${section.title}" citations:`, section.citations);
+  // console.warn(`📋 Section "${section.title}" citations:`, section.citations);
 
   // Parse content and render <CIT> tags as clickable highlighted elements
   const renderedContent = useMemo(() => {
@@ -38,12 +38,12 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
         return c.id === citationLlmId;
       });
 
-      console.warn(`🔗 Processing citation: llmId=${citationLlmId}, found=${!!citation}`, {
-        citationLlmId,
-        citedText,
-        citation,
-        allCitationIds: section.citations.map(c => c.id),
-      });
+      // console.warn(`🔗 Processing citation: llmId=${citationLlmId}, found=${!!citation}`, {
+      //   citationLlmId,
+      //   citedText,
+      //   citation,
+      //   allCitationIds: section.citations.map(c => c.id),
+      // });
 
       if (citation) {
         const citationColor = citation.sourceType === 'user-context' ? 'blue' : 'green';
@@ -59,7 +59,9 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(`${section.title}\n\n${section.content}`);
+      // Strip CIT tags from content before copying
+      const cleanContent = section.content.replace(/<CIT id="[^"]+">([^<]+)<\/CIT>/g, '$1');
+      await navigator.clipboard.writeText(`${section.title}\n\n${cleanContent}`);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {

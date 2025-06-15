@@ -152,7 +152,7 @@ export function PatientForm() {
   // Load context from backend when patient data is fetched (only for existing patients)
   useEffect(() => {
     if (currentPatient && currentPatient.context && !isNewPatient) {
-      console.warn(`Loading patient context from backend: ${currentPatient.context.slice(0, 50)}...`);
+      // console.warn(`Loading patient context from backend: ${currentPatient.context.slice(0, 50)}...`);
       loadContextFromBackend(currentPatient.context);
     }
   }, [currentPatient, loadContextFromBackend, isNewPatient]);
@@ -242,7 +242,7 @@ export function PatientForm() {
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.warn(errorText);
+        // console.warn(errorText);
         throw new Error(errorText || 'Failed to generate discharge');
       }
 
@@ -250,13 +250,13 @@ export function PatientForm() {
       return response;
     },
     onSuccess: async (response) => {
-      console.warn('Generated discharge summary:', response.summary);
+      // console.warn('Generated discharge summary:', response.summary);
       setDischargeSummary(response.summary);
 
       // Trigger fetching of all documents used in generation (selected + RAG-retrieved)
       const usedDocumentIds = response.summary.metadata.documentIds;
       if (usedDocumentIds.length > 0) {
-        console.warn('Triggering fetch for documents used in generation:', usedDocumentIds);
+        // console.warn('Triggering fetch for documents used in generation:', usedDocumentIds);
         setDocumentsToFetch(usedDocumentIds);
       }
 
@@ -271,7 +271,7 @@ export function PatientForm() {
               document_ids: usedDocumentIds,
             },
           });
-          console.warn('Saved discharge summary and document IDs to Supabase');
+          // console.warn('Saved discharge summary and document IDs to Supabase');
         } catch (error) {
           console.error('Failed to save discharge summary to Supabase:', error);
           // Don't show error to user - this is a background save
@@ -401,7 +401,7 @@ export function PatientForm() {
             document_ids: updatedDocumentIds,
           },
         });
-        console.warn('Saved document IDs to Supabase');
+        // console.warn('Saved document IDs to Supabase');
       } catch (error) {
         console.error('Failed to save document IDs to Supabase:', error);
         // Don't show error to user - this is a background save
@@ -554,7 +554,7 @@ export function PatientForm() {
                         ? 'Loading patient data...'
                         : 'Enter clinical notes here... Use @ to add documents and / to add snippets'
                     }
-                    className="flex-1 min-h-[400px] resize-none hide-scrollbar"
+                    className="flex-1 min-h-[400px] resize-none"
                     value={currentPatientContext}
                     onChange={handleContextChange}
                     onKeyDown={handleKeyDown}

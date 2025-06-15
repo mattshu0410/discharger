@@ -2,15 +2,43 @@
 
 import { format } from 'date-fns';
 import { Clock, RefreshCw } from 'lucide-react';
+import { useGenerateDischargeSummary } from '@/api/discharge/queries';
 import { Button } from '@/components/ui/button';
-import { useDischargeSummaryStore } from '@/stores';
+import { useDischargeSummaryStore, usePatientStore } from '@/stores';
 
 export function DischargeSummaryHeader() {
-  const { lastGeneratedAt, isRegenerating } = useDischargeSummaryStore();
+  const { lastGeneratedAt, isRegenerating, setDischargeSummary, setError, setIsRegenerating } = useDischargeSummaryStore();
+  const { currentPatientId, currentPatientContext, selectedDocuments } = usePatientStore();
 
-  const handleRegenerate = () => {
-    // TODO: Implement regeneration logic
-    console.warn('Regenerate discharge summary');
+  const generateMutation = useGenerateDischargeSummary();
+
+  const handleRegenerate = async () => {
+    if (!currentPatientId || !currentPatientContext) {
+      setError('No patient data available for regeneration');
+      return;
+    }
+
+    try {
+      setIsRegenerating(true);
+      setError(null);
+
+      // Prepare regeneration request (fresh generation)
+      const request = {
+        patientId: currentPatientId,
+        context: currentPatientContext,
+        documentIds: selectedDocuments.map(doc => doc.id),
+      };
+
+      // Call generation API for fresh regeneration
+      const result = await generateMutation.mutateAsync(request);
+
+      // Update store with new summary
+      setDischargeSummary(result.summary);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Failed to regenerate summary');
+    } finally {
+      setIsRegenerating(false);
+    }
   };
 
   return (

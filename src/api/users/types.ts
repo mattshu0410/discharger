@@ -5,6 +5,9 @@ export type UpdateProfileRequest = {
   name?: string;
   organization?: string;
   role?: string;
+  title?: string;
+  department?: string;
+  hospitalId?: string;
 };
 
 export type UpdatePreferencesRequest = {

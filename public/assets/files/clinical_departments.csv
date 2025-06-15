@@ -1,0 +1,64 @@
+Category,Department
+Medical,General Medicine / Internal Medicine
+Medical,Cardiology
+Medical,Endocrinology
+Medical,Gastroenterology
+Medical,Geriatric Medicine
+Medical,Haematology
+Medical,Infectious Diseases
+Medical,Medical Oncology
+Medical,Nephrology
+Medical,Neurology
+Medical,Respiratory / Pulmonology
+Medical,Rheumatology
+Medical,Immunology
+Medical,Dermatology
+Medical,Rehabilitation Medicine
+Medical,Palliative Care
+Medical,Pain Medicine
+Medical,Clinical Pharmacology
+Medical,Sleep Medicine
+Surgical,General Surgery
+Surgical,Cardiothoracic Surgery
+Surgical,Neurosurgery
+Surgical,Orthopaedic Surgery
+Surgical,Plastic & Reconstructive Surgery
+Surgical,"ENT (Otolaryngology, Head and Neck Surgery)"
+Surgical,Urology
+Surgical,Vascular Surgery
+Surgical,Hepatobiliary Surgery
+Surgical,Colorectal Surgery
+Surgical,Breast Surgery
+Surgical,Transplant Surgery
+Surgical,Surgical Oncology
+Critical Care,Emergency Medicine
+Critical Care,Intensive Care (ICU)
+Critical Care,Anaesthetics / Perioperative Medicine
+Women's and Children's Health,Obstetrics
+Women's and Children's Health,Gynaecology
+Women's and Children's Health,Neonatology
+Women's and Children's Health,Paediatrics
+Women's and Children's Health,Paediatric Surgery
+Women's and Children's Health,Maternal-Fetal Medicine
+Mental Health,General Psychiatry
+Mental Health,Child and Adolescent Psychiatry
+Mental Health,Geriatric Psychiatry
+Mental Health,Forensic Psychiatry
+Mental Health,Addiction Medicine
+Diagnostics,Radiology / Medical Imaging
+Diagnostics,Nuclear Medicine
+Diagnostics,Pathology
+Diagnostics,Clinical Genetics
+Diagnostics,Laboratory Medicine
+Other,Sports Medicine
+Other,Occupational Medicine
+Other,Public Health / Preventive Medicine
+Other,Hyperbaric Medicine
+Other,Sexual Health / Venereology
+Allied Health,Physiotherapy
+Allied Health,Occupational Therapy
+Allied Health,Speech Pathology
+Allied Health,Dietetics / Nutrition
+Allied Health,Social Work
+Allied Health,Psychology
+Allied Health,Pharmacy

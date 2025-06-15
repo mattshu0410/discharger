@@ -6,7 +6,7 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     // Sentry temporarily disabled - dependency missing
-    console.warn('Instrumentation loaded - Sentry disabled for development');
+    // console.warn('Instrumentation loaded - Sentry disabled for development');
     /*
     // Node.js Sentry configuration
     Sentry.init({
@@ -27,7 +27,7 @@ export async function register() {
 
   if (process.env.NEXT_RUNTIME === 'edge') {
     // Edge Sentry configuration - temporarily disabled
-    console.warn('Edge runtime instrumentation loaded - Sentry disabled');
+    // console.warn('Edge runtime instrumentation loaded - Sentry disabled');
     /*
     Sentry.init({
       // Sentry DSN

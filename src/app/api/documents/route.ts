@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     const vectorStore = await getUserVectorStore(user.id);
 
     // Debug: Check if Supabase can see the authenticated user
-    console.warn('Clerk user ID:', user.id);
+    // console.warn('Clerk user ID:', user.id);
 
     // Process each file atomically
     for (const file of files) {

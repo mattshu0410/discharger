@@ -74,6 +74,6 @@
   },
 
   // Files to include/exclude from the project
-  "exclude": ["node_modules", "**/*.spec.ts", "**/*.e2e.ts", "**/supabase/*"],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.e2e.ts", "supabase/*", "@supabase/*"],
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "**/*.mts"]
 }

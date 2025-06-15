@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
           return new Response(JSON.stringify({ error: error.message }), { status: 500 });
         }
 
-        console.warn('✅ Created user profile for:', event.data.id);
+        // console.warn('✅ Created user profile for:', event.data.id);
         return new Response(JSON.stringify({ profile }), { status: 200 });
       }
 
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
           return new Response(JSON.stringify({ error: error.message }), { status: 500 });
         }
 
-        console.warn('✅ Updated user profile for:', event.data.id);
+        // console.warn('✅ Updated user profile for:', event.data.id);
         return new Response(JSON.stringify({ profile }), { status: 200 });
       }
 
@@ -96,12 +96,12 @@ Deno.serve(async (req) => {
           return new Response(JSON.stringify({ error: error.message }), { status: 500 });
         }
 
-        console.warn('✅ Deleted user profile for:', event.data.id);
+        // console.warn('✅ Deleted user profile for:', event.data.id);
         return new Response(JSON.stringify({ success: true }), { status: 200 });
       }
 
       default:
-        console.warn('Unhandled webhook event type:', event.type);
+        // console.warn('Unhandled webhook event type:', event.type);
         return new Response('Webhook event not handled', { status: 200 });
     }
   } catch (error) {

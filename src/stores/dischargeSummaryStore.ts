@@ -54,9 +54,9 @@ export const useDischargeSummaryStore = create<DischargeSummaryState>()(
         }), false, 'addFeedbackToHistory'),
 
       highlightCitation: (citation: Citation | null) => {
-        console.warn('🔍 Store: Setting highlighted citation:', citation);
+        // console.warn('🔍 Store: Setting highlighted citation:', citation);
         if (citation && citation.sourceType !== 'user-context') {
-          console.warn('📄 Document citation - documentId:', (citation as any).documentId);
+          // console.warn('📄 Document citation - documentId:', (citation as any).documentId);
         }
         set({ highlightedCitation: citation }, false, 'highlightCitation');
       },
