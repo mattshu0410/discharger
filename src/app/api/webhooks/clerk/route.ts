@@ -73,6 +73,27 @@ export async function POST(req: NextRequest) {
             });
 
           // console.warn('Created profile for user:', data.id);
+
+          // Auto-seed data for new users
+          try {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || 'http://localhost:3000';
+            const seedResponse = await fetch(`${baseUrl}/api/dev/seed-user-data`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-User-ID': data.id, // Pass user ID for seeding
+              },
+            });
+
+            if (seedResponse.ok) {
+              console.warn(`Auto-seeded data for new user: ${data.id}`);
+            } else {
+              console.error(`Failed to auto-seed data for user ${data.id}:`, await seedResponse.text());
+            }
+          } catch (error) {
+            console.error(`Error auto-seeding data for user ${data.id}:`, error);
+            // Don't fail the webhook if seeding fails
+          }
         }
         break;
       }

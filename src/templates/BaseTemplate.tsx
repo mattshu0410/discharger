@@ -8,7 +8,7 @@ export const BaseTemplate = (props: {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex flex-1">{props.children}</main>
-      <footer className="border-t border-gray-300 py-8 text-center text-sm ">
+      <footer className="border-t border-gray-300 py-2 text-center text-sm ">
         {`© Copyright ${new Date().getFullYear()} ${AppConfig.name}. `}
         {/*
            * PLEASE READ THIS SECTION

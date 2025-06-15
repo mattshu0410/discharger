@@ -142,13 +142,6 @@ export function DocumentListPanel({ documents, highlightedCitation }: DocumentLi
 
   return (
     <div className="flex flex-col h-full">
-      {/* Title Section */}
-      <div className="p-4 border-b bg-muted/30">
-        <h3 className="text-sm font-medium text-muted-foreground">
-          Document Context
-        </h3>
-      </div>
-
       {/* Selected Document Strip */}
       {relevantDocument && (
         <div className="px-4 py-3 bg-green-50 border-b border-green-200">

@@ -40,20 +40,22 @@ CITATION REQUIREMENTS:
 - Every significant medical claim should have an appropriate citation
 
 ADMINISTRATIVE INFORMATION:
-- Use the provided administrative information to create a professional letterhead for the discharge summary in this order
+- Use the provided administrative information to create a professional letterhead for the discharge summary in this order. Each part should be a new paragraph.
 - The letterhead should first have the Hospital Details
   - Facility: 
   - Local Health District:
   - Address:
   - Phone:
   - Fax:
+
 - Then the admission details and provider.
   - Admission Date:
   - To be Discharged:
   - Physician Name:
   - Title:
   - Department:
-- Then the Patient Details. If any are not available simply omit them. Do not make up any information.
+
+- Then the Patient Details. If any are not available simply don't even mention the item. Do not make up any information.
   - Patient Full Name:
   - Deceased statement (if applicable)
   - Date of Birth (Age in years):
@@ -67,8 +69,10 @@ ADMINISTRATIVE INFORMATION:
 - Do not include any other information in the letterhead.
 
 GENERAL GUIDELINES FOR DISCHARGE SUMMARY:
+- First section should always be the administrative information.
 - Use carriage returns to separate dotpoints
-- All dotpoints start with *
+- All dotpoints start with -
+- Don't try to bolding or italicise
 - The overall structure of the discharge summary is separate objects for each section, each with a title, content, and array of citations.
 - You absolutely must generate a new object in the array for each separate section of the discharge summary.
 - Create appropriate sections based on clinical context. The National Guidelines for Discharge Summaries are as follows:
@@ -104,7 +108,7 @@ GENERAL GUIDELINES FOR DISCHARGE SUMMARY:
     - Include the type of reaction e.g. allergic, adverse, etc.
     - Describe the negative effect e.g. urticaria, anaphylaxis, etc.
   - Medications
-    - Go over four
+    - Should be structured in four paragraphs of dotpoints
       - New medications
       - Changed medications
       - Unchanged medications
