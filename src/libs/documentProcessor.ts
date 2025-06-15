@@ -38,7 +38,7 @@ export async function processDocumentFile(
 
   // Load document pages
   const docs = await loader.load();
-  console.warn(`Loaded ${docs.length} pages from ${file.name}`);
+  // console.warn(`Loaded ${docs.length} pages from ${file.name}`);
 
   // Extract full text from all pages
   const fullText = docs.map(doc => doc.pageContent).join('\n\n');
@@ -50,7 +50,7 @@ export async function processDocumentFile(
   });
 
   const allSplits = await textSplitter.splitDocuments(docs);
-  console.warn(`Split into ${allSplits.length} chunks`);
+  // console.warn(`Split into ${allSplits.length} chunks`);
 
   // Add metadata to chunks linking them to the document
   const chunksWithMetadata = allSplits.map((split, index) => ({

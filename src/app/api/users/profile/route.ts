@@ -27,6 +27,9 @@ export async function GET() {
         name: existingProfile.full_name || user.fullName || user.firstName,
         organization: existingProfile.organization,
         role: existingProfile.role,
+        title: existingProfile.title,
+        department: existingProfile.department,
+        hospitalId: existingProfile.hospital_id,
         preferences: {
           defaultDocumentIds: existingProfile.default_document_ids || [],
           favoriteDocumentIds: existingProfile.favorite_document_ids || [],
@@ -64,6 +67,9 @@ export async function GET() {
         name: newProfile.full_name,
         organization: newProfile.organization,
         role: newProfile.role,
+        title: newProfile.title,
+        department: newProfile.department,
+        hospitalId: newProfile.hospital_id,
         preferences: {
           defaultDocumentIds: newProfile.default_document_ids || [],
           favoriteDocumentIds: newProfile.favorite_document_ids || [],
@@ -104,14 +110,33 @@ export async function PUT(request: Request) {
     const supabase = createServerSupabaseClient();
 
     // Update profile
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    // Only update fields that are provided
+    if (data.name !== undefined) {
+      updateData.full_name = data.name;
+    }
+    if (data.organization !== undefined) {
+      updateData.organization = data.organization;
+    }
+    if (data.role !== undefined) {
+      updateData.role = data.role;
+    }
+    if (data.title !== undefined) {
+      updateData.title = data.title;
+    }
+    if (data.department !== undefined) {
+      updateData.department = data.department;
+    }
+    if (data.hospitalId !== undefined) {
+      updateData.hospital_id = data.hospitalId;
+    }
+
     const { data: updatedProfile, error: updateError } = await supabase
       .from('profiles')
-      .update({
-        full_name: data.name,
-        organization: data.organization,
-        role: data.role,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updateData)
       .eq('id', user.id)
       .select()
       .single();
@@ -131,6 +156,9 @@ export async function PUT(request: Request) {
       name: updatedProfile.full_name,
       organization: updatedProfile.organization,
       role: updatedProfile.role,
+      title: updatedProfile.title,
+      department: updatedProfile.department,
+      hospitalId: updatedProfile.hospital_id,
       preferences: {
         defaultDocumentIds: updatedProfile.default_document_ids || [],
         favoriteDocumentIds: updatedProfile.favorite_document_ids || [],

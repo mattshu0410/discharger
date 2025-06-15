@@ -62,6 +62,9 @@ export type UserProfile = {
   name: string;
   organization?: string;
   role?: string;
+  title?: string;
+  department?: string;
+  hospitalId?: string;
   preferences: UserPreferences;
 };
 

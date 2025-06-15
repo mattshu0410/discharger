@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Failed to cleanup patient' }, { status: 500 });
       }
 
-      console.warn('Successfully cleaned up empty patient:', patientId);
+      // console.warn('Successfully cleaned up empty patient:', patientId);
       return NextResponse.json({ deleted: true, patientId });
     }
 

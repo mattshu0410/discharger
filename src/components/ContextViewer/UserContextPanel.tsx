@@ -100,15 +100,15 @@ export function UserContextPanel({ context, highlightedCitation }: UserContextPa
         // Find the highlighted element within the content container
         const highlightedElement = contentRef.current?.querySelector('.citation-highlighted-blue');
         if (highlightedElement) {
-          console.warn('Found highlighted element in context, scrolling to it:', highlightedElement);
+          // console.warn('Found highlighted element in context, scrolling to it:', highlightedElement);
           highlightedElement.scrollIntoView({
             behavior: 'smooth',
             block: 'center',
           });
         } else {
-          console.warn('Could not find highlighted element in context. Context:', highlightedCitation?.context);
-          console.warn('Content ref:', contentRef.current);
-          console.warn('Available blue highlight elements:', contentRef.current?.querySelectorAll('.citation-highlighted-blue'));
+          // console.warn('Could not find highlighted element in context. Context:', highlightedCitation?.context);
+          // console.warn('Content ref:', contentRef.current);
+          // console.warn('Available blue highlight elements:', contentRef.current?.querySelectorAll('.citation-highlighted-blue'));
         }
       }, 100); // Small delay to ensure DOM is updated
 

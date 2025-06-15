@@ -1,29 +1,125 @@
 'use client';
 import { useClerk, UserProfile, useUser } from '@clerk/nextjs';
 import { format } from 'date-fns';
-import { Calendar, LogOut, Mail, Settings, User } from 'lucide-react';
+import { Award, Building2, Calendar, Check, ChevronsUpDown, LogOut, Mail, Settings, Stethoscope, User } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { useUpdateUserPreferences, useUserProfile } from '@/api/users/queries';
+import { useHospitals } from '@/api/hospitals/queries';
+import {
+  useUpdateDepartment,
+  useUpdateHospital,
+  useUpdateTitle,
+  useUpdateUserPreferences,
+  useUserProfile,
+} from '@/api/users/queries';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/libs/utils';
 
 export default function ProfilePage() {
   const { user, isLoaded: isUserLoaded } = useUser();
   const { signOut } = useClerk();
   const { data: userProfile, isLoading: isProfileLoading } = useUserProfile();
-  const updatePreferences = useUpdateUserPreferences();
+  const { data: hospitals, isLoading: isLoadingHospitals } = useHospitals();
 
-  const [theme, setTheme] = useState(userProfile?.preferences.theme || 'system');
+  // Mutations
+  const updatePreferences = useUpdateUserPreferences();
+  const updateTitle = useUpdateTitle();
+  const updateDepartment = useUpdateDepartment();
+  const updateHospital = useUpdateHospital();
+
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [openDepartment, setOpenDepartment] = useState(false);
+  const [openHospital, setOpenHospital] = useState(false);
+
+  // Medical titles from CSV
+  const medicalTitles = [
+    'Intern',
+    'Resident Medical Officer (RMO)',
+    'Senior Resident Medical Officer (SRMO)',
+    'Registrar',
+    'Advanced Trainee',
+    'Fellow',
+    'Consultant (Staff Specialist)',
+    'Visiting Medical Officer (VMO)',
+    'Career Medical Officer (CMO)',
+  ];
+
+  // Clinical departments from CSV
+  const clinicalDepartments = [
+    { category: 'Medical', department: 'General Medicine / Internal Medicine' },
+    { category: 'Medical', department: 'Cardiology' },
+    { category: 'Medical', department: 'Endocrinology' },
+    { category: 'Medical', department: 'Gastroenterology' },
+    { category: 'Medical', department: 'Geriatric Medicine' },
+    { category: 'Medical', department: 'Haematology' },
+    { category: 'Medical', department: 'Infectious Diseases' },
+    { category: 'Medical', department: 'Medical Oncology' },
+    { category: 'Medical', department: 'Nephrology' },
+    { category: 'Medical', department: 'Neurology' },
+    { category: 'Medical', department: 'Respiratory / Pulmonology' },
+    { category: 'Medical', department: 'Rheumatology' },
+    { category: 'Medical', department: 'Immunology' },
+    { category: 'Medical', department: 'Dermatology' },
+    { category: 'Medical', department: 'Rehabilitation Medicine' },
+    { category: 'Medical', department: 'Palliative Care' },
+    { category: 'Medical', department: 'Pain Medicine' },
+    { category: 'Medical', department: 'Clinical Pharmacology' },
+    { category: 'Medical', department: 'Sleep Medicine' },
+    { category: 'Surgical', department: 'General Surgery' },
+    { category: 'Surgical', department: 'Cardiothoracic Surgery' },
+    { category: 'Surgical', department: 'Neurosurgery' },
+    { category: 'Surgical', department: 'Orthopaedic Surgery' },
+    { category: 'Surgical', department: 'Plastic & Reconstructive Surgery' },
+    { category: 'Surgical', department: 'ENT (Otolaryngology, Head and Neck Surgery)' },
+    { category: 'Surgical', department: 'Urology' },
+    { category: 'Surgical', department: 'Vascular Surgery' },
+    { category: 'Surgical', department: 'Hepatobiliary Surgery' },
+    { category: 'Surgical', department: 'Colorectal Surgery' },
+    { category: 'Surgical', department: 'Breast Surgery' },
+    { category: 'Surgical', department: 'Transplant Surgery' },
+    { category: 'Surgical', department: 'Surgical Oncology' },
+    { category: 'Critical Care', department: 'Emergency Medicine' },
+    { category: 'Critical Care', department: 'Intensive Care (ICU)' },
+    { category: 'Critical Care', department: 'Anaesthetics / Perioperative Medicine' },
+    { category: 'Women\'s and Children\'s Health', department: 'Obstetrics' },
+    { category: 'Women\'s and Children\'s Health', department: 'Gynaecology' },
+    { category: 'Women\'s and Children\'s Health', department: 'Neonatology' },
+    { category: 'Women\'s and Children\'s Health', department: 'Paediatrics' },
+    { category: 'Women\'s and Children\'s Health', department: 'Paediatric Surgery' },
+    { category: 'Women\'s and Children\'s Health', department: 'Maternal-Fetal Medicine' },
+    { category: 'Mental Health', department: 'General Psychiatry' },
+    { category: 'Mental Health', department: 'Child and Adolescent Psychiatry' },
+    { category: 'Mental Health', department: 'Geriatric Psychiatry' },
+    { category: 'Mental Health', department: 'Forensic Psychiatry' },
+    { category: 'Mental Health', department: 'Addiction Medicine' },
+    { category: 'Diagnostics', department: 'Radiology / Medical Imaging' },
+    { category: 'Diagnostics', department: 'Nuclear Medicine' },
+    { category: 'Diagnostics', department: 'Pathology' },
+    { category: 'Diagnostics', department: 'Clinical Genetics' },
+    { category: 'Diagnostics', department: 'Laboratory Medicine' },
+    { category: 'Other', department: 'Sports Medicine' },
+    { category: 'Other', department: 'Occupational Medicine' },
+    { category: 'Other', department: 'Public Health / Preventive Medicine' },
+    { category: 'Other', department: 'Hyperbaric Medicine' },
+    { category: 'Other', department: 'Sexual Health / Venereology' },
+    { category: 'Allied Health', department: 'Physiotherapy' },
+    { category: 'Allied Health', department: 'Occupational Therapy' },
+    { category: 'Allied Health', department: 'Speech Pathology' },
+    { category: 'Allied Health', department: 'Dietetics / Nutrition' },
+    { category: 'Allied Health', department: 'Social Work' },
+    { category: 'Allied Health', department: 'Psychology' },
+    { category: 'Allied Health', department: 'Pharmacy' },
+  ];
 
   const handleThemeChange = async (newTheme: 'light' | 'dark' | 'system') => {
     try {
-      setTheme(newTheme);
       await updatePreferences.mutateAsync({
         ...userProfile?.preferences,
         theme: newTheme,
@@ -31,8 +127,33 @@ export default function ProfilePage() {
       toast.success('Theme updated successfully');
     } catch {
       toast.error('Failed to update theme');
-      // Revert on error
-      setTheme(userProfile?.preferences.theme || 'system');
+    }
+  };
+
+  const handleTitleChange = async (newTitle: string) => {
+    try {
+      await updateTitle.mutateAsync(newTitle);
+      toast.success('Title updated successfully');
+    } catch {
+      toast.error('Failed to update title');
+    }
+  };
+
+  const handleDepartmentChange = async (newDepartment: string) => {
+    try {
+      await updateDepartment.mutateAsync(newDepartment);
+      toast.success('Department updated successfully');
+    } catch {
+      toast.error('Failed to update department');
+    }
+  };
+
+  const handleHospitalChange = async (newHospitalId: string) => {
+    try {
+      await updateHospital.mutateAsync(newHospitalId);
+      toast.success('Hospital updated successfully');
+    } catch {
+      toast.error('Failed to update hospital');
     }
   };
 
@@ -150,6 +271,181 @@ export default function ProfilePage() {
 
         <Separator />
 
+        {/* Professional Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Stethoscope className="h-5 w-5" />
+              Professional Information
+            </CardTitle>
+            <CardDescription>
+              Your medical credentials and workplace details.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Medical Title */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Award className="h-4 w-4" />
+                  Medical Title
+                </Label>
+                <Select
+                  value={userProfile?.title || ''}
+                  onValueChange={handleTitleChange}
+                  disabled={updateTitle.isPending}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your title" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {medicalTitles.map(title => (
+                      <SelectItem key={title} value={title}>
+                        {title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Department */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Stethoscope className="h-4 w-4" />
+                  Department
+                </Label>
+                <Popover open={openDepartment} onOpenChange={setOpenDepartment}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={openDepartment}
+                      className="w-full justify-between"
+                      disabled={updateDepartment.isPending}
+                    >
+                      {userProfile?.department
+                        ? clinicalDepartments.find(dept => dept.department === userProfile.department)?.department
+                        : 'Select your department'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0">
+                    <Command>
+                      <CommandInput placeholder="Search departments..." />
+                      <CommandList className="max-h-60">
+                        <CommandEmpty>No department found.</CommandEmpty>
+                        {Object.entries(
+                          clinicalDepartments.reduce((acc, { category, department }) => {
+                            if (!acc[category]) {
+                              acc[category] = [];
+                            }
+                            acc[category].push(department);
+                            return acc;
+                          }, {} as Record<string, string[]>),
+                        ).map(([category, departments]) => (
+                          <CommandGroup key={category} heading={category}>
+                            {departments.map(department => (
+                              <CommandItem
+                                key={department}
+                                value={department}
+                                onSelect={(currentValue) => {
+                                  handleDepartmentChange(currentValue);
+                                  setOpenDepartment(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    'mr-2 h-4 w-4',
+                                    userProfile?.department === department ? 'opacity-100' : 'opacity-0',
+                                  )}
+                                />
+                                {department}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        ))}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            {/* Hospital */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                Hospital
+              </Label>
+              <Popover open={openHospital} onOpenChange={setOpenHospital}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openHospital}
+                    className="w-full justify-between"
+                    disabled={updateHospital.isPending || isLoadingHospitals}
+                  >
+                    {userProfile?.hospitalId
+                      ? hospitals?.find(hospital => hospital.id === userProfile.hospitalId)?.name
+                      : 'Select your hospital'}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput placeholder="Search hospitals..." />
+                    <CommandList className="max-h-60">
+                      <CommandEmpty>
+                        {isLoadingHospitals ? 'Loading hospitals...' : 'No hospital found.'}
+                      </CommandEmpty>
+                      {hospitals && Object.entries(
+                        hospitals.reduce((acc, hospital) => {
+                          const lhd = hospital.local_health_district;
+                          if (!acc[lhd]) {
+                            acc[lhd] = [];
+                          }
+                          acc[lhd].push(hospital);
+                          return acc;
+                        }, {} as Record<string, typeof hospitals>),
+                      ).map(([lhd, lhdHospitals]) => (
+                        <CommandGroup key={lhd} heading={lhd}>
+                          {lhdHospitals.map(hospital => (
+                            <CommandItem
+                              key={hospital.id}
+                              value={`${hospital.name} ${hospital.local_health_district}`}
+                              onSelect={() => {
+                                handleHospitalChange(hospital.id);
+                                setOpenHospital(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  'mr-2 h-4 w-4',
+                                  userProfile?.hospitalId === hospital.id ? 'opacity-100' : 'opacity-0',
+                                )}
+                              />
+                              <div className="flex flex-col">
+                                <span>{hospital.name}</span>
+                                <span className="text-xs text-muted-foreground">{hospital.local_health_district}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      ))}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              {isLoadingHospitals && (
+                <p className="text-sm text-muted-foreground">Loading hospitals...</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Separator />
+
         {/* Preferences */}
         <Card>
           <CardHeader>
@@ -164,7 +460,7 @@ export default function ProfilePage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="theme">Theme</Label>
-              <Select value={theme} onValueChange={handleThemeChange}>
+              <Select value={userProfile?.preferences.theme || 'system'} onValueChange={handleThemeChange}>
                 <SelectTrigger className="w-full md:w-[200px]">
                   <SelectValue placeholder="Select theme" />
                 </SelectTrigger>

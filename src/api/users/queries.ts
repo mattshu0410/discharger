@@ -126,6 +126,42 @@ export function useUpdateTheme() {
   });
 }
 
+// Update profile title
+export function useUpdateTitle() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (title: string) => updateUserProfile({ title }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.current() });
+    },
+  });
+}
+
+// Update profile department
+export function useUpdateDepartment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (department: string) => updateUserProfile({ department }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.current() });
+    },
+  });
+}
+
+// Update profile hospital
+export function useUpdateHospital() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (hospitalId: string) => updateUserProfile({ hospitalId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.current() });
+    },
+  });
+}
+
 // Export aliases for backward compatibility
 export const useUserProfile = useCurrentUser;
 export const useUpdateUserPreferences = useUpdatePreferences;

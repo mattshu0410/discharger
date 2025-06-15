@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   // Handle the webhook
   const { type, data } = evt;
 
-  console.warn('Received webhook:', type, data?.id);
+  // console.warn('Received webhook:', type, data?.id);
 
   try {
     const supabase = createServerSupabaseClient();
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
               favorite_document_ids: [],
             });
 
-          console.warn('Created profile for user:', data.id);
+          // console.warn('Created profile for user:', data.id);
         }
         break;
       }
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
           })
           .eq('id', data.id);
 
-        console.warn('Updated profile for user:', data.id);
+        // console.warn('Updated profile for user:', data.id);
         break;
 
       case 'user.deleted':
@@ -98,11 +98,11 @@ export async function POST(req: NextRequest) {
           .delete()
           .eq('id', data.id);
 
-        console.warn('Deleted profile for user:', data.id);
+        // console.warn('Deleted profile for user:', data.id);
         break;
 
       default:
-        console.warn('Unhandled webhook type:', type);
+        // console.warn('Unhandled webhook type:', type);
     }
 
     return NextResponse.json({ received: true });

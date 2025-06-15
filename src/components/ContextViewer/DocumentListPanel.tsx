@@ -14,26 +14,26 @@ type DocumentListPanelProps = {
 export function DocumentListPanel({ documents, highlightedCitation }: DocumentListPanelProps) {
   const fullTextRef = useRef<HTMLDivElement>(null);
 
-  console.warn('📄 DocumentListPanel documents:', documents);
+  // console.warn('📄 DocumentListPanel documents:', documents);
 
   const isDocumentCitation = highlightedCitation?.sourceType === 'selected-document'
     || highlightedCitation?.sourceType === 'retrieved-document';
 
-  console.warn('📄 DocumentListPanel render:', {
-    highlightedCitation,
-    isDocumentCitation,
-    documentsCount: documents.length,
-    documentIds: documents.map(d => d.id),
-  });
+  // console.warn('📄 DocumentListPanel render:', {
+  //   highlightedCitation,
+  //   isDocumentCitation,
+  //   documentsCount: documents.length,
+  //   documentIds: documents.map(d => d.id),
+  // });
 
   const relevantDocument = isDocumentCitation && highlightedCitation.documentId
     ? documents.find(doc => doc.id === highlightedCitation.documentId)
     : null;
 
-  console.warn('🎯 Relevant document found:', {
-    documentId: highlightedCitation?.documentId,
-    relevantDocument: relevantDocument ? { id: relevantDocument.id, filename: relevantDocument.filename, hasFullText: !!relevantDocument.full_text } : null,
-  });
+  // console.warn('🎯 Relevant document found:', {
+  //   documentId: highlightedCitation?.documentId,
+  //   relevantDocument: relevantDocument ? { id: relevantDocument.id, filename: relevantDocument.filename, hasFullText: !!relevantDocument.full_text } : null,
+  // });
 
   // Highlighted full text with citation context highlighted
   const highlightedFullText = useMemo(() => {

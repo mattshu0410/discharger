@@ -71,7 +71,7 @@ export function Sidebar() {
         try {
           const dischargeSummary = JSON.parse(currentPatientData.discharge_text);
           setDischargeSummary(dischargeSummary);
-          console.warn('Loaded discharge summary from Supabase');
+          // console.warn('Loaded discharge summary from Supabase');
         } catch (parseError) {
           console.error('Failed to parse discharge summary:', parseError);
         }
@@ -80,7 +80,7 @@ export function Sidebar() {
       // Load saved documents when they're fetched
       if (savedDocuments.length > 0) {
         addDocumentsFromGeneration(savedDocuments);
-        console.warn('Loaded saved documents for patient:', savedDocuments.map(d => d.filename));
+        // console.warn('Loaded saved documents for patient:', savedDocuments.map(d => d.filename));
       }
     }
   }, [currentPatientData, savedDocuments, setDischargeSummary, isNewPatient, addDocumentsFromGeneration]);
@@ -165,7 +165,7 @@ export function Sidebar() {
                   variant={activeView === 'patients' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => {
-                    console.warn('Navigating to patients page');
+                    // console.warn('Navigating to patients page');
                     router.push('/');
                   }}
                   className="flex items-center gap-2"

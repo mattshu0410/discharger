@@ -24,7 +24,7 @@ export async function POST() {
     // This bypasses the need for user_profiles table during development
     const userId = user.id; // Use Clerk user ID directly
 
-    console.warn(`🌱 Seeding data for Clerk user: ${userId}`);
+    // console.warn(`🌱 Seeding data for Clerk user: ${userId}`);
 
     // Clear existing development data for this user
     await supabase.from('patients').delete().eq('user_id', userId);
@@ -334,7 +334,7 @@ export async function DELETE() {
     // Use Clerk user ID directly
     const userId = user.id;
 
-    console.warn(`🗑️ Clearing data for Clerk user: ${userId}`);
+    // console.warn(`🗑️ Clearing data for Clerk user: ${userId}`);
 
     // Get documents to clean up storage files first
     const { data: docsToDelete } = await supabase

@@ -38,7 +38,7 @@ export default async function middleware(
 ) {
   // Optional: Bypass auth for development testing
   if (BYPASS_AUTH) {
-    console.warn('🔓 Auth bypass enabled');
+    // console.warn('🔓 Auth bypass enabled');
     return NextResponse.next();
   }
 
