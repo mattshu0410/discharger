@@ -222,7 +222,7 @@ export function Sidebar() {
                           >
                             <button
                               type="button"
-                              className="flex items-center gap-2 flex-1 text-left cursor-pointer"
+                              className="flex items-center gap-2 flex-1 text-left cursor-pointer min-w-0 w-full"
                               onClick={() => {
                                 setCurrentPatientId(p.id);
                                 router.push('/');
@@ -231,23 +231,23 @@ export function Sidebar() {
                               {/* Different icon for temporary patient */}
                               {'isTemporary' in p && p.isTemporary
                                 ? (
-                                    <div className="w-[18px] h-[18px] rounded-full bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center">
+                                    <div className="w-[18px] h-[18px] rounded-full bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center flex-shrink-0">
                                       <Plus size={10} className="text-yellow-800" />
                                     </div>
                                   )
                                 : (
-                                    <User size={18} />
+                                    <User size={18} className="flex-shrink-0" />
                                   )}
-                              <div className="flex flex-col overflow-hidden flex-1">
-                                <div className="font-medium text-base leading-tight flex items-center gap-2">
-                                  {p.name}
+                              <div className="flex flex-col overflow-hidden flex-1 min-w-0 w-full">
+                                <div className="font-medium text-base leading-tight flex items-center gap-2 min-w-0 w-full">
+                                  <span className="truncate flex-1 min-w-0">{p.name}</span>
                                   {'isTemporary' in p && p.isTemporary && (
-                                    <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] rounded-full border">
+                                    <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] rounded-full border flex-shrink-0">
                                       Temp
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-xs text-muted-foreground truncate">{p.context}</div>
+                                <div className="text-xs text-muted-foreground truncate whitespace-nowrap overflow-hidden w-full min-w-0">{p.context?.replace(/\n/g, ' ')}</div>
                               </div>
                             </button>
 

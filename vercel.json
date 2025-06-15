@@ -1,0 +1,6 @@
+{
+  "ignoreBuildStep": "true",
+  "build": {
+    "exclude": ["supabase/functions/**"]
+  }
+}
