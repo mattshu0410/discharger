@@ -14,10 +14,13 @@ import {
   X,
 } from '@mynaui/icons-react';
 import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { useDeletePatient, usePatients } from '@/api/patients/queries';
+import { useDocumentsByIds } from '@/api/documents/queries';
+import { useDeletePatient, usePatient, usePatients } from '@/api/patients/queries';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/libs/utils';
+import { useDischargeSummaryStore } from '@/stores';
 import { usePatientStore } from '@/stores/patientStore';
 import { useUIStore } from '@/stores/uiStore';
 
@@ -27,6 +30,11 @@ export function Sidebar() {
   const currentPatientId = usePatientStore(state => state.currentPatientId);
   const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
   const createNewPatient = usePatientStore(state => state.createNewPatient);
+  const addDocumentsFromGeneration = usePatientStore(state => state.addDocumentsFromGeneration);
+
+  // Discharge summary store
+  const setDischargeSummary = useDischargeSummaryStore(state => state.setDischargeSummary);
+  const clearSummary = useDischargeSummaryStore(state => state.clearSummary);
 
   // Check if this is a new/temporary patient
   const isNewPatient = currentPatientId && typeof currentPatientId === 'string' && currentPatientId.startsWith('new-');
@@ -47,6 +55,43 @@ export function Sidebar() {
         isTemporary: true,
       }
     : null;
+
+  // Fetch patient data when currentPatientId changes (to load discharge summary)
+  const { data: currentPatientData } = usePatient(currentPatientId || '');
+
+  // Fetch documents when patient has saved document IDs
+  const savedDocumentIds = currentPatientData?.document_ids || [];
+  const { data: savedDocuments = [] } = useDocumentsByIds(savedDocumentIds);
+
+  // Load discharge summary and documents when patient data is fetched
+  useEffect(() => {
+    if (currentPatientData && !isNewPatient) {
+      // Load discharge summary if it exists
+      if (currentPatientData.discharge_text) {
+        try {
+          const dischargeSummary = JSON.parse(currentPatientData.discharge_text);
+          setDischargeSummary(dischargeSummary);
+          console.warn('Loaded discharge summary from Supabase');
+        } catch (parseError) {
+          console.error('Failed to parse discharge summary:', parseError);
+        }
+      }
+
+      // Load saved documents when they're fetched
+      if (savedDocuments.length > 0) {
+        addDocumentsFromGeneration(savedDocuments);
+        console.warn('Loaded saved documents for patient:', savedDocuments.map(d => d.filename));
+      }
+    }
+  }, [currentPatientData, savedDocuments, setDischargeSummary, isNewPatient, addDocumentsFromGeneration]);
+
+  // Clear discharge summary when switching patients
+  useEffect(() => {
+    return () => {
+      // Cleanup when component unmounts or patient changes
+      clearSummary();
+    };
+  }, [currentPatientId, clearSummary]);
 
   // Handle patient deletion
   const handleDeletePatient = async (patientId: string, patientName: string) => {

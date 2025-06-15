@@ -89,24 +89,61 @@ export function useUploadDocument() {
   });
 }
 
-// Update document (mock for now)
+// Update document
 export function useUpdateDocument() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateDocumentRequest }) => {
-      // Mock update
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`/api/documents/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
 
-      const existingDoc = await getDocumentById(id);
-      if (!existingDoc) {
-        throw new Error('Document not found');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update document');
       }
 
-      return { ...existingDoc, ...data };
+      return response.json();
     },
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: documentKeys.detail(id) });
+    // Optimistic update
+    onMutate: async ({ id, data }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: documentKeys.lists() });
+
+      // Snapshot the previous value
+      const previousDocuments = queryClient.getQueryData(documentKeys.lists());
+
+      // Optimistically update the cache
+      queryClient.setQueriesData({ queryKey: documentKeys.lists() }, (old: any) => {
+        if (!old) {
+          return old;
+        }
+        return old.map((doc: any) =>
+          doc.id === id ? { ...doc, ...data } : doc,
+        );
+      });
+
+      // Return context object with snapshotted value
+      return { previousDocuments };
+    },
+    onError: (err, _variables, context) => {
+      // Rollback on error
+      if (context?.previousDocuments) {
+        queryClient.setQueryData(documentKeys.lists(), context.previousDocuments);
+      } else {
+        console.error('No previous documents found in context', err);
+      }
+    },
+    onSuccess: (updatedDocument, { id }) => {
+      // Update the specific document in cache
+      queryClient.setQueryData(documentKeys.detail(id), updatedDocument);
+
+      // Invalidate and refetch the lists to ensure consistency
       queryClient.invalidateQueries({ queryKey: documentKeys.lists() });
     },
   });

@@ -134,6 +134,7 @@ export async function POST(req: Request) {
     // Step 3: Retrieve full text for all documents
     let documentContents = 'No documents available.';
     const availableDocuments = new Map<string, string>(); // Map UUID to filename for validation
+    const missingDocuments: string[] = [];
 
     if (allDocumentIds.length > 0) {
       const { data: documents, error } = await supabase
@@ -144,14 +145,33 @@ export async function POST(req: Request) {
       if (error) {
         console.error('Error fetching documents:', error);
       } else if (documents && documents.length > 0) {
-        // Format documents for the prompt with UUIDs for LLM reference
+        // Check which documents are missing (graceful handling of unavailable documents)
+        const foundDocumentIds = new Set(documents.map(doc => doc.id));
+        missingDocuments.push(...allDocumentIds.filter(id => !foundDocumentIds.has(id)));
+
+        if (missingDocuments.length > 0) {
+          console.warn(`Some referenced documents are no longer available: ${missingDocuments.join(', ')}`);
+        }
+
+        // Format available documents for the prompt with UUIDs for LLM reference
         documentContents = documents
           .map((doc) => {
             availableDocuments.set(doc.id, doc.filename); // Store for validation
             return `Document UUID: ${doc.id} (Filename: ${doc.filename}):\n${doc.full_text || 'No content available'}`;
           })
           .join('\n\n---\n\n');
-        console.warn(`Retrieved ${documents.length} documents with full text`);
+
+        // Add note about missing documents if any
+        if (missingDocuments.length > 0) {
+          documentContents += `\n\n[Note: ${missingDocuments.length} previously referenced document(s) are no longer available and have been excluded from this generation.]`;
+        }
+
+        console.warn(`Retrieved ${documents.length} documents with full text. ${missingDocuments.length} documents unavailable.`);
+      } else {
+        // All documents are missing
+        missingDocuments.push(...allDocumentIds);
+        console.warn(`All referenced documents (${allDocumentIds.length}) are no longer available`);
+        documentContents = '[Note: Previously referenced documents are no longer available. Generating discharge summary based on clinical context only.]';
       }
     }
 
@@ -257,8 +277,8 @@ export async function POST(req: Request) {
         sections,
         metadata: {
           generatedAt: currentTimestamp,
-          llmModel: 'gemini-2.0-flash',
-          documentIds: allDocumentIds, // Include both selected and RAG-retrieved documents
+          llmModel: 'gemini-2.5-flash',
+          documentIds: Array.from(availableDocuments.keys()), // Only include actually available documents
           feedbackApplied: isModification && feedback
             ? [...(currentSummary?.metadata.feedbackApplied || []), feedback]
             : [],

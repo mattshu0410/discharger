@@ -2,7 +2,7 @@
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { memoryFile } from '@/types/files';
-import { ArrowUpDown, Building2, ClipboardCopy, Eye, File, FileText, MoreHorizontal, Trash2, User } from 'lucide-react';
+import { ArrowUpDown, Building2, ClipboardCopy, Eye, File, FileText, Globe, Lock, MoreHorizontal, Trash2, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ import {
 
 export const createColumns = (
   deleteDocument: UseMutationResult<any, Error, string, unknown>,
+  updateDocument: UseMutationResult<any, Error, { id: string; data: any }, unknown>,
   onPreviewDocument: (document: memoryFile) => void,
 ): ColumnDef<memoryFile>[] => [
   {
@@ -139,6 +140,32 @@ export const createColumns = (
     },
   },
   {
+    header: 'Visibility',
+    accessorKey: 'shareStatus',
+    cell: ({ row }) => {
+      const shareStatus = row.original.shareStatus;
+      const isPublic = shareStatus === 'public';
+
+      return (
+        <Badge variant={isPublic ? 'default' : 'secondary'} className="text-xs flex items-center gap-1">
+          {isPublic
+            ? (
+                <>
+                  <Globe className="h-3 w-3" />
+                  Public
+                </>
+              )
+            : (
+                <>
+                  <Lock className="h-3 w-3" />
+                  Private
+                </>
+              )}
+        </Badge>
+      );
+    },
+  },
+  {
     header: '',
     accessorKey: 'actions',
     cell: ({ row }) => {
@@ -159,6 +186,52 @@ export const createColumns = (
               Preview document
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            {/* Only show visibility toggle for owned documents */}
+            {row.original.source === 'user' && (
+              <>
+                <DropdownMenuItem
+                  onClick={() => {
+                    const isPublic = row.original.shareStatus === 'public';
+                    if (row.original.documentId) {
+                      updateDocument.mutate(
+                        {
+                          id: row.original.documentId,
+                          data: {
+                            shareStatus: isPublic ? 'private' : 'public',
+                          },
+                        },
+                        {
+                          onSuccess: () => {
+                            toast.success(`Document is now ${isPublic ? 'private' : 'public'}`);
+                          },
+                          onError: (error) => {
+                            toast.error('Failed to update document visibility', {
+                              description: error.message,
+                            });
+                          },
+                        },
+                      );
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  {row.original.shareStatus === 'public'
+                    ? (
+                        <>
+                          <Lock className="h-4 w-4" />
+                          Make private
+                        </>
+                      )
+                    : (
+                        <>
+                          <Globe className="h-4 w-4" />
+                          Make public
+                        </>
+                      )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuItem
               onClick={() => {
                 navigator.clipboard.writeText(row.original.summary);

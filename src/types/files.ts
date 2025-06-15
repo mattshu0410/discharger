@@ -6,6 +6,7 @@ export const fileSchema = z.object({
   summary: z.string(),
   tags: z.array(z.string()),
   source: z.string(),
+  shareStatus: z.enum(['private', 'public']).optional(),
   documentId: z.string().optional(), // Real document ID for operations
   fileUrl: z.string().optional(), // Supabase Storage URL
   uploadedAt: z.string().optional(), // Upload timestamp

@@ -1,12 +1,12 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Search } from '@mynaui/icons-react';
-import { CloudUpload, FileText, Plus, Upload, X } from 'lucide-react';
+import { CloudUpload, FileText, Globe, Lock, Plus, Upload, X } from 'lucide-react';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
-import { useDeleteDocument, useDocuments, useSearchDocuments, useUploadDocument } from '@/api/documents/queries';
+import { useDeleteDocument, useDocuments, useSearchDocuments, useUpdateDocument, useUploadDocument } from '@/api/documents/queries';
 import { DataTable } from '@/components/DataTable';
 import { DocumentPreviewModal } from '@/components/DocumentPreviewModal';
 import { Button } from '@/components/ui/button';
@@ -26,9 +26,11 @@ import {
   FormDescription,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { useUIStore } from '@/stores/uiStore';
 import { createColumns } from './columns';
@@ -42,6 +44,7 @@ const formSchema = z.object({
       message: 'File size must be less than 20MB',
       path: ['files'],
     }),
+  shareStatus: z.enum(['private', 'public']),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -58,6 +61,7 @@ export default function MemoryPage() {
   const { data: allDocuments = [], isLoading } = useDocuments();
   const { data: searchResults = [] } = useSearchDocuments(memorySearchQuery, memorySearchQuery.length > 0);
   const deleteDocument = useDeleteDocument();
+  const updateDocument = useUpdateDocument();
   const uploadDocument = useUploadDocument();
 
   // Use search results when searching, otherwise show all documents
@@ -69,6 +73,7 @@ export default function MemoryPage() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       files: [],
+      shareStatus: 'private',
     },
   });
 
@@ -78,7 +83,7 @@ export default function MemoryPage() {
         files: data.files,
         summary: `Uploaded document(s): ${data.files.map(f => f.name).join(', ')}`,
         tags: [], // Default empty tags
-        shareStatus: 'private', // Default to private
+        shareStatus: data.shareStatus,
       });
 
       toast.success('Files uploaded successfully', {
@@ -195,6 +200,53 @@ export default function MemoryPage() {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="shareStatus"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Document Visibility</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className="flex flex-col space-y-2"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="private" id="private" />
+                              <label htmlFor="private" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                <div className="flex items-center gap-2">
+                                  <Lock className="h-4 w-4" />
+                                  <div>
+                                    <div>Private</div>
+                                    <div className="text-xs text-muted-foreground">Only you can access this document</div>
+                                  </div>
+                                </div>
+                              </label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="public" id="public" />
+                              <label htmlFor="public" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                <div className="flex items-center gap-2">
+                                  <Globe className="h-4 w-4" />
+                                  <div>
+                                    <div>Public</div>
+                                    <div className="text-xs text-muted-foreground">Other users can access and benefit from this document</div>
+                                  </div>
+                                </div>
+                              </label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormDescription>
+                          Making documents public helps the community by allowing other healthcare professionals to benefit from your medical guidelines and protocols.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <Button
                     type="submit"
                     className="w-full"
@@ -270,13 +322,14 @@ export default function MemoryPage() {
                     )
                   : (
                       <DataTable
-                        columns={createColumns(deleteDocument, openDocumentPreview)}
+                        columns={createColumns(deleteDocument, updateDocument, openDocumentPreview)}
                         data={documents.map((doc, index) => ({
                           id: index + 1,
                           fileName: doc.filename,
                           summary: doc.summary,
                           tags: doc.tags || [],
-                          source: 'user',
+                          source: doc.source === 'user' ? 'user' : 'community',
+                          shareStatus: doc.shareStatus,
                           documentId: doc.id,
                           fileUrl: doc.s3Url,
                           uploadedAt: doc.uploadedAt ? new Date(doc.uploadedAt).toISOString() : new Date().toISOString(),

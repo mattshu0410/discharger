@@ -9,6 +9,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useDocumentsByIds } from '@/api/documents/queries';
 import { getPatientById } from '@/api/patients/hooks';
+import { useUpdatePatient } from '@/api/patients/queries';
 import { AutoSaveIndicator } from '@/components/AutoSaveIndicator';
 import { DocumentSelector } from '@/components/DocumentSelector';
 import { SnippetSelector } from '@/components/SnippetSelector';
@@ -98,6 +99,9 @@ export function PatientForm() {
 
   // Initialize autosave
   const { savePatientContext } = useAutoSave();
+
+  // Update patient mutation for saving discharge and document IDs
+  const updatePatientMutation = useUpdatePatient();
 
   // Iniitalize new patient creation
   const { createNewPatient: createPatientAPI, isCreating } = useNewPatient();
@@ -245,7 +249,7 @@ export function PatientForm() {
       const response: GenerateDischargeSummaryResponse = await res.json();
       return response;
     },
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       console.warn('Generated discharge summary:', response.summary);
       setDischargeSummary(response.summary);
 
@@ -254,6 +258,24 @@ export function PatientForm() {
       if (usedDocumentIds.length > 0) {
         console.warn('Triggering fetch for documents used in generation:', usedDocumentIds);
         setDocumentsToFetch(usedDocumentIds);
+      }
+
+      // Save discharge summary and document IDs to Supabase if we have a valid patient ID
+      const patientId = response.summary.patientId;
+      if (patientId && !isNewPatient) {
+        try {
+          await updatePatientMutation.mutateAsync({
+            id: patientId,
+            data: {
+              discharge_text: JSON.stringify(response.summary),
+              document_ids: usedDocumentIds,
+            },
+          });
+          console.warn('Saved discharge summary and document IDs to Supabase');
+        } catch (error) {
+          console.error('Failed to save discharge summary to Supabase:', error);
+          // Don't show error to user - this is a background save
+        }
       }
     },
     onError: (error) => {
@@ -348,7 +370,7 @@ export function PatientForm() {
     }
   };
 
-  const handleDocumentSelect = (document: Document) => {
+  const handleDocumentSelect = async (document: Document) => {
     addDocument(document);
 
     // Store current cursor position before updating context
@@ -368,6 +390,23 @@ export function PatientForm() {
       const newCursorPos = currentCursorPos;
       textareaRef.current?.setSelectionRange(newCursorPos, newCursorPos);
     }, 0);
+
+    // Save updated document IDs to Supabase if we have a valid patient ID
+    if (currentPatientId && !isNewPatient) {
+      const updatedDocumentIds = [...selectedDocuments, document].map(d => d.id);
+      try {
+        await updatePatientMutation.mutateAsync({
+          id: currentPatientId,
+          data: {
+            document_ids: updatedDocumentIds,
+          },
+        });
+        console.warn('Saved document IDs to Supabase');
+      } catch (error) {
+        console.error('Failed to save document IDs to Supabase:', error);
+        // Don't show error to user - this is a background save
+      }
+    }
   };
 
   const handleSnippetSelect = (snippet: Snippet) => {

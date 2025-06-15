@@ -60,7 +60,32 @@ export async function POST() {
           age: 42,
           sex: 'male',
           context: 'History of hypertension, presenting with chest pain radiating to the left arm. No previous cardiac events. Family history of coronary artery disease. Recent increase in work-related stress. Reports occasional shortness of breath and palpitations. Denies nausea or vomiting.',
-          discharge_text: '# Discharge Summary\n\n**Patient:** John Smith\n\n- **Diagnosis:** Hypertension, Chest Pain\n- **Summary:**\n  - Presented with chest pain radiating to the left arm.\n  - No previous cardiac events.\n  - Family history of coronary artery disease.\n  - Recent increase in work-related stress.\n  - Reports occasional shortness of breath and palpitations.\n  - Denies nausea or vomiting.\n\n**Plan:**\n- Outpatient follow-up\n- Continue antihypertensive medication\n- Stress management counseling',
+          discharge_text: JSON.stringify({
+            id: 'discharge_seed_001',
+            patientId: null,
+            sections: [
+              {
+                id: 'section_1',
+                title: 'Summary of Care',
+                content: 'Patient presented with chest pain radiating to the left arm. No previous cardiac events documented. Family history positive for coronary artery disease.',
+                order: 1,
+                citations: [],
+              },
+              {
+                id: 'section_2',
+                title: 'Discharge Plan',
+                content: 'Continue antihypertensive medication as prescribed. Schedule outpatient follow-up within 2 weeks. Initiate stress management counseling.',
+                order: 2,
+                citations: [],
+              },
+            ],
+            metadata: {
+              generatedAt: new Date(),
+              llmModel: 'seed-data',
+              documentIds: [],
+              feedbackApplied: [],
+            },
+          }),
         },
         {
           id: randomUUID(),
@@ -69,7 +94,32 @@ export async function POST() {
           age: 36,
           sex: 'female',
           context: 'Type 1 diabetic since age 12, presenting for routine follow-up. Reports good glycemic control with occasional hypoglycemic episodes. No history of retinopathy or nephropathy. Family history of autoimmune disorders. Works as a software engineer and exercises regularly.',
-          discharge_text: '# Discharge Summary\n\n**Patient:** Jane Doe\n\n- **Diagnosis:** Type 1 Diabetes Mellitus\n- **Summary:**\n  - Good glycemic control, occasional hypoglycemia.\n  - No retinopathy or nephropathy.\n  - Family history of autoimmune disorders.\n  - Active lifestyle.\n\n**Plan:**\n- Continue current insulin regimen\n- Annual eye and kidney screening\n- Educate on hypoglycemia management',
+          discharge_text: JSON.stringify({
+            id: 'discharge_seed_002',
+            patientId: null,
+            sections: [
+              {
+                id: 'section_1',
+                title: 'Summary of Care',
+                content: 'Type 1 diabetic since age 12, presenting for routine follow-up. Reports good glycemic control with occasional hypoglycemic episodes. No history of retinopathy or nephropathy.',
+                order: 1,
+                citations: [],
+              },
+              {
+                id: 'section_2',
+                title: 'Discharge Plan',
+                content: 'Continue current insulin regimen as prescribed. Schedule annual eye and kidney screening. Provide education on hypoglycemia management and recognition.',
+                order: 2,
+                citations: [],
+              },
+            ],
+            metadata: {
+              generatedAt: new Date(),
+              llmModel: 'seed-data',
+              documentIds: [],
+              feedbackApplied: [],
+            },
+          }),
         },
         {
           id: randomUUID(),
@@ -78,7 +128,32 @@ export async function POST() {
           age: 29,
           sex: 'female',
           context: 'Recently diagnosed with asthma, presenting with increased shortness of breath and wheezing. No hospitalizations. Uses inhaler as needed. Lives in an urban area with high pollen count. No known drug allergies. Works as a teacher.',
-          discharge_text: '# Discharge Summary\n\n**Patient:** Alice Johnson\n\n- **Diagnosis:** Asthma\n- **Summary:**\n  - Increased shortness of breath and wheezing.\n  - No hospitalizations.\n  - Uses inhaler as needed.\n  - Urban residence, high pollen count.\n  - No known drug allergies.\n\n**Plan:**\n- Continue inhaler as needed\n- Monitor symptoms\n- Allergen avoidance education',
+          discharge_text: JSON.stringify({
+            id: 'discharge_seed_003',
+            patientId: null,
+            sections: [
+              {
+                id: 'section_1',
+                title: 'Summary of Care',
+                content: 'Recently diagnosed with asthma, presenting with increased shortness of breath and wheezing. No hospitalizations to date. Uses inhaler as needed for symptom control.',
+                order: 1,
+                citations: [],
+              },
+              {
+                id: 'section_2',
+                title: 'Discharge Plan',
+                content: 'Continue inhaler as needed for symptom relief. Monitor symptoms closely and seek medical attention if worsening. Provide allergen avoidance education given urban residence with high pollen count.',
+                order: 2,
+                citations: [],
+              },
+            ],
+            metadata: {
+              generatedAt: new Date(),
+              llmModel: 'seed-data',
+              documentIds: [],
+              feedbackApplied: [],
+            },
+          }),
         },
       ])
       .select();

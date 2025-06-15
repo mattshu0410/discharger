@@ -199,7 +199,19 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(data || []);
+    // Transform the response to match frontend expectations (camelCase)
+    const transformedData = (data || []).map(doc => ({
+      ...doc,
+      shareStatus: doc.share_status,
+      uploadedAt: doc.uploaded_at,
+      createdAt: doc.created_at,
+      updatedAt: doc.updated_at,
+      userId: doc.user_id,
+      uploadedBy: doc.uploaded_by,
+      s3Url: doc.s3_url,
+    }));
+
+    return NextResponse.json(transformedData);
   } catch (error) {
     console.error('API error:', error);
     return NextResponse.json(

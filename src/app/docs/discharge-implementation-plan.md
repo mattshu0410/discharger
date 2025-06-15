@@ -203,22 +203,80 @@ Highlights Matching Text
 - [x] Build basic context viewer with document tabs
 - [ ] Add feedback history display
 
-### Phase 3: Advanced Citations ⚠️ [STATUS: Needs Citation ID Fix]
+### Phase 3: Advanced Citations ✅ [STATUS: Complete]
 - [x] Implement enhanced citation display with context
 - [x] Add bidirectional citation highlighting
 - [x] Build citation relevance indicators
 - [x] Integrate RAG-based document retrieval
 - [x] Store and retrieve full document text
-- [ ] **Fix citation-to-document mapping**: Separate citation IDs from document UUIDs
+- [x] **Fix citation-to-document mapping**: Separate citation IDs from document UUIDs
 
-### Phase 4: Rules System 🔮 [STATUS: Not Started]
-- [ ] Design rule suggestion algorithm
-- [ ] Build rule suggestion banner
-- [ ] Create rule management interface
-- [ ] Implement rule application in prompts
-- [ ] Add rule categorization system
+### Phase 3: Advanced Citations ✅ [STATUS: Complete]
+- [x] Implement enhanced citation display with context
+- [x] Add bidirectional citation highlighting
+- [x] Build citation relevance indicators
+- [x] Integrate RAG-based document retrieval
+- [x] Store and retrieve full document text
+- [x] **Fix citation-to-document mapping**: Separate citation IDs from document UUIDs
 
-### Phase 5: Polish & Optimization 🔮 [STATUS: Not Started]
+### Phase 4: Update Discharge in Supabase ✅ [STATUS: Complete]
+
+#### Overview
+This phase focuses on persisting discharge summaries and document associations to Supabase, enabling users to access their previous work when switching between patients. It also addresses document visibility and sharing.
+
+#### Implementation Plan
+
+##### 4.1 Save Discharge Summaries to Supabase ✅
+- [x] Update `useUpdatePatient` hook to accept discharge_text field
+- [x] Modify PatientForm to save the discharge summary JSON to patients.discharge_text after generation
+- [x] Store the full DischargeSummary object as JSON (includes sections, citations, metadata)
+
+##### 4.2 Load Discharge on Patient Switch ✅
+- [x] Use existing `usePatient` hook to fetch patient data with discharge_text
+- [x] Update Sidebar.tsx to trigger discharge loading when patient is selected
+- [x] Modify dischargeSummaryStore to handle loading saved summaries
+- [x] Clear discharge summary when switching away from a patient
+
+##### 4.3 Save Document IDs to Patients ✅
+- [x] Update PatientForm to sync document IDs with Supabase when documents are attached
+- [x] Save document_ids when documents are attached via @ selector
+- [x] Update document_ids when RAG-retrieved documents are added post-generation
+- [x] Load saved document IDs when switching patients using `useDocumentsByIds`
+
+##### 4.4 Fix Document Visibility (RLS) ✅
+- [x] Review current RLS policies on documents table - properly configured
+- [x] Ensure documents are only visible to their owners + public documents
+- [x] RLS policies automatically handle filtering in API endpoints
+
+##### 4.5 Public Document Sharing ✅
+- [x] RLS policies already support public documents (share_status = 'public')
+- [x] Create document update API endpoint for toggling share status
+- [x] Add visibility toggle column in memory page with public/private badges
+- [x] Update document queries to include public documents from other users
+- [x] Add visual indicators for document ownership and visibility
+
+#### Technical Approach
+
+**Data Flow:**
+1. **Discharge Generation** → Save to patients.discharge_text as JSON
+2. **Patient Switch** → Load discharge_text → Parse JSON → Update dischargeSummaryStore
+3. **Document Selection** → Update local state → Sync to patients.document_ids
+4. **Document Visibility** → RLS policies enforce user_id matching (except public docs)
+
+**Key Considerations:**
+- discharge_text stores the complete DischargeSummary object as JSON
+- document_ids is a JSONB array of document UUIDs (good choice for flexibility)
+- RLS policies handle security at the database level
+- Public documents need special handling in queries and UI
+
+### Phase 5: Rules System 🔮 [STATUS: Not Started]
+ - [ ] Design rule suggestion algorithm
+ - [ ] Build rule suggestion banner
+ - [ ] Create rule management interface
+ - [ ] Implement rule application in prompts
+ - [ ] Add rule categorization system
+
+### Phase 6: Polish & Optimization 🔮 [STATUS: Not Started]
 - [ ] Add section reordering capability
 - [ ] Implement section customization
 - [ ] Add export functionality
