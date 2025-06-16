@@ -559,6 +559,7 @@ export function PatientForm() {
                     onChange={handleContextChange}
                     onKeyDown={handleKeyDown}
                     disabled={actualIsLoading}
+                    data-tour="patient-context"
                   />
                 </FormControl>
                 <FormMessage />
@@ -570,6 +571,7 @@ export function PatientForm() {
             type="submit"
             disabled={generateDischargeText.isPending || !currentPatientContext.trim() || actualIsLoading || isCreating}
             className="w-full"
+            data-tour="generate-discharge"
           >
             {generateDischargeText.isPending || isGenerating || isCreating
               ? (

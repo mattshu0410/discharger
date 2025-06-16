@@ -50,7 +50,7 @@ export function DischargeSummaryPanel() {
         <DischargeSummaryContent summary={currentSummary} />
       </div>
 
-      <div className="border-t">
+      <div className="border-t" data-tour="discharge-feedback">
         <FeedbackInput />
       </div>
     </div>

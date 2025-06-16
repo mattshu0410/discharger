@@ -207,7 +207,7 @@ export function Sidebar() {
                       <Menu size={16} />
                       Patients
                     </div>
-                    <ul className="space-y-1">
+                    <ul className="space-y-1" data-tour="patient-list">
                       {allPatients.map(p => (
                         <li key={p.id} className="list-none">
                           <div
@@ -285,6 +285,7 @@ export function Sidebar() {
                           : 'hover:bg-[var(--sidebar-accent)]',
                       )}
                       onClick={() => router.push('/memory')}
+                      data-tour="memory-link"
                     >
                       <HardDrive size={16} />
                       Memory

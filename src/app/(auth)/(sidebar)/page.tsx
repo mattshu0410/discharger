@@ -1,15 +1,44 @@
 'use client';
 import { Eye, EyeOff } from 'lucide-react';
+import { useEffect } from 'react';
+import { usePatients } from '@/api/patients/queries';
 import { ContextViewer } from '@/components/ContextViewer';
 import { DischargeSummaryPanel } from '@/components/DischargeSummary/DischargeSummaryPanel';
 import { PatientForm } from '@/components/PatientForm';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import { useTourGuide } from '@/hooks/useTourGuide';
 import { useUIStore } from '@/stores';
+import { usePatientStore } from '@/stores/patientStore';
 
 export default function Index() {
   const isContextViewerOpen = useUIStore((state: any) => state.isContextViewerOpen);
   const toggleContextViewer = useUIStore((state: any) => state.toggleContextViewer);
+  const currentPatientId = usePatientStore(state => state.currentPatientId);
+  const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
+  const { data: patients } = usePatients();
+  const { initializeTour } = useTourGuide();
+
+  // Auto-load first patient when component mounts and no patient is selected
+  useEffect(() => {
+    if (!currentPatientId && patients && patients.length > 0) {
+      // Set the first patient as the current patient
+      const firstPatient = patients[0];
+      if (firstPatient?.id) {
+        setCurrentPatientId(firstPatient.id);
+      }
+    }
+  }, [currentPatientId, patients, setCurrentPatientId]);
+
+  // Initialize tour on component mount
+  useEffect(() => {
+    // Add a small delay to ensure the page is fully rendered before checking tour
+    const timer = setTimeout(async () => {
+      await initializeTour();
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [initializeTour]);
 
   return (
     <ResizablePanelGroup direction="vertical" className="h-full w-full">
@@ -36,7 +65,7 @@ export default function Index() {
           <ResizableHandle withHandle />
 
           {/* Right: Discharge Summary */}
-          <ResizablePanel defaultSize={50} className="w-1/2">
+          <ResizablePanel defaultSize={50} className="w-1/2" data-tour="discharge-summary">
             <DischargeSummaryPanel />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -56,7 +85,7 @@ export default function Index() {
                 Documents and snippets used in this patient's context
               </p>
             </div>
-            <div className="flex-1 overflow-y-auto hide-scrollbar">
+            <div className="flex-1 overflow-y-auto hide-scrollbar" data-tour="context-viewer">
               <ContextViewer />
             </div>
           </ResizablePanel>
