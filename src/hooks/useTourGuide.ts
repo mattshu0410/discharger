@@ -1,12 +1,12 @@
+'use client';
 import { useUser } from '@clerk/nextjs';
-import { TourGuideClient } from '@sjmc11/tourguidejs';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSupabaseClient } from '@/libs/supabase-client';
 import { tourOptions, tourSteps } from '@/libs/tourguide/config';
 
 export function useTourGuide() {
-  const tourRef = useRef<TourGuideClient | null>(null);
+  const tourRef = useRef<any>(null);
   const [tourStarted, setTourStarted] = useState(false);
   const { user } = useUser();
   const supabase = useSupabaseClient();
@@ -63,6 +63,9 @@ export function useTourGuide() {
       return;
     }
 
+    // Dynamically import TourGuideJS to avoid SSR issues
+    const { TourGuideClient } = await import('@sjmc11/tourguidejs');
+
     // Create tour instance
     const tg = new TourGuideClient({
       ...tourOptions,
@@ -118,6 +121,9 @@ export function useTourGuide() {
       await tourRef.current.exit();
       tourRef.current = null;
     }
+
+    // Dynamically import TourGuideJS to avoid SSR issues
+    const { TourGuideClient } = await import('@sjmc11/tourguidejs');
 
     // Create fresh tour instance
     const tg = new TourGuideClient({
