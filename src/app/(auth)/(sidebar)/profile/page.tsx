@@ -1,7 +1,7 @@
 'use client';
 import { useClerk, UserProfile, useUser } from '@clerk/nextjs';
 import { format } from 'date-fns';
-import { Award, Building2, Calendar, Check, ChevronsUpDown, Compass, LogOut, Mail, Settings, Stethoscope, User } from 'lucide-react';
+import { Award, Building2, Calendar, Check, ChevronsUpDown, LogOut, Mail, Settings, Stethoscope, User } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useHospitals } from '@/api/hospitals/queries';
@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useTourGuide } from '@/hooks/useTourGuide';
+
 import { cn } from '@/libs/utils';
 
 export default function ProfilePage() {
@@ -28,8 +28,6 @@ export default function ProfilePage() {
   const { signOut } = useClerk();
   const { data: userProfile, isLoading: isProfileLoading } = useUserProfile();
   const { data: hospitals, isLoading: isLoadingHospitals } = useHospitals();
-  const { replayTour } = useTourGuide();
-
   // Mutations
   const updatePreferences = useUpdateUserPreferences();
   const updateTitle = useUpdateTitle();
@@ -475,35 +473,6 @@ export default function ProfilePage() {
               <p className="text-sm text-muted-foreground">
                 Choose your preferred color scheme.
               </p>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-2">
-              <Label>App Tour</Label>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Replay Welcome Tour</p>
-                  <p className="text-sm text-muted-foreground">
-                    Take the guided tour again to learn about Discharger's features.
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    try {
-                      await replayTour();
-                    } catch {
-                      toast.error('Failed to start tour');
-                    }
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <Compass className="h-4 w-4" />
-                  Start Tour
-                </Button>
-              </div>
             </div>
           </CardContent>
         </Card>

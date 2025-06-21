@@ -1,18 +1,18 @@
 'use client';
 import {
+  Archive,
   BookOpen,
-  Cog,
-  Database,
   FileText,
   HardDrive,
   Menu,
   PanelLeft,
   Plus,
-  SidebarAlt,
+  Settings,
+  SidebarClose,
   User,
   UserCircle,
   X,
-} from '@mynaui/icons-react';
+} from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
@@ -140,6 +140,7 @@ export function Sidebar() {
 
   return (
     <div
+      id="sidebar"
       className={cn(
         'h-full transition-all duration-300 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r border-[var(--sidebar-border)] flex flex-col',
         isSidebarOpen ? 'w-64 min-w-[16rem]' : 'w-12 min-w-[3rem]',
@@ -147,12 +148,13 @@ export function Sidebar() {
     >
       {/* Toggle button */}
       <button
+        id="sidebar-toggle"
         type="button"
         className="m-2 p-1 rounded hover:bg-[var(--sidebar-accent)] transition-colors"
         onClick={toggleSidebar}
         aria-label="Toggle sidebar"
       >
-        {isSidebarOpen ? <SidebarAlt size={20} /> : <PanelLeft size={20} />}
+        {isSidebarOpen ? <SidebarClose size={20} /> : <PanelLeft size={20} />}
       </button>
 
       <div className="flex-1 overflow-y-auto">
@@ -179,7 +181,7 @@ export function Sidebar() {
                   onClick={() => router.push('/memory')}
                   className="flex items-center gap-2"
                 >
-                  <Cog size={16} />
+                  <Settings size={16} />
                   Settings
                 </Button>
               </div>
@@ -191,6 +193,7 @@ export function Sidebar() {
                     {/* New Patient Button */}
                     <div className="px-4 py-2">
                       <Button
+                        id="new-patient-btn"
                         className="w-full justify-start"
                         size="sm"
                         onClick={() => {
@@ -207,7 +210,7 @@ export function Sidebar() {
                       <Menu size={16} />
                       Patients
                     </div>
-                    <ul className="space-y-1" data-tour="patient-list">
+                    <ul className="space-y-1">
                       {allPatients.map(p => (
                         <li key={p.id} className="list-none">
                           <div
@@ -277,6 +280,7 @@ export function Sidebar() {
                       Settings
                     </div>
                     <button
+                      id="memory-nav-link"
                       type="button"
                       className={cn(
                         'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
@@ -285,12 +289,12 @@ export function Sidebar() {
                           : 'hover:bg-[var(--sidebar-accent)]',
                       )}
                       onClick={() => router.push('/memory')}
-                      data-tour="memory-link"
                     >
                       <HardDrive size={16} />
                       Memory
                     </button>
                     <button
+                      id="snippets-nav-link"
                       type="button"
                       className={cn(
                         'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
@@ -321,7 +325,7 @@ export function Sidebar() {
                       Preferences
                     </div>
                     <div className="flex items-center gap-2 px-2 py-2 text-muted-foreground">
-                      <Database size={16} />
+                      <Archive size={16} />
                       Archive
                     </div>
                   </div>

@@ -1,6 +1,5 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import '@sjmc11/tourguidejs/dist/css/tour.min.css';
 
 @custom-variant dark (&:is(.dark *));
 

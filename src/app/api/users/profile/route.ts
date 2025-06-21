@@ -19,7 +19,9 @@ export async function GET() {
       .eq('id', user.id)
       .single();
 
+    console.warn(existingProfile);
     if (existingProfile && !selectError) {
+      console.warn('existingProfile', existingProfile);
       // Return existing profile with Clerk data
       return NextResponse.json({
         id: existingProfile.id,
@@ -30,50 +32,11 @@ export async function GET() {
         title: existingProfile.title,
         department: existingProfile.department,
         hospitalId: existingProfile.hospital_id,
+        onboarding_completed: existingProfile.onboarding_completed,
         preferences: {
           defaultDocumentIds: existingProfile.default_document_ids || [],
           favoriteDocumentIds: existingProfile.favorite_document_ids || [],
           theme: existingProfile.theme || 'system',
-        },
-      });
-    }
-
-    // Create new profile if it doesn't exist (404 means no profile found)
-    if (selectError && selectError.code === 'PGRST116') {
-      const { data: newProfile, error: insertError } = await supabase
-        .from('profiles')
-        .insert({
-          id: user.id,
-          email: user.primaryEmailAddress?.emailAddress,
-          full_name: user.fullName || user.firstName,
-          theme: 'system',
-          default_document_ids: [],
-          favorite_document_ids: [],
-        })
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Failed to create user profile:', insertError);
-        return NextResponse.json(
-          { error: 'Failed to create user profile' },
-          { status: 500 },
-        );
-      }
-
-      return NextResponse.json({
-        id: newProfile.id,
-        email: user.primaryEmailAddress?.emailAddress,
-        name: newProfile.full_name,
-        organization: newProfile.organization,
-        role: newProfile.role,
-        title: newProfile.title,
-        department: newProfile.department,
-        hospitalId: newProfile.hospital_id,
-        preferences: {
-          defaultDocumentIds: newProfile.default_document_ids || [],
-          favoriteDocumentIds: newProfile.favorite_document_ids || [],
-          theme: newProfile.theme || 'system',
         },
       });
     }
@@ -133,6 +96,9 @@ export async function PUT(request: Request) {
     if (data.hospitalId !== undefined) {
       updateData.hospital_id = data.hospitalId;
     }
+    if (data.onboarding_completed !== undefined) {
+      updateData.onboarding_completed = data.onboarding_completed;
+    }
 
     const { data: updatedProfile, error: updateError } = await supabase
       .from('profiles')
@@ -159,6 +125,7 @@ export async function PUT(request: Request) {
       title: updatedProfile.title,
       department: updatedProfile.department,
       hospitalId: updatedProfile.hospital_id,
+      onboarding_completed: updatedProfile.onboarding_completed,
       preferences: {
         defaultDocumentIds: updatedProfile.default_document_ids || [],
         favoriteDocumentIds: updatedProfile.favorite_document_ids || [],

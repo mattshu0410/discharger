@@ -7,7 +7,7 @@ import { DischargeSummaryPanel } from '@/components/DischargeSummary/DischargeSu
 import { PatientForm } from '@/components/PatientForm';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
-import { useTourGuide } from '@/hooks/useTourGuide';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import { useUIStore } from '@/stores';
 import { usePatientStore } from '@/stores/patientStore';
 
@@ -17,7 +17,9 @@ export default function Index() {
   const currentPatientId = usePatientStore(state => state.currentPatientId);
   const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
   const { data: patients } = usePatients();
-  const { initializeTour } = useTourGuide();
+
+  // Initialize onboarding
+  useOnboarding();
 
   // Auto-load first patient when component mounts and no patient is selected
   useEffect(() => {
@@ -30,16 +32,6 @@ export default function Index() {
     }
   }, [currentPatientId, patients, setCurrentPatientId]);
 
-  // Initialize tour on component mount
-  useEffect(() => {
-    // Add a small delay to ensure the page is fully rendered before checking tour
-    const timer = setTimeout(async () => {
-      await initializeTour();
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [initializeTour]);
-
   return (
     <ResizablePanelGroup direction="vertical" className="h-full w-full">
       <ResizablePanel defaultSize={isContextViewerOpen ? 70 : 100}>
@@ -50,6 +42,7 @@ export default function Index() {
             <div className="flex items-center justify-between p-8 pb-4">
               <h2 className="text-lg font-semibold">Clinical Notes</h2>
               <Button
+                id="context-viewer-toggle"
                 variant="outline"
                 onClick={toggleContextViewer}
                 size="icon"
@@ -65,7 +58,7 @@ export default function Index() {
           <ResizableHandle withHandle />
 
           {/* Right: Discharge Summary */}
-          <ResizablePanel defaultSize={50} className="w-1/2" data-tour="discharge-summary">
+          <ResizablePanel defaultSize={50} className="w-1/2">
             <DischargeSummaryPanel />
           </ResizablePanel>
         </ResizablePanelGroup>
@@ -85,7 +78,7 @@ export default function Index() {
                 Documents and snippets used in this patient's context
               </p>
             </div>
-            <div className="flex-1 overflow-y-auto hide-scrollbar" data-tour="context-viewer">
+            <div className="flex-1 overflow-y-auto hide-scrollbar">
               <ContextViewer />
             </div>
           </ResizablePanel>
