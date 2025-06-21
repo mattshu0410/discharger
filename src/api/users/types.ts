@@ -8,6 +8,7 @@ export type UpdateProfileRequest = {
   title?: string;
   department?: string;
   hospitalId?: string;
+  onboarding_completed?: boolean;
 };
 
 export type UpdatePreferencesRequest = {

@@ -43,7 +43,7 @@ export function DischargeSummaryPanel() {
 
   // Content state
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div id="discharge-summary-panel" className="flex-1 flex flex-col h-full">
       <DischargeSummaryHeader />
 
       <div className="flex-1 overflow-y-auto hide-scrollbar">

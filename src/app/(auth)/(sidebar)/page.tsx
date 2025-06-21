@@ -1,15 +1,36 @@
 'use client';
 import { Eye, EyeOff } from 'lucide-react';
+import { useEffect } from 'react';
+import { usePatients } from '@/api/patients/queries';
 import { ContextViewer } from '@/components/ContextViewer';
 import { DischargeSummaryPanel } from '@/components/DischargeSummary/DischargeSummaryPanel';
 import { PatientForm } from '@/components/PatientForm';
 import { Button } from '@/components/ui/button';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
+import { useOnboarding } from '@/hooks/useOnboarding';
 import { useUIStore } from '@/stores';
+import { usePatientStore } from '@/stores/patientStore';
 
 export default function Index() {
   const isContextViewerOpen = useUIStore((state: any) => state.isContextViewerOpen);
   const toggleContextViewer = useUIStore((state: any) => state.toggleContextViewer);
+  const currentPatientId = usePatientStore(state => state.currentPatientId);
+  const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
+  const { data: patients } = usePatients();
+
+  // Initialize onboarding
+  useOnboarding();
+
+  // Auto-load first patient when component mounts and no patient is selected
+  useEffect(() => {
+    if (!currentPatientId && patients && patients.length > 0) {
+      // Set the first patient as the current patient
+      const firstPatient = patients[0];
+      if (firstPatient?.id) {
+        setCurrentPatientId(firstPatient.id);
+      }
+    }
+  }, [currentPatientId, patients, setCurrentPatientId]);
 
   return (
     <ResizablePanelGroup direction="vertical" className="h-full w-full">
@@ -21,6 +42,7 @@ export default function Index() {
             <div className="flex items-center justify-between p-8 pb-4">
               <h2 className="text-lg font-semibold">Clinical Notes</h2>
               <Button
+                id="context-viewer-toggle"
                 variant="outline"
                 onClick={toggleContextViewer}
                 size="icon"

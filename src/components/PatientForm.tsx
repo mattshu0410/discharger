@@ -548,6 +548,7 @@ export function PatientForm() {
 
                 <FormControl>
                   <Textarea
+                    id="patient-context-textarea"
                     ref={textareaRef}
                     placeholder={
                       actualIsLoading
@@ -559,6 +560,7 @@ export function PatientForm() {
                     onChange={handleContextChange}
                     onKeyDown={handleKeyDown}
                     disabled={actualIsLoading}
+
                   />
                 </FormControl>
                 <FormMessage />
@@ -567,9 +569,11 @@ export function PatientForm() {
           />
 
           <Button
+            id="generate-discharge-btn"
             type="submit"
             disabled={generateDischargeText.isPending || !currentPatientContext.trim() || actualIsLoading || isCreating}
             className="w-full"
+
           >
             {generateDischargeText.isPending || isGenerating || isCreating
               ? (

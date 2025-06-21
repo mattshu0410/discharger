@@ -6,15 +6,14 @@ export default async function AuthLayout(props: {
 }) {
   const signInUrl = '/sign-in';
   const signUpUrl = '/sign-up';
-  const dashboardUrl = '/dashboard';
   const afterSignOutUrl = '/';
 
   return (
     <ClerkProvider
       signInUrl={signInUrl}
       signUpUrl={signUpUrl}
-      signInFallbackRedirectUrl={dashboardUrl}
-      signUpFallbackRedirectUrl={dashboardUrl}
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
       afterSignOutUrl={afterSignOutUrl}
     >
       <BaseTemplate>

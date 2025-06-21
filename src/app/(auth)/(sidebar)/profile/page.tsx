@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+
 import { cn } from '@/libs/utils';
 
 export default function ProfilePage() {
@@ -27,7 +28,6 @@ export default function ProfilePage() {
   const { signOut } = useClerk();
   const { data: userProfile, isLoading: isProfileLoading } = useUserProfile();
   const { data: hospitals, isLoading: isLoadingHospitals } = useHospitals();
-
   // Mutations
   const updatePreferences = useUpdateUserPreferences();
   const updateTitle = useUpdateTitle();

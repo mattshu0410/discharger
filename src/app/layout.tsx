@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import { Funnel_Sans, Lexend } from 'next/font/google';
+import { NextStepProvider } from 'nextstepjs';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Toaster } from 'sonner';
 import { PostHogProvider } from '@/components/analytics/PostHogProvider';
 import { ReactQueryClientProvider } from '@/components/query/ReactQueryClientProvider';
+import { TourProvider } from '@/components/TourProvider';
 import { PatientProvider } from '@/context/PatientContext';
 import '@/styles/global.css';
 
@@ -51,16 +53,20 @@ export default async function RootLayout(props: {
   return (
     <html lang="en" className={`${lexend.variable} ${funnel_sans.variable}`}>
       <body className="min-h-screen">
-        <ReactQueryClientProvider>
-          <PostHogProvider>
-            <NuqsAdapter>
-              <PatientProvider>
-                <Toaster />
-                {props.children}
-              </PatientProvider>
-            </NuqsAdapter>
-          </PostHogProvider>
-        </ReactQueryClientProvider>
+        <NextStepProvider>
+          <ReactQueryClientProvider>
+            <TourProvider>
+              <PostHogProvider>
+                <NuqsAdapter>
+                  <PatientProvider>
+                    <Toaster />
+                    {props.children}
+                  </PatientProvider>
+                </NuqsAdapter>
+              </PostHogProvider>
+            </TourProvider>
+          </ReactQueryClientProvider>
+        </NextStepProvider>
       </body>
     </html>
   );
