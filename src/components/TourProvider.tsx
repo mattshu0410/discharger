@@ -12,7 +12,7 @@ export function TourProvider({ children }: TourProviderProps) {
   const { data: userProfile } = useCurrentUser();
   const updateProfile = useUpdateProfile();
 
-  const handleComplete = async (tourName: string | null) => {
+  const handleComplete = async (_step: number, tourName: string | null) => {
     console.warn('handleComplete called with tour:', tourName);
     if (userProfile) {
       try {
@@ -35,7 +35,7 @@ export function TourProvider({ children }: TourProviderProps) {
   return (
     <NextStep
       steps={steps as any}
-      onComplete={handleComplete}
+      onSkip={handleComplete}
     >
       {children}
     </NextStep>

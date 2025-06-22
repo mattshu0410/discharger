@@ -1,0 +1,215 @@
+/* iPhone 14 Pro Device Frame Styles */
+.deviceIPhone14 {
+  height: 868px;
+  width: 428px;
+  margin: 0 auto;
+  position: relative;
+  box-sizing: border-box;
+  transform-origin: center;
+  transition: transform 0.3s ease;
+}
+
+.deviceFrame {
+  background: #f5f5f7;
+  border-radius: 68px;
+  border: 8px solid #1d1d1f;
+  box-shadow:
+    inset 0 0 4px 2px rgba(255, 255, 255, 0.2),
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 10px 20px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.deviceScreen {
+  border-radius: 49px;
+  height: 830px;
+  width: 390px;
+  background: #000;
+  overflow: hidden;
+  margin: 19px auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* Dynamic Island */
+.deviceNotch {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 126px;
+  height: 37px;
+  background: #000;
+  border-radius: 19px;
+  z-index: 10;
+}
+
+/* Status Bar */
+.deviceStatusBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 47px;
+  background: transparent;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  color: #000;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.deviceTime {
+  margin-left: 5px;
+}
+
+.deviceBattery {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Side Buttons */
+.deviceBtns {
+  position: absolute;
+  left: -8px;
+  top: 80px;
+  width: 4px;
+  height: 60px;
+  background: #1d1d1f;
+  border-radius: 2px;
+}
+
+.deviceBtns::before {
+  content: '';
+  position: absolute;
+  top: 80px;
+  width: 4px;
+  height: 30px;
+  background: #1d1d1f;
+  border-radius: 2px;
+}
+
+.deviceBtns::after {
+  content: '';
+  position: absolute;
+  top: 120px;
+  width: 4px;
+  height: 30px;
+  background: #1d1d1f;
+  border-radius: 2px;
+}
+
+/* Power Button */
+.devicePower {
+  position: absolute;
+  right: -8px;
+  top: 120px;
+  width: 4px;
+  height: 100px;
+  background: #1d1d1f;
+  border-radius: 2px;
+}
+
+/* Content Area */
+.deviceContent {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  background: #fff;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* Hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.deviceContent::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Responsive Scaling */
+.deviceContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Scale for different screen sizes */
+@media (max-width: 1200px) {
+  .deviceIPhone14 {
+    transform: scale(0.8);
+  }
+}
+
+@media (max-width: 1000px) {
+  .deviceIPhone14 {
+    transform: scale(0.7);
+  }
+}
+
+@media (max-width: 800px) {
+  .deviceIPhone14 {
+    transform: scale(0.6);
+  }
+}
+
+@media (max-width: 600px) {
+  .deviceIPhone14 {
+    transform: scale(0.5);
+  }
+}
+
+/* Color variants */
+.deviceIPhone14.silver .deviceFrame {
+  background: #f5f5f7;
+  border-color: #e5e5e7;
+}
+
+.deviceIPhone14.graphite .deviceFrame {
+  background: #232629;
+  border-color: #1d1d1f;
+}
+
+.deviceIPhone14.gold .deviceFrame {
+  background: #faf6f2;
+  border-color: #f9f6f2;
+}
+
+.deviceIPhone14.purple .deviceFrame {
+  background: #f7f5ff;
+  border-color: #e5e1ff;
+}
+
+/* Home indicator */
+.deviceHomeIndicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 134px;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  z-index: 10;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .deviceStatusBar {
+    color: #fff;
+  }
+
+  .deviceHomeIndicator {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}

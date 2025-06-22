@@ -1,0 +1,13 @@
+{
+  "enabledMcpjsonServers": [
+    "supabase",
+    "brave-search",
+    "puppeteer",
+    "browser-tools"
+  ],
+  "permissions": {
+    "allow": [
+      "Bash(npm run check-types:*)"
+    ]
+  }
+}

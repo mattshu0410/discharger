@@ -1,0 +1,720 @@
+# Product Requirements Document: Patient Portal Extension for Discharger
+
+## Executive Summary
+
+This PRD outlines the implementation plan for extending the existing Discharger application to include a patient-facing portal. The extension will enable doctors to share simplified, interactive discharge summaries with patients via Clerks magic link authentication, providing a mobile-optimized experience for patients to track their recovery tasks, medications, and follow-up appointments.
+
+## Product Vision
+
+Transform complex medical discharge summaries into accessible, interactive patient guides that improve health outcomes through better patient understanding and engagement with their post-discharge care plans.
+
+## Architecture Overview
+
+### System Architecture
+
+```mermaid
+graph TB
+    subgraph "Discharger Application"
+        A[Doctor Portal] --> B[API Layer]
+        C[Patient Portal] --> B
+        B --> D[(Supabase Database)]
+        B --> E[Clerk Auth]
+        B --> F[External Services]
+    end
+    
+    F --> G[Twilio SMS]
+    F --> H[Lingo.dev]
+    F --> I[Google Gemini]
+    
+    A --> |Preview & Edit| J[Block Composer]
+    C --> |View & Interact| K[Block Renderer]
+    
+    J --> L[Block Library]
+    K --> L
+```
+
+### Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant Doctor
+    participant DoctorPortal
+    participant Clerk
+    participant Patient
+    participant PatientPortal
+    
+    Doctor->>DoctorPortal: Generate discharge summary
+    Doctor->>DoctorPortal: Click "Share with Patient"
+    DoctorPortal->>Clerk: Create invitation
+    Clerk-->>DoctorPortal: Return magic link
+    
+    alt SMS
+        DoctorPortal->>Twilio: Send SMS with link
+        Twilio->>Patient: Receive SMS
+    else Email
+        DoctorPortal->>Patient: Send email with link
+    else QR Code
+        DoctorPortal->>Doctor: Display QR code
+        Doctor->>Patient: Show QR code
+    end
+    
+    Patient->>PatientPortal: Click magic link
+    PatientPortal->>Clerk: Validate invitation
+    Clerk-->>PatientPortal: Create/login user
+    PatientPortal->>Patient: Show discharge summary
+```
+
+## Block-Based Architecture
+
+### Core Concept
+
+The patient portal will use a **composable block system** where each section of the discharge summary is a reusable, configurable block. This allows for:
+- Future extensibility to GP practices and other healthcare contexts
+- Doctor customization of discharge summary layouts
+- AI-assisted block composition
+- Consistent UI/UX across different medical contexts
+
+### Block Architecture
+
+```mermaid
+classDiagram
+    class BaseBlock {
+        +id: string
+        +type: BlockType
+        +order: number
+        +title: string
+        +icon: string
+        +data: BlockData
+        +metadata: BlockMetadata
+        +render(): ReactElement
+        +validate(): boolean
+        +export(): BlockExport
+    }
+    
+    class MedicationBlock {
+        +medications: Medication[]
+        +groupBy: 'status' | 'time'
+        +showImages: boolean
+    }
+    
+    class TaskBlock {
+        +tasks: Task[]
+        +enableReminders: boolean
+        +groupBy: 'priority' | 'date'
+    }
+    
+    class RedFlagBlock {
+        +symptoms: Symptom[]
+        +emergencyContacts: Contact[]
+        +severity: 'high' | 'medium'
+    }
+    
+    class TextBlock {
+        +content: string
+        +format: 'plain' | 'rich'
+    }
+    
+    class AppointmentBlock {
+        +appointments: Appointment[]
+        +calendarIntegration: boolean
+    }
+    
+    BaseBlock <|-- MedicationBlock
+    BaseBlock <|-- TaskBlock
+    BaseBlock <|-- RedFlagBlock
+    BaseBlock <|-- TextBlock
+    BaseBlock <|-- AppointmentBlock
+```
+
+### Block Type Definitions
+
+```typescript
+// Base block interface
+interface BaseBlock {
+  id: string;
+  type: BlockType;
+  order: number;
+  title: string;
+  icon: string;
+  isEditable: boolean;
+  isRequired: boolean;
+  data: unknown;
+  metadata: {
+    createdAt: Date;
+    updatedAt: Date;
+    version: string;
+  };
+}
+
+// Specific block types
+interface MedicationBlock extends BaseBlock {
+  type: 'medication';
+  data: {
+    medications: Array<{
+      id: string;
+      name: string;
+      dosage: string;
+      frequency: string;
+      duration: string;
+      status: 'new' | 'changed' | 'unchanged' | 'stopped';
+      isOTC: boolean;
+      instructions?: string;
+    }>;
+    groupBy: 'status' | 'time';
+    showImages: boolean;
+  };
+}
+
+interface TaskBlock extends BaseBlock {
+  type: 'task';
+  data: {
+    tasks: Array<{
+      id: string;
+      title: string;
+      description: string;
+      dueDate?: Date;
+      priority: 'high' | 'medium' | 'low';
+      category: string;
+      completed: boolean;
+      subtasks?: Array<{
+        id: string;
+        title: string;
+        completed: boolean;
+      }>;
+    }>;
+    enableReminders: boolean;
+    groupBy: 'priority' | 'date' | 'category';
+  };
+}
+
+// Block registry for extensibility
+const BlockRegistry = {
+  medication: MedicationBlock,
+  task: TaskBlock,
+  redFlag: RedFlagBlock,
+  text: TextBlock,
+  appointment: AppointmentBlock,
+  // Future blocks can be added here
+};
+```
+
+## Database Schema
+
+### Updated Schema with Block Architecture
+
+```sql
+-- Patient discharge summaries with Clerk integration
+CREATE TABLE patient_summaries (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  patient_id UUID REFERENCES patients(id) ON DELETE CASCADE,
+  doctor_id UUID REFERENCES user_profiles(id),
+  
+  -- Clerk invitation/user tracking
+  clerk_invitation_id VARCHAR(255),
+  clerk_user_id VARCHAR(255),
+  patient_email VARCHAR(255),
+  patient_phone VARCHAR(20),
+  
+  -- Block-based discharge data
+  blocks JSONB NOT NULL, -- Array of block configurations
+  template_id UUID REFERENCES discharge_templates(id), -- Optional template reference
+  
+  -- Multi-language support
+  language_preference VARCHAR(10) DEFAULT 'en',
+  translations JSONB DEFAULT '{}', -- Cached translations
+  
+  -- Tracking
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  published_at TIMESTAMP WITH TIME ZONE,
+  last_accessed_at TIMESTAMP WITH TIME ZONE,
+  access_count INTEGER DEFAULT 0,
+  
+  -- Status
+  status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
+  shared_via VARCHAR(10) CHECK (shared_via IN ('email', 'sms', 'qr'))
+);
+
+-- Block templates for reusability
+CREATE TABLE discharge_templates (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  blocks JSONB NOT NULL, -- Default block configuration
+  specialty VARCHAR(100), -- e.g., 'orthopedics', 'cardiology'
+  is_public BOOLEAN DEFAULT false,
+  created_by UUID REFERENCES user_profiles(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Block presets for quick insertion
+CREATE TABLE block_presets (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  block_type VARCHAR(50) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  configuration JSONB NOT NULL,
+  tags TEXT[],
+  created_by UUID REFERENCES user_profiles(id),
+  is_public BOOLEAN DEFAULT false
+);
+
+-- Track block-level interactions
+CREATE TABLE block_interactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  summary_id UUID REFERENCES patient_summaries(id) ON DELETE CASCADE,
+  block_id VARCHAR(255) NOT NULL,
+  interaction_type VARCHAR(50), -- 'task_completed', 'medication_viewed', etc.
+  data JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+## Implementation Stages
+
+### Stage 1: Foundation & Block System
+
+#### 1.1 Block Architecture Implementation
+- [ ] Create base block interface and abstract class
+- [ ] Implement block registry system
+- [ ] Build block validation framework
+- [ ] Create block rendering engine
+- [ ] Implement block state management
+
+#### 1.2 Core Block Components
+- [ ] Build MedicationBlock component
+  ```typescript
+  // Example implementation
+  const MedicationBlock: React.FC<BlockProps> = ({ block, isEditing, onChange }) => {
+    const { medications, groupBy, showImages } = block.data;
+    
+    return (
+      <BlockWrapper block={block} isEditing={isEditing}>
+        <MedicationList 
+          medications={medications}
+          groupBy={groupBy}
+          showImages={showImages}
+          onUpdate={isEditing ? onChange : undefined}
+        />
+      </BlockWrapper>
+    );
+  };
+  ```
+- [ ] Build TaskBlock component with progress tracking
+- [ ] Build RedFlagBlock with emergency UI
+- [ ] Build TextBlock with rich text support
+- [ ] Build AppointmentBlock with calendar integration
+
+#### 1.3 Database Implementation
+- [ ] Create block-based schema tables
+- [ ] Implement block versioning system
+- [ ] Create template management tables
+- [ ] Set up block interaction tracking
+- [ ] Configure RLS policies for patient access
+
+### Stage 2: Doctor Portal Enhancements
+
+#### 2.1 Doctor Portal Layout
+
+```mermaid
+graph TD
+    subgraph "Doctor Portal Interface"
+        A[Sidebar - Patients] --> B[Main Content Area]
+        B --> C[Editable Preview]
+        B --> D[Discharge Input Field]
+        
+        subgraph "Main Content Area"
+            E[Block List Panel] --> C
+            C --> F[Click to Edit]
+            C --> G[Inline Editing]
+            D --> H[Generate Blocks]
+        end
+    end
+```
+
+Layout Structure:
+```
+┌─────────┬──────────────────────────────────────┬──────────────┐
+│         │        Editable Preview              │              │
+│ Sidebar │   ┌─────────────────────────┐       │  Block List  │
+│         │   │  📋 Summary              │       │              │
+│ Patients│   │  Click to edit text...   │       │  [Summary]   │
+│ Settings│   ├─────────────────────────┤       │  [Tasks]     │
+│         │   │  ✓ Tasks                 │       │  [Meds]      │
+│         │   │  1. Follow up with GP    │       │  [Red Flags] │
+│         │   │  2. Blood test Tuesday   │       │  [+ Add]     │
+│         │   ├─────────────────────────┤       │              │
+│         │   │  💊 Medications          │       │              │
+│         │   │  • Paracetamol 500mg     │       │              │
+│         │   └─────────────────────────┘       │              │
+│         │                                       │              │
+│         │   [Paste discharge summary below]    │              │
+│         │   ┌─────────────────────────┐       │              │
+│         │   │                         │       │              │
+│         │   │                         │       │              │
+│         │   └─────────────────────────┘       │              │
+│         │   [Generate]                         │              │
+└─────────┴──────────────────────────────────────┴──────────────┘
+```
+
+#### 2.2 Editable Preview Component
+
+- [ ] Create EditablePreview component with direct editing
+- [ ] Implement inline editing for each block type
+- [ ] Add block reordering (future phase)
+  - Drag handles on hover
+  - Smooth animation on reorder
+  - Keyboard shortcuts for moving blocks
+
+- [ ] Create block library sidebar
+  - List of available block types
+  - Search/filter functionality
+  - Drag to add (future)
+  - Quick add buttons
+
+#### 2.3 Discharge Input Integration
+
+- [ ] Create separate discharge input field below preview
+- [ ] Update LLM prompts to output block format:
+  ```typescript
+  interface LLMBlockOutput {
+    suggestedBlocks: Array<{
+      type: BlockType;
+      data: any;
+      reasoning: string;
+    }>;
+    metadata: {
+      specialty: string;
+      complexity: 'low' | 'medium' | 'high';
+    };
+  }
+  ```
+- [ ] Implement smart block generation from discharge text
+- [ ] Add block validation post-generation
+- [ ] Create block merge logic for combining with existing blocks
+
+#### 2.4 Interactive Editing Features
+
+- [ ] Implement direct text editing within blocks
+- [ ] Add rich text editing for text blocks
+- [ ] Create hover states showing editability
+- [ ] Add auto-save with debouncing
+- [ ] Implement undo/redo functionality
+
+#### 2.5 Future: Mobile Preview Mode
+
+- [ ] Add toggle between "Edit Mode" and "Preview Mode"
+- [ ] Preview mode shows mobile-styled render
+- [ ] Edit mode shows current editable interface
+- [ ] Implement responsive preview sizing options
+
+### Stage 3: Patient Portal Core
+
+#### 3.1 Authentication Setup
+- [ ] Configure Clerk for patient users
+- [ ] Create patient-specific auth middleware
+- [ ] Build magic link landing page
+- [ ] Implement auto-login flow
+- [ ] Add session management
+
+#### 3.2 Block Renderer System
+- [ ] Create PatientBlockRenderer component
+- [ ] Implement block-specific patient views
+- [ ] Add interaction tracking hooks
+- [ ] Build responsive mobile layouts
+- [ ] Create offline-capable rendering
+
+#### 3.3 Progressive Web App Setup
+- [ ] Configure PWA manifest
+- [ ] Implement service worker
+- [ ] Add install prompt
+- [ ] Create offline fallbacks
+- [ ] Build update notifications
+
+### Stage 4: Interactive Features
+
+#### 4.1 Task Management System
+- [ ] Create task completion UI
+- [ ] Implement progress persistence
+- [ ] Add task reminders
+- [ ] Build streak tracking
+- [ ] Create motivational feedback
+
+#### 4.2 Medication Tracking
+- [ ] Build medication checklist
+- [ ] Add visual pill identifiers
+- [ ] Create dosage reminders
+- [ ] Implement refill alerts
+- [ ] Add medication info links
+
+#### 4.3 Multi-language Support with Lingo.dev
+- [ ] Integrate Lingo.dev SDK
+- [ ] Configure supported languages
+- [ ] Create language switcher
+- [ ] Implement dynamic translation:
+  ```typescript
+  import { useLingo } from '@lingodotdev/react';
+  
+  const MedicationBlock = () => {
+    const { t, locale, setLocale } = useLingo();
+    
+    return (
+      <div>
+        <h2>{t('medications.title')}</h2>
+        <LanguageSwitcher 
+          current={locale} 
+          onChange={setLocale}
+        />
+      </div>
+    );
+  };
+  ```
+- [ ] Add RTL layout support
+- [ ] Cache translations locally
+
+### Stage 5: Advanced Features
+
+#### 4.1 AI Chat Assistant
+- [ ] Design chat interface within patient portal
+- [ ] Create chat API with block context:
+  ```typescript
+  // Chat context includes all blocks
+  const chatContext = {
+    blocks: patientSummary.blocks,
+    language: patient.language,
+    completedTasks: patient.taskProgress,
+    medications: patient.medications
+  };
+  ```
+- [ ] Implement conversation memory
+- [ ] Add suggested questions
+- [ ] Build escalation to doctor
+
+#### 4.2 Analytics & Tracking
+- [ ] Implement PostHog for patient portal
+- [ ] Track block interactions
+- [ ] Monitor task completion rates
+- [ ] Analyze chat usage patterns
+- [ ] Create doctor dashboard for insights
+
+### Stage 6: Polish & Optimization
+
+#### 6.1 Performance
+- [ ] Implement block lazy loading
+- [ ] Add virtual scrolling for long summaries
+- [ ] Optimize bundle splitting
+- [ ] Create CDN strategy
+- [ ] Implement aggressive caching
+
+#### 6.2 Accessibility
+- [ ] Add ARIA labels to all blocks
+- [ ] Implement keyboard navigation
+- [ ] Create high contrast mode
+- [ ] Add screen reader support
+- [ ] Build voice control options
+
+## API Design
+
+### Block Management APIs
+
+```typescript
+// Block template CRUD
+GET    /api/block-templates
+POST   /api/block-templates
+PUT    /api/block-templates/:id
+DELETE /api/block-templates/:id
+
+// Block preset management
+GET    /api/block-presets?type={blockType}
+POST   /api/block-presets
+
+// AI block suggestions
+POST   /api/blocks/suggest
+{
+  context: string;
+  patientInfo: PatientInfo;
+  specialty?: string;
+}
+
+// Block interaction tracking
+POST   /api/blocks/interactions
+{
+  summaryId: string;
+  blockId: string;
+  interactionType: string;
+  data: any;
+}
+```
+
+### Patient Portal APIs
+
+```typescript
+// Get patient summary with blocks
+GET    /api/patient/summary/:summaryId
+
+// Update block interaction (task completion, etc.)
+POST   /api/patient/blocks/:blockId/interact
+
+// Patient preferences
+PATCH  /api/patient/preferences
+
+// Chat with context
+POST   /api/patient/chat
+```
+
+## Technical Considerations
+
+### Block Rendering Strategy
+
+```typescript
+// Block renderer factory
+const BlockRendererFactory = {
+  renderBlock(block: BaseBlock, mode: 'edit' | 'preview' | 'patient') {
+    const Component = BlockRegistry[block.type];
+    if (!Component) {
+      console.error(`Unknown block type: ${block.type}`);
+      return null;
+    }
+    
+    return (
+      <Component
+        block={block}
+        mode={mode}
+        key={block.id}
+      />
+    );
+  }
+};
+
+// Usage in patient portal
+const PatientSummaryView = ({ blocks }) => {
+  return (
+    <div className="space-y-4">
+      {blocks
+        .sort((a, b) => a.order - b.order)
+        .map(block => BlockRendererFactory.renderBlock(block, 'patient'))
+      }
+    </div>
+  );
+};
+```
+
+### State Management Extension
+
+```typescript
+// Extend discharge summary store
+interface DischargeSummaryStore {
+  // Existing fields...
+  
+  // Block management
+  blocks: BaseBlock[];
+  selectedBlockId: string | null;
+  blockTemplates: BlockTemplate[];
+  
+  // Actions
+  addBlock: (blockType: BlockType, afterId?: string) => void;
+  updateBlock: (blockId: string, updates: Partial<BaseBlock>) => void;
+  removeBlock: (blockId: string) => void;
+  reorderBlocks: (blockIds: string[]) => void;
+  loadTemplate: (templateId: string) => void;
+  saveAsTemplate: (name: string) => void;
+}
+```
+
+## Security & Compliance
+
+### Clerk Integration Security
+- Use Clerk's built-in security features
+- Implement invitation expiration (24 hours)
+- Add rate limiting on invitation creation
+- Log all invitation activities
+- Enable Clerk's bot protection
+
+### Data Protection with Blocks
+- Encrypt block data at rest
+- Implement field-level permissions
+- Add audit trail for block modifications
+- Create data retention policies per block type
+- Enable HIPAA-compliant logging
+
+## Success Metrics
+
+### Block System Metrics
+- Block type usage distribution
+- Custom template creation rate
+- Block modification frequency
+- AI suggestion acceptance rate
+
+### Patient Engagement Metrics
+- Invitation redemption rate
+- Block interaction rates by type
+- Task completion percentage
+- Language preference distribution
+- Chat engagement per block type
+
+## Development Guidelines
+
+### Component Structure
+```
+src/
+├── components/
+│   ├── blocks/
+│   │   ├── base/
+│   │   │   ├── BaseBlock.tsx
+│   │   │   ├── BlockWrapper.tsx
+│   │   │   └── BlockRegistry.ts
+│   │   ├── medication/
+│   │   │   ├── MedicationBlock.tsx
+│   │   │   ├── MedicationEditor.tsx
+│   │   │   └── MedicationViewer.tsx
+│   │   └── [other blocks]/
+│   ├── composer/
+│   │   ├── BlockComposer.tsx
+│   │   ├── BlockLibrary.tsx
+│   │   └── TemplateManager.tsx
+│   └── patient/
+│       ├── BlockRenderer.tsx
+│       ├── ProgressTracker.tsx
+│       └── ChatAssistant.tsx
+├── lib/
+│   ├── blocks/
+│   │   ├── types.ts
+│   │   ├── validation.ts
+│   │   └── factory.ts
+│   └── clerk/
+│       └── invitations.ts
+└── app/
+    ├── (doctor)/
+    │   └── composer/
+    └── patient/
+        └── [summaryId]/
+```
+
+### Block Development Checklist
+- [ ] Define block TypeScript interface
+- [ ] Create doctor editing component
+- [ ] Create patient viewing component
+- [ ] Add block to registry
+- [ ] Implement validation rules
+- [ ] Add to block library UI
+- [ ] Create preset examples
+- [ ] Add translations
+- [ ] Write tests
+- [ ] Document usage
+
+## Future Considerations
+
+### Block Ecosystem
+- Community block marketplace
+- Third-party block development
+- Block version compatibility
+- Cross-institution block sharing
+- Block analytics and insights
+
+### AI Enhancement
+- Smart block recommendations based on patient condition
+- Auto-arrangement based on health literacy
+- Predictive block content generation
+- Natural language to block conversion
+
+## Conclusion
+
+This PRD outlines a flexible, extensible architecture for the patient portal that prioritizes reusability through a block-based system. By using Clerk's invitation system for authentication and building with composable blocks, the platform can easily extend to GP practices and other healthcare contexts while maintaining a consistent, high-quality patient experience.

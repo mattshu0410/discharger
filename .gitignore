@@ -61,5 +61,7 @@ storybook-static
 
 # MCP configuration (local development)
 .mcp.json
-
 .env.local
+
+# YoYo AI version control directory
+.yoyo/
