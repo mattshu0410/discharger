@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run check-types:*)",
+      "mcp__brave-search__brave_web_search",
+      "WebFetch(domain:lingo.dev)",
+      "WebFetch(domain:docs.lingo.dev)",
+      "Bash(npx lingo.dev@latest login)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "supabase",
+    "brave-search",
+    "puppeteer",
+    "browser-tools"
+  ]
+}

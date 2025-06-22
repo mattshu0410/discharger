@@ -37,6 +37,10 @@ type UIState = {
   bracketPositions: BracketPosition[];
   currentBracketIndex: number;
   isBracketNavigationActive: boolean;
+  // Composer state
+  isComposerPreviewMode: boolean;
+  isComposerGenerating: boolean;
+  composerDischargeText: string;
   // Actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -65,6 +69,10 @@ type UIState = {
   updateBracketPositions: (textareaElement: HTMLTextAreaElement) => void;
   clearBrackets: () => void;
   handleTabNavigation: (event: React.KeyboardEvent<HTMLTextAreaElement>, textareaElement: HTMLTextAreaElement) => boolean;
+  // Composer actions
+  setComposerPreviewMode: (isPreview: boolean) => void;
+  setComposerGenerating: (isGenerating: boolean) => void;
+  setComposerDischargeText: (text: string) => void;
 };
 
 export const useUIStore = create<UIState>()(
@@ -90,6 +98,10 @@ export const useUIStore = create<UIState>()(
     bracketPositions: [],
     currentBracketIndex: -1,
     isBracketNavigationActive: false,
+    // Composer initial state
+    isComposerPreviewMode: false,
+    isComposerGenerating: false,
+    composerDischargeText: '',
     // Actions
     toggleSidebar: () => set((state) => {
       state.isSidebarOpen = !state.isSidebarOpen;
@@ -284,5 +296,18 @@ export const useUIStore = create<UIState>()(
 
       return true;
     },
+
+    // Composer actions
+    setComposerPreviewMode: isPreview => set((state) => {
+      state.isComposerPreviewMode = isPreview;
+    }),
+
+    setComposerGenerating: isGenerating => set((state) => {
+      state.isComposerGenerating = isGenerating;
+    }),
+
+    setComposerDischargeText: text => set((state) => {
+      state.composerDischargeText = text;
+    }),
   })),
 );

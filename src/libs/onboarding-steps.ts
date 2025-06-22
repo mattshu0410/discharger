@@ -49,7 +49,7 @@ const steps: Tour[] = [
         title: 'Generate Discharge Summary',
         content: 'Once you\'ve entered your clinical notes, click here to generate an AI-powered discharge summary with citations from medical guidelines.',
         selector: '#generate-discharge-btn',
-        side: 'left',
+        side: 'top',
         showControls: true,
         pointerPadding: 10,
         pointerRadius: 8,
