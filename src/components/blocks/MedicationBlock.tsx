@@ -71,7 +71,7 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
                     {medication.frequency}
                   </div>
                   {medication.instructions && (
-                    <div className={`text-sm text-gray-500 ${getMedicationClassName(medication.status, medication.taken)}`}>
+                    <div className={`text-sm text-muted-foreground ${getMedicationClassName(medication.status, medication.taken)}`}>
                       {medication.instructions}
                     </div>
                   )}

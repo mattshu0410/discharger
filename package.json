@@ -69,7 +69,6 @@
     "drizzle-orm": "^0.43.1",
     "immer": "^10.1.1",
     "langchain": "^0.3.24",
-    "lingo.dev": "^0.99.7",
     "lucide-react": "^0.518.0",
     "mammoth": "^1.9.1",
     "motion": "^12.18.1",

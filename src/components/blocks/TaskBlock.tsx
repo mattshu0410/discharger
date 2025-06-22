@@ -1,5 +1,4 @@
 'use client';
-
 import type { BlockProps, TaskBlock as TaskBlockType } from '@/types/blocks';
 import { Calendar, Check, CheckSquare, Edit3, Square } from 'lucide-react';
 import { useState } from 'react';

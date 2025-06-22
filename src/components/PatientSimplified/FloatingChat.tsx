@@ -19,7 +19,7 @@ export const FloatingChat = ({ isPreview = false }: FloatingChatProps) => {
     <div className="absolute bottom-4 right-4 z-50">
       {isOpen
         ? (
-            <Card className="w-80 h-96 shadow-xl border-2">
+            <Card className="w-90 h-96 shadow-xl border-2">
               <CardContent className="p-4 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold">Medical Assistant</h3>
