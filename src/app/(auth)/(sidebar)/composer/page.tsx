@@ -3,6 +3,8 @@
 import type { Block } from '@/types/blocks';
 import { AlertTriangle, Calendar, CheckSquare, Eye, FileText, Pill, Plus, Send, Share } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
+import { useGenerateBlocks } from '@/api/blocks/hooks';
 import { AppointmentBlock } from '@/components/blocks/AppointmentBlock';
 import { MedicationBlock } from '@/components/blocks/MedicationBlock';
 import { RedFlagBlock } from '@/components/blocks/RedFlagBlock';
@@ -87,10 +89,7 @@ const mockBlocks: Block[] = [
           frequency: 'Once daily',
           duration: 'Ongoing',
           status: 'unchanged',
-          isOTC: true,
           instructions: 'Take with food to reduce stomach irritation',
-          taken: false,
-          nextDue: new Date(Date.now() + 6 * 60 * 60 * 1000),
         },
         {
           id: 'med2',
@@ -99,10 +98,7 @@ const mockBlocks: Block[] = [
           frequency: 'Twice daily',
           duration: '12 months',
           status: 'new',
-          isOTC: false,
           instructions: 'Take at the same times each day. Do not stop without consulting your doctor.',
-          taken: false,
-          nextDue: new Date(Date.now() + 4 * 60 * 60 * 1000),
         },
         {
           id: 'med3',
@@ -111,10 +107,7 @@ const mockBlocks: Block[] = [
           frequency: 'Once daily',
           duration: 'Ongoing',
           status: 'new',
-          isOTC: false,
           instructions: 'Take in the morning. May cause dizziness when standing.',
-          taken: false,
-          nextDue: new Date(Date.now() + 8 * 60 * 60 * 1000),
         },
         {
           id: 'med4',
@@ -123,10 +116,7 @@ const mockBlocks: Block[] = [
           frequency: 'Once daily',
           duration: 'Ongoing',
           status: 'changed',
-          isOTC: false,
           instructions: 'Take in the evening with or without food',
-          taken: false,
-          nextDue: new Date(Date.now() + 10 * 60 * 60 * 1000),
         },
         {
           id: 'med5',
@@ -135,10 +125,7 @@ const mockBlocks: Block[] = [
           frequency: 'Once daily',
           duration: 'Ongoing',
           status: 'changed',
-          isOTC: false,
           instructions: 'Reduced dose due to kidney function. Monitor blood pressure.',
-          taken: false,
-          nextDue: new Date(Date.now() + 8 * 60 * 60 * 1000),
         },
         {
           id: 'med6',
@@ -147,10 +134,7 @@ const mockBlocks: Block[] = [
           frequency: 'Once daily',
           duration: 'Ongoing',
           status: 'new',
-          isOTC: false,
           instructions: 'Take with food. Monitor potassium levels.',
-          taken: false,
-          nextDue: new Date(Date.now() + 8 * 60 * 60 * 1000),
         },
         {
           id: 'med7',
@@ -159,10 +143,7 @@ const mockBlocks: Block[] = [
           frequency: 'Once daily',
           duration: 'Ongoing',
           status: 'new',
-          isOTC: false,
           instructions: 'For heart and kidney protection. Stay well hydrated.',
-          taken: false,
-          nextDue: new Date(Date.now() + 8 * 60 * 60 * 1000),
         },
         {
           id: 'med8',
@@ -171,10 +152,7 @@ const mockBlocks: Block[] = [
           frequency: 'Once daily at bedtime',
           duration: 'Ongoing',
           status: 'new',
-          isOTC: false,
           instructions: 'Inject subcutaneously. Rotate injection sites.',
-          taken: false,
-          nextDue: new Date(Date.now() + 14 * 60 * 60 * 1000),
         },
         {
           id: 'med9',
@@ -183,10 +161,7 @@ const mockBlocks: Block[] = [
           frequency: 'Before meals',
           duration: 'Ongoing',
           status: 'new',
-          isOTC: false,
           instructions: 'Use sliding scale provided. Check blood sugar before meals.',
-          taken: false,
-          nextDue: new Date(Date.now() + 2 * 60 * 60 * 1000),
         },
         {
           id: 'med10',
@@ -195,9 +170,7 @@ const mockBlocks: Block[] = [
           frequency: 'As needed',
           duration: 'As needed',
           status: 'new',
-          isOTC: false,
           instructions: 'For chest pain. Call 000 if pain persists after 3 doses.',
-          taken: false,
         },
         {
           id: 'med11',
@@ -206,14 +179,10 @@ const mockBlocks: Block[] = [
           frequency: 'Once daily',
           duration: 'Ongoing',
           status: 'unchanged',
-          isOTC: false,
           instructions: 'Continue as before',
-          taken: false,
-          nextDue: new Date(Date.now() + 8 * 60 * 60 * 1000),
         },
       ],
       groupBy: 'status',
-      showImages: false,
     },
   },
   {
@@ -235,7 +204,6 @@ const mockBlocks: Block[] = [
           description: 'Please book an appointment with your local GP to get a referral.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'high',
-          category: 'monitoring',
           completed: false,
         },
         {
@@ -244,7 +212,6 @@ const mockBlocks: Block[] = [
           description: 'Check blood sugar before meals and at bedtime. Keep a log.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'high',
-          category: 'monitoring',
           completed: false,
         },
         {
@@ -253,7 +220,6 @@ const mockBlocks: Block[] = [
           description: 'Follow the medication schedule carefully. Do not skip doses.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'high',
-          category: 'medications',
           completed: false,
         },
         {
@@ -262,7 +228,6 @@ const mockBlocks: Block[] = [
           description: 'Use nitroglycerin as instructed. Call 000 if pain persists.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'high',
-          category: 'monitoring',
           completed: false,
         },
         {
@@ -271,7 +236,6 @@ const mockBlocks: Block[] = [
           description: 'Begin with light walking. Avoid heavy lifting >5kg for 1 week.',
           dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
           priority: 'medium',
-          category: 'activity',
           completed: false,
         },
         {
@@ -280,7 +244,6 @@ const mockBlocks: Block[] = [
           description: 'Watch for changes in urine, swelling in legs/feet.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'medium',
-          category: 'monitoring',
           completed: false,
         },
         {
@@ -289,7 +252,6 @@ const mockBlocks: Block[] = [
           description: 'Low sodium, diabetic-friendly diet. Limit saturated fats.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'medium',
-          category: 'lifestyle',
           completed: false,
         },
       ],
@@ -373,12 +335,16 @@ export default function ComposerPage() {
   // Zustand state
   const {
     isComposerPreviewMode: previewMode,
-    isComposerGenerating: isGenerating,
     composerDischargeText: dischargeText,
     setComposerPreviewMode: setPreviewMode,
-    setComposerGenerating: setIsGenerating,
     setComposerDischargeText: setDischargeText,
   } = useUIStore();
+
+  // React Query hooks
+  const generateBlocksMutation = useGenerateBlocks();
+
+  // Use mutation's isPending instead of local state
+  const isGenerating = generateBlocksMutation.isPending;
 
   const handleBlockUpdate = (blockId: string, updatedBlock: Block) => {
     setBlocks(prev => prev.map(block =>
@@ -387,10 +353,25 @@ export default function ComposerPage() {
   };
 
   const handleGenerate = async () => {
-    setIsGenerating(true);
-    // Simulate AI generation
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsGenerating(false);
+    if (!dischargeText.trim()) {
+      toast.error('Please enter a discharge summary first.');
+      return;
+    }
+
+    try {
+      const result = await generateBlocksMutation.mutateAsync({
+        dischargeSummary: dischargeText,
+        blockTypes: ['medication', 'task', 'redFlag', 'appointment'],
+      });
+
+      // Update blocks with generated content
+      setBlocks(result.blocks as Block[]);
+
+      toast.success('Blocks generated successfully!');
+    } catch (error) {
+      console.error('Error generating blocks:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate blocks');
+    }
   };
 
   const handleBlockInteraction = (blockId: string, interactionType: string, data: any) => {

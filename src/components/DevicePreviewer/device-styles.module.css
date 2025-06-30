@@ -140,32 +140,36 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 20px;
+  container-type: size;
+  height: 100%;
+  width: 100%;
+  max-height: 100%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
-/* Scale for different screen sizes */
-@media (max-width: 1200px) {
+/* Container-based scaling */
+@container (max-width: 468px) {
+  .deviceIPhone14 {
+    transform: scale(0.9);
+  }
+}
+
+@container (max-width: 428px) {
   .deviceIPhone14 {
     transform: scale(0.8);
   }
 }
 
-@media (max-width: 1000px) {
+@container (max-height: 700px) {
   .deviceIPhone14 {
     transform: scale(0.7);
   }
 }
 
-@media (max-width: 800px) {
+@container (max-height: 600px) {
   .deviceIPhone14 {
     transform: scale(0.6);
-  }
-}
-
-@media (max-width: 600px) {
-  .deviceIPhone14 {
-    transform: scale(0.5);
   }
 }
 

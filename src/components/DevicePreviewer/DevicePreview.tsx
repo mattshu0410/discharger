@@ -26,7 +26,7 @@ export function DevicePreview({
     switch (deviceType) {
       case 'phone':
         return (
-          <IPhone14Frame variant={variant} floatingElements={floatingElements}>
+          <IPhone14Frame className="h-full flex flex-col" variant={variant} floatingElements={floatingElements}>
             {children}
           </IPhone14Frame>
         );
@@ -106,7 +106,7 @@ export function DevicePreview({
       </div>
 
       {/* Device Frame */}
-      <div className="flex-1 flex h-full items-center justify-center p-8">
+      <div className="flex-1 flex flex-col h-full items-center justify-center">
         {renderDeviceFrame()}
       </div>
     </div>

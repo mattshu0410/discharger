@@ -5,7 +5,11 @@
       "mcp__brave-search__brave_web_search",
       "WebFetch(domain:lingo.dev)",
       "WebFetch(domain:docs.lingo.dev)",
-      "Bash(npx lingo.dev@latest login)"
+      "Bash(npx lingo.dev@latest login)",
+      "mcp__browser-tools__getSelectedElement",
+      "mcp__browser-tools__takeScreenshot",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__list_tables"
     ]
   },
   "enabledMcpjsonServers": [
