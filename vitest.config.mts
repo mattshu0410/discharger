@@ -12,14 +12,23 @@ export default defineConfig({
       include: ['src/**/*'],
       exclude: ['src/**/*.stories.{js,jsx,ts,tsx}', '**/*.d.ts'],
     },
-    workspace: [
+    projects: [
       {
         extends: true, // Inherit root config (plugins, globals, coverage, setupFiles, env)
         test: {
-          include: ['**/*.test.tsx', 'src/hooks/**/*.test.ts'],
+          include: ['src/**/*.test.{js,jsx,ts,tsx}'], // Only include UI-related tests here
           environment: 'jsdom',
           name: 'jsdom',
         },
+      },
+      {
+        test: {
+          include: ['tests/api/**/*.test.ts'], // Only include API tests here
+          environment: 'node',
+          name: 'node-api',
+          globals: true,
+        },
+        plugins: [tsconfigPaths()],
       },
     ],
     setupFiles: ['./vitest-setup.ts'],
