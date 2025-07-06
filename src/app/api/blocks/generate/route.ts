@@ -37,6 +37,7 @@ const blockDataSchemas = {
 
   redFlag: z.object({
     symptoms: z.array(z.object({
+      id: z.string().describe('Unique ID for the symptom'),
       symptom: z.string().describe('Warning symptom'),
       description: z.string().describe('What to do if this occurs'),
     })),

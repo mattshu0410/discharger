@@ -5,6 +5,7 @@ import { AlertTriangle, Calendar, CheckSquare, Eye, FileText, Pill, Plus, Send, 
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useGenerateBlocks } from '@/api/blocks/hooks';
+import { useCreatePatientSummary, usePatientSummaries, useUpdatePatientSummaryBlocks } from '@/api/patient-summaries/hooks';
 import { AppointmentBlock } from '@/components/blocks/AppointmentBlock';
 import { MedicationBlock } from '@/components/blocks/MedicationBlock';
 import { RedFlagBlock } from '@/components/blocks/RedFlagBlock';
@@ -15,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { usePatientStore } from '@/stores/patientStore';
 import { useUIStore } from '@/stores/uiStore';
 
 // Mock data for demonstration - Robert Chen STEMI case
@@ -321,7 +323,6 @@ const blockTypes = [
 ];
 
 export default function ComposerPage() {
-  const [blocks, setBlocks] = useState<Block[]>(mockBlocks);
   const [progress] = useState({
     totalTasks: 2,
     completedTasks: 0,
@@ -339,17 +340,44 @@ export default function ComposerPage() {
     setComposerPreviewMode: setPreviewMode,
     setComposerDischargeText: setDischargeText,
   } = useUIStore();
+  const { currentPatientId } = usePatientStore();
 
   // React Query hooks
   const generateBlocksMutation = useGenerateBlocks();
+  const createPatientSummaryMutation = useCreatePatientSummary();
+  const updateBlocksMutation = useUpdatePatientSummaryBlocks();
+
+  // Get patient summaries for current patient
+  const { data: summariesData } = usePatientSummaries({
+    patientId: currentPatientId || undefined,
+  });
+
+  // Get the latest summary for current patient
+  const latestSummary = summariesData?.summaries?.[0];
+  const blocks = latestSummary?.blocks || mockBlocks;
 
   // Use mutation's isPending instead of local state
   const isGenerating = generateBlocksMutation.isPending;
 
   const handleBlockUpdate = (blockId: string, updatedBlock: Block) => {
-    setBlocks(prev => prev.map(block =>
+    if (!latestSummary?.id) {
+      return;
+    }
+
+    // Optimistically update the blocks array
+    const updatedBlocks = blocks.map(block =>
       block.id === blockId ? updatedBlock : block,
-    ));
+    );
+
+    // Persist to database - blocks stored as JSONB
+    updateBlocksMutation.mutate({
+      id: latestSummary.id,
+      blocks: updatedBlocks,
+    }, {
+      onError: (error) => {
+        toast.error(`Failed to save block changes: ${error.message}`);
+      },
+    });
   };
 
   const handleGenerate = async () => {
@@ -358,19 +386,38 @@ export default function ComposerPage() {
       return;
     }
 
+    if (!currentPatientId) {
+      toast.error('Please select a patient first.');
+      return;
+    }
+
     try {
+      // Generate blocks using AI
       const result = await generateBlocksMutation.mutateAsync({
         dischargeSummary: dischargeText,
         blockTypes: ['medication', 'task', 'redFlag', 'appointment'],
       });
 
-      // Update blocks with generated content
-      setBlocks(result.blocks as Block[]);
+      // Create or update patient summary with generated blocks
+      if (latestSummary?.id) {
+        // Update existing summary
+        await updateBlocksMutation.mutateAsync({
+          id: latestSummary.id,
+          blocks: result.blocks as Block[],
+        });
+      } else {
+        // Create new summary
+        await createPatientSummaryMutation.mutateAsync({
+          patient_id: currentPatientId,
+          blocks: result.blocks as Block[],
+          discharge_text: dischargeText,
+          status: 'draft',
+        });
+      }
 
-      toast.success('Blocks generated successfully!');
+      toast.success('Blocks generated and saved successfully!');
     } catch (error) {
       console.error('Error generating blocks:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate blocks');
     }
   };
 

@@ -26,7 +26,7 @@ export const createPatientSummary = async (data: CreatePatientSummaryInput): Pro
 };
 
 // List patient summaries
-export const listPatientSummaries = async (params: ListPatientSummariesParams = {}): Promise<PatientSummary[]> => {
+export const listPatientSummaries = async (params: ListPatientSummariesParams = {}): Promise<ListPatientSummariesResponse> => {
   const searchParams = new URLSearchParams();
 
   if (params.patientId) {
@@ -50,7 +50,7 @@ export const listPatientSummaries = async (params: ListPatientSummariesParams = 
   }
 
   const result: ListPatientSummariesResponse = await response.json();
-  return result.summaries;
+  return result;
 };
 
 // Get single patient summary
