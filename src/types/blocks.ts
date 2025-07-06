@@ -33,13 +33,9 @@ export type MedicationBlock = {
       frequency: string;
       duration: string;
       status: 'new' | 'changed' | 'unchanged' | 'stopped';
-      isOTC: boolean;
       instructions?: string;
-      taken?: boolean;
-      nextDue?: Date;
     }>;
-    groupBy: 'status' | 'time';
-    showImages: boolean;
+    groupBy: 'status';
   };
 } & BaseBlock;
 
@@ -52,17 +48,11 @@ export type TaskBlock = {
       description: string;
       dueDate?: Date;
       priority: 'high' | 'medium' | 'low';
-      category: string;
       completed: boolean;
       completedAt?: Date;
-      subtasks?: Array<{
-        id: string;
-        title: string;
-        completed: boolean;
-      }>;
     }>;
     enableReminders: boolean;
-    groupBy: 'priority' | 'date' | 'category';
+    groupBy: 'priority' | 'dueDate';
   };
 } & BaseBlock;
 

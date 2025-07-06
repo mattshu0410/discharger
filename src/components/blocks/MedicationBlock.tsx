@@ -36,12 +36,9 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
     }
   };
 
-  const getMedicationClassName = (status: string, taken?: boolean) => {
+  const getMedicationClassName = (status: string) => {
     if (status === 'stopped') {
       return 'text-gray-400 line-through';
-    }
-    if (taken) {
-      return 'text-gray-500';
     }
     return 'text-gray-900';
   };
@@ -60,10 +57,10 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
             <div key={medication.id} className="p-4 border-b border-blue-100 last:border-b-0 ">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <div className={`font-medium mb-1 ${getMedicationClassName(medication.status, medication.taken)}`}>
+                  <div className={`font-medium mb-1 ${getMedicationClassName(medication.status)}`}>
                     {medication.name}
                   </div>
-                  <div className={`text-sm text-gray-600 mb-1 ${getMedicationClassName(medication.status, medication.taken)}`}>
+                  <div className={`text-sm text-gray-600 mb-1 ${getMedicationClassName(medication.status)}`}>
                     {medication.dosage}
                     {' '}
                     •
@@ -71,7 +68,7 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
                     {medication.frequency}
                   </div>
                   {medication.instructions && (
-                    <div className={`text-sm text-muted-foreground ${getMedicationClassName(medication.status, medication.taken)}`}>
+                    <div className={`text-sm text-muted-foreground ${getMedicationClassName(medication.status)}`}>
                       {medication.instructions}
                     </div>
                   )}

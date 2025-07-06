@@ -39,7 +39,6 @@ type UIState = {
   isBracketNavigationActive: boolean;
   // Composer state
   isComposerPreviewMode: boolean;
-  isComposerGenerating: boolean;
   composerDischargeText: string;
   // Actions
   toggleSidebar: () => void;
@@ -71,7 +70,6 @@ type UIState = {
   handleTabNavigation: (event: React.KeyboardEvent<HTMLTextAreaElement>, textareaElement: HTMLTextAreaElement) => boolean;
   // Composer actions
   setComposerPreviewMode: (isPreview: boolean) => void;
-  setComposerGenerating: (isGenerating: boolean) => void;
   setComposerDischargeText: (text: string) => void;
 };
 
@@ -100,7 +98,6 @@ export const useUIStore = create<UIState>()(
     isBracketNavigationActive: false,
     // Composer initial state
     isComposerPreviewMode: false,
-    isComposerGenerating: false,
     composerDischargeText: '',
     // Actions
     toggleSidebar: () => set((state) => {
@@ -300,10 +297,6 @@ export const useUIStore = create<UIState>()(
     // Composer actions
     setComposerPreviewMode: isPreview => set((state) => {
       state.isComposerPreviewMode = isPreview;
-    }),
-
-    setComposerGenerating: isGenerating => set((state) => {
-      state.isComposerGenerating = isGenerating;
     }),
 
     setComposerDischargeText: text => set((state) => {

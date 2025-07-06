@@ -81,42 +81,98 @@ classDiagram
     class BaseBlock {
         +id: string
         +type: BlockType
-        +order: number
         +title: string
-        +icon: string
-        +data: BlockData
+        +isEditable: boolean
+        +isRequired: boolean
         +metadata: BlockMetadata
-        +render(): ReactElement
-        +validate(): boolean
-        +export(): BlockExport
+    }
+    
+    class BlockMetadata {
+        +createdAt: Date
+        +updatedAt: Date
+        +version: string
     }
     
     class MedicationBlock {
+        +type: 'medication'
+        +data: MedicationData
+    }
+    
+    class MedicationData {
         +medications: Medication[]
-        +groupBy: 'status' | 'time'
-        +showImages: boolean
+        +groupBy: 'status'
+    }
+    
+    class Medication {
+        +id: string
+        +name: string
+        +dosage: string
+        +frequency: string
+        +duration: string
+        +status: 'new' | 'changed' | 'unchanged' | 'stopped'
+        +instructions?: string
     }
     
     class TaskBlock {
+        +type: 'task'
+        +data: TaskData
+    }
+    
+    class TaskData {
         +tasks: Task[]
         +enableReminders: boolean
-        +groupBy: 'priority' | 'date'
+        +groupBy: 'priority' | 'dueDate'
+    }
+    
+    class Task {
+        +id: string
+        +title: string
+        +description: string
+        +dueDate?: Date
+        +priority: 'high' | 'medium' | 'low'
+        +completed: boolean
+        +completedAt?: Date
     }
     
     class RedFlagBlock {
+        +type: 'redFlag'
+        +data: RedFlagData
+    }
+    
+    class RedFlagData {
         +symptoms: Symptom[]
-        +emergencyContacts: Contact[]
-        +severity: 'high' | 'medium'
+    }
+    
+    class Symptom {
+        +symptom: string
+        +description: string
     }
     
     class TextBlock {
+        +type: 'text'
+        +data: TextData
+    }
+    
+    class TextData {
         +content: string
         +format: 'plain' | 'rich'
     }
     
     class AppointmentBlock {
+        +type: 'appointment'
+        +data: AppointmentData
+    }
+    
+    class AppointmentData {
         +appointments: Appointment[]
-        +calendarIntegration: boolean
+    }
+    
+    class Appointment {
+        +id: string
+        +clinicName: string
+        +description: string
+        +status: 'patient_to_book' | 'clinic_will_call' | 'already_booked'
+        +date?: Date
     }
     
     BaseBlock <|-- MedicationBlock
@@ -124,30 +180,46 @@ classDiagram
     BaseBlock <|-- RedFlagBlock
     BaseBlock <|-- TextBlock
     BaseBlock <|-- AppointmentBlock
+    
+    BaseBlock *-- BlockMetadata
+    MedicationBlock *-- MedicationData
+    TaskBlock *-- TaskData
+    RedFlagBlock *-- RedFlagData
+    TextBlock *-- TextData
+    AppointmentBlock *-- AppointmentData
+    
+    MedicationData *-- Medication
+    TaskData *-- Task
+    RedFlagData *-- Symptom
+    AppointmentData *-- Appointment
 ```
 
 ### Block Type Definitions
 
-```typescript
-// Base block interface
-interface BaseBlock {
+export type BlockType = 'text' | 'medication' | 'task' | 'redFlag' | 'appointment';
+
+export type BaseBlock = {
   id: string;
   type: BlockType;
-  order: number;
   title: string;
-  icon: string;
   isEditable: boolean;
   isRequired: boolean;
-  data: unknown;
   metadata: {
     createdAt: Date;
     updatedAt: Date;
     version: string;
   };
-}
+};
 
-// Specific block types
-interface MedicationBlock extends BaseBlock {
+export type TextBlock = {
+  type: 'text';
+  data: {
+    content: string;
+    format: 'plain' | 'rich';
+  };
+} & BaseBlock;
+
+export type MedicationBlock = {
   type: 'medication';
   data: {
     medications: Array<{
@@ -157,15 +229,13 @@ interface MedicationBlock extends BaseBlock {
       frequency: string;
       duration: string;
       status: 'new' | 'changed' | 'unchanged' | 'stopped';
-      isOTC: boolean;
       instructions?: string;
     }>;
-    groupBy: 'status' | 'time';
-    showImages: boolean;
+    groupBy: 'status';
   };
-}
+} & BaseBlock;
 
-interface TaskBlock extends BaseBlock {
+export type TaskBlock = {
   type: 'task';
   data: {
     tasks: Array<{
@@ -174,18 +244,36 @@ interface TaskBlock extends BaseBlock {
       description: string;
       dueDate?: Date;
       priority: 'high' | 'medium' | 'low';
-      category: string;
       completed: boolean;
-      subtasks?: Array<{
-        id: string;
-        title: string;
-        completed: boolean;
-      }>;
+      completedAt?: Date;
     }>;
     enableReminders: boolean;
-    groupBy: 'priority' | 'date' | 'category';
+    groupBy: 'priority' | 'dueDate';
   };
-}
+} & BaseBlock;
+
+export type RedFlagBlock = {
+  type: 'redFlag';
+  data: {
+    symptoms: Array<{
+      symptom: string;
+      description: string;
+    }>;
+  };
+} & BaseBlock;
+
+export type AppointmentBlock = {
+  type: 'appointment';
+  data: {
+    appointments: Array<{
+      id: string;
+      clinicName: string;
+      description: string;
+      status: 'patient_to_book' | 'clinic_will_call' | 'already_booked';
+      date?: Date;
+    }>;
+  };
+} & BaseBlock;
 
 // Block registry for extensibility
 const BlockRegistry = {
@@ -273,42 +361,25 @@ CREATE TABLE block_interactions (
 ### Stage 1: Foundation & Block System
 
 #### 1.1 Block Architecture Implementation
-- [ ] Create base block interface and abstract class
+- [X] Create base block interface and abstract class (`src/types/blocks.ts`)
 - [ ] Implement block registry system
-- [ ] Build block validation framework
-- [ ] Create block rendering engine
-- [ ] Implement block state management
+- [X] Build block validation framework (Zod schemas in types)
+- [X] Create block rendering engine
+- [X] Implement block state management (Zustand stores)
 
 #### 1.2 Core Block Components
-- [ ] Build MedicationBlock component
-  ```typescript
-  // Example implementation
-  const MedicationBlock: React.FC<BlockProps> = ({ block, isEditing, onChange }) => {
-    const { medications, groupBy, showImages } = block.data;
-    
-    return (
-      <BlockWrapper block={block} isEditing={isEditing}>
-        <MedicationList 
-          medications={medications}
-          groupBy={groupBy}
-          showImages={showImages}
-          onUpdate={isEditing ? onChange : undefined}
-        />
-      </BlockWrapper>
-    );
-  };
-  ```
-- [ ] Build TaskBlock component with progress tracking
-- [ ] Build RedFlagBlock with emergency UI
+- [X] Build MedicationBlock component (`src/components/blocks/MedicationBlock.tsx`)
+- [X] Build TaskBlock component with progress tracking (`src/components/blocks/TaskBlock.tsx`)
+- [X] Build RedFlagBlock with emergency UI (`src/components/blocks/RedFlagBlock.tsx`)
 - [ ] Build TextBlock with rich text support
-- [ ] Build AppointmentBlock with calendar integration
+- [X] Build AppointmentBlock with calendar integration (`src/components/blocks/AppointmentBlock.tsx`)
 
 #### 1.3 Database Implementation
-- [ ] Create block-based schema tables
+- [X] Create block-based schema tables (patient_summaries)
 - [ ] Implement block versioning system
 - [ ] Create template management tables
 - [ ] Set up block interaction tracking
-- [ ] Configure RLS policies for patient access
+- [X] Configure RLS policies for patient access
 
 ### Stage 2: Doctor Portal Enhancements
 
@@ -357,8 +428,8 @@ Layout Structure:
 
 #### 2.2 Editable Preview Component
 
-- [ ] Create EditablePreview component with direct editing
-- [ ] Implement inline editing for each block type
+- [X] Create EditablePreview component with direct editing
+- [X] Implement inline editing for each block type
 - [ ] Add block reordering (future phase)
   - Drag handles on hover
   - Smooth animation on reorder
@@ -372,28 +443,29 @@ Layout Structure:
 
 #### 2.3 Discharge Input Integration
 
-- [ ] Create separate discharge input field below preview
-- [ ] Update LLM prompts to output block format:
+- [X] Create separate discharge input field below preview
+- [X] Update LLM prompts to output block format:
   ```typescript
   interface LLMBlockOutput {
-    suggestedBlocks: Array<{
+    blocks: Array<{
       type: BlockType;
+      title: string;
       data: any;
-      reasoning: string;
     }>;
     metadata: {
-      specialty: string;
-      complexity: 'low' | 'medium' | 'high';
+      patientName?: string;
+      dischargeDate?: string;
+      primaryDiagnosis?: string;
     };
   }
   ```
-- [ ] Implement smart block generation from discharge text
-- [ ] Add block validation post-generation
+- [X] Implement smart block generation from discharge text
+- [X] Add block validation post-generation
 - [ ] Create block merge logic for combining with existing blocks
 
 #### 2.4 Interactive Editing Features
 
-- [ ] Implement direct text editing within blocks
+- [X] Implement direct text editing within blocks
 - [ ] Add rich text editing for text blocks
 - [ ] Create hover states showing editability
 - [ ] Add auto-save with debouncing
@@ -401,10 +473,10 @@ Layout Structure:
 
 #### 2.5 Future: Mobile Preview Mode
 
-- [ ] Add toggle between "Edit Mode" and "Preview Mode"
-- [ ] Preview mode shows mobile-styled render
-- [ ] Edit mode shows current editable interface
-- [ ] Implement responsive preview sizing options
+- [X] Add toggle between "Edit Mode" and "Preview Mode"
+- [X] Preview mode shows mobile-styled render
+- [X] Edit mode shows current editable interface
+- [X] Implement responsive preview sizing options
 
 ### Stage 3: Patient Portal Core
 
@@ -416,10 +488,10 @@ Layout Structure:
 - [ ] Add session management
 
 #### 3.2 Block Renderer System
-- [ ] Create PatientBlockRenderer component
-- [ ] Implement block-specific patient views
+- [X] Create PatientLayout component
+- [X] Implement block-specific patient views
 - [ ] Add interaction tracking hooks
-- [ ] Build responsive mobile layouts
+- [X] Build responsive mobile layouts
 - [ ] Create offline-capable rendering
 
 #### 3.3 Progressive Web App Setup
@@ -432,17 +504,14 @@ Layout Structure:
 ### Stage 4: Interactive Features
 
 #### 4.1 Task Management System
-- [ ] Create task completion UI
+- [X] Create task completion UI
 - [ ] Implement progress persistence
 - [ ] Add task reminders
 - [ ] Build streak tracking
 - [ ] Create motivational feedback
 
 #### 4.2 Medication Tracking
-- [ ] Build medication checklist
-- [ ] Add visual pill identifiers
-- [ ] Create dosage reminders
-- [ ] Implement refill alerts
+- [X] Build medication checklist
 - [ ] Add medication info links
 
 #### 4.3 Multi-language Support with Lingo.dev
@@ -450,23 +519,6 @@ Layout Structure:
 - [ ] Configure supported languages
 - [ ] Create language switcher
 - [ ] Implement dynamic translation:
-  ```typescript
-  import { useLingo } from '@lingodotdev/react';
-  
-  const MedicationBlock = () => {
-    const { t, locale, setLocale } = useLingo();
-    
-    return (
-      <div>
-        <h2>{t('medications.title')}</h2>
-        <LanguageSwitcher 
-          current={locale} 
-          onChange={setLocale}
-        />
-      </div>
-    );
-  };
-  ```
 - [ ] Add RTL layout support
 - [ ] Cache translations locally
 
@@ -652,42 +704,6 @@ interface DischargeSummaryStore {
 
 ## Development Guidelines
 
-### Component Structure
-```
-src/
-├── components/
-│   ├── blocks/
-│   │   ├── base/
-│   │   │   ├── BaseBlock.tsx
-│   │   │   ├── BlockWrapper.tsx
-│   │   │   └── BlockRegistry.ts
-│   │   ├── medication/
-│   │   │   ├── MedicationBlock.tsx
-│   │   │   ├── MedicationEditor.tsx
-│   │   │   └── MedicationViewer.tsx
-│   │   └── [other blocks]/
-│   ├── composer/
-│   │   ├── BlockComposer.tsx
-│   │   ├── BlockLibrary.tsx
-│   │   └── TemplateManager.tsx
-│   └── patient/
-│       ├── BlockRenderer.tsx
-│       ├── ProgressTracker.tsx
-│       └── ChatAssistant.tsx
-├── lib/
-│   ├── blocks/
-│   │   ├── types.ts
-│   │   ├── validation.ts
-│   │   └── factory.ts
-│   └── clerk/
-│       └── invitations.ts
-└── app/
-    ├── (doctor)/
-    │   └── composer/
-    └── patient/
-        └── [summaryId]/
-```
-
 ### Block Development Checklist
 - [ ] Define block TypeScript interface
 - [ ] Create doctor editing component
@@ -717,4 +733,221 @@ src/
 
 ## Conclusion
 
-This PRD outlines a flexible, extensible architecture for the patient portal that prioritizes reusability through a block-based system. By using Clerk's invitation system for authentication and building with composable blocks, the platform can easily extend to GP practices and other healthcare contexts while maintaining a consistent, high-quality patient experience.
+This PRD outlines a flexible, extensible architecture for the patient portal that prioritizes reusability through a block-based system. By using Clerks invitation system for authentication and building with composable blocks, the platform can easily extend to GP practices and other healthcare contexts while maintaining a consistent, high-quality patient experience.
+
+## Current File Structure
+
+```
+src/
+├── README.md
+├── api/
+│   ├── blocks/
+│   │   ├── hooks.ts
+│   │   └── queries.ts
+│   ├── discharge/
+│   │   ├── hooks.ts
+│   │   └── queries.ts
+│   ├── documents/
+│   │   ├── hooks.ts
+│   │   ├── queries.ts
+│   │   └── types.ts
+│   ├── hospitals/
+│   │   └── queries.ts
+│   ├── index.ts
+│   ├── patient-summaries/
+│   │   ├── hooks.ts
+│   │   ├── queries.ts
+│   │   └── types.ts
+│   ├── patients/
+│   │   ├── hooks.ts
+│   │   ├── queries.ts
+│   │   └── types.ts
+│   ├── snippets/
+│   │   ├── hooks.ts
+│   │   ├── queries.ts
+│   │   └── types.ts
+│   └── users/
+│       ├── hooks.ts
+│       ├── queries.ts
+│       └── types.ts
+├── app/
+│   ├── (auth)/
+│   │   ├── (center)/
+│   │   │   ├── layout.tsx
+│   │   │   ├── sign-in/
+│   │   │   │   └── [[...sign-in]]/
+│   │   │   │       └── page.tsx
+│   │   │   └── sign-up/
+│   │   │       └── [[...sign-up]]/
+│   │   │           └── page.tsx
+│   │   ├── (sidebar)/
+│   │   │   ├── admin/
+│   │   │   │   └── page.tsx
+│   │   │   ├── composer/
+│   │   │   │   └── page.tsx
+│   │   │   ├── dev/
+│   │   │   │   └── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   ├── memory/
+│   │   │   │   ├── columns.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── profile/
+│   │   │   │   └── page.tsx
+│   │   │   └── snippets/
+│   │   │       └── page.tsx
+│   │   └── layout.tsx
+│   ├── api/
+│   │   ├── blocks/
+│   │   │   └── generate/
+│   │   │       └── route.ts
+│   │   ├── dev/
+│   │   │   ├── seed-hospitals/
+│   │   │   │   └── route.ts
+│   │   │   └── seed-user-data/
+│   │   │       └── route.ts
+│   │   ├── discharge/
+│   │   │   └── route.ts
+│   │   ├── documents/
+│   │   │   ├── [id]/
+│   │   │   │   ├── route.ts
+│   │   │   │   └── signed-url/
+│   │   │   │       └── route.ts
+│   │   │   └── route.ts
+│   │   ├── hospitals/
+│   │   │   └── route.ts
+│   │   ├── patient-summaries/
+│   │   │   ├── [id]/
+│   │   │   │   ├── blocks/
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   └── route.ts
+│   │   ├── patients/
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts
+│   │   │   ├── cleanup/
+│   │   │   │   └── route.ts
+│   │   │   └── route.ts
+│   │   ├── snippets/
+│   │   │   ├── [id]/
+│   │   │   │   └── route.ts
+│   │   │   ├── route.ts
+│   │   │   └── shortcut/
+│   │   │       └── [shortcut]/
+│   │   │           └── route.ts
+│   │   ├── users/
+│   │   │   ├── preferences/
+│   │   │   │   └── route.ts
+│   │   │   └── profile/
+│   │   │       └── route.ts
+│   │   └── webhooks/
+│   │       └── clerk/
+│   │           └── route.ts
+│   ├── docs/
+│   │   ├── PRD.md
+│   │   ├── block-generation-implementation-plan.md
+│   │   ├── deployment-readiness-plan.md
+│   │   ├── discharge-implementation-plan.md
+│   │   ├── informal-PRD.md
+│   │   ├── lingo-dev-implementation-guide.md
+│   │   ├── onborda-implementation-guide.md
+│   │   ├── patient-lifecycle-refactor.md
+│   │   ├── patient-portal-implementation-plan.md
+│   │   └── patient-simplifier
+│   ├── global-error.tsx
+│   ├── layout.tsx
+│   ├── patient/
+│   │   ├── [summaryId]/
+│   │   │   └── page.tsx
+│   │   └── layout.tsx
+│   ├── robots.ts
+│   └── sitemap.ts
+├── components/
+│   ├── AutoSaveIndicator.tsx
+│   ├── ContextViewer/
+│   │   ├── ContextViewer.tsx
+│   │   ├── ContextViewerHeader.tsx
+│   │   ├── DocumentListPanel.tsx
+│   │   ├── UserContextPanel.tsx
+│   │   └── index.ts
+│   ├── DataTable.tsx
+│   ├── DevicePreviewer/
+│   │   ├── DevicePreview.tsx
+│   │   ├── device-styles.module.css
+│   │   ├── iPhone14Frame.tsx
+│   │   └── index.ts
+│   ├── DischargeSummary.tsx
+│   ├── DischargeSummary/
+│   │   ├── DischargeSummaryContent.tsx
+│   │   ├── DischargeSummaryHeader.tsx
+│   │   ├── DischargeSummaryPanel.tsx
+│   │   ├── DischargeSummarySection.tsx
+│   │   ├── FeedbackInput.tsx
+│   │   └── index.ts
+│   ├── DocumentPreviewModal.tsx
+│   ├── DocumentSelector.tsx
+│   ├── PatientForm.tsx
+│   ├── PatientSimplified/
+│   │   ├── FloatingChat.tsx
+│   │   ├── PatientLayout.tsx
+│   │   └── index.ts
+│   ├── Sidebar.tsx
+│   ├── SnippetSelector.tsx
+│   ├── TourProvider.tsx
+│   ├── analytics/
+│   │   ├── PostHogPageView.tsx
+│   │   └── PostHogProvider.tsx
+│   ├── blocks/
+│   │   ├── AppointmentBlock.tsx
+│   │   ├── MedicationBlock.tsx
+│   │   ├── RedFlagBlock.tsx
+│   │   └── TaskBlock.tsx
+│   ├── query/
+│   │   └── ReactQueryClientProvider.tsx
+│   └── ui/
+│       ├── ... (shadcn/ui components)
+├── context/
+│   └── PatientContext.tsx
+├── hooks/
+│   ├── useAutoSave.ts
+│   ├── useNewPatient.ts
+│   ├── useOnboarding.ts
+│   └── usePatientCleanup.ts
+├── instrumentation.ts
+├── libs/
+│   ├── Arcjet.ts
+│   ├── DB.ts
+│   ├── Env.ts
+│   ├── Logger.ts
+│   ├── documentProcessor.ts
+│   ├── onboarding-steps.ts
+│   ├── supabase-client.ts
+│   ├── supabase-server.ts
+│   ├── utils.ts
+│   └── vectorStore.ts
+├── locales/
+│   └── en.json
+├── middleware.ts
+├── models/
+│   └── Schema.ts
+├── scripts/
+│   └── seed-hospitals.ts
+├── stores/
+│   ├── dischargeSummaryStore.ts
+│   ├── index.ts
+│   ├── patientStore.ts
+│   └── uiStore.ts
+├── styles/
+│   └── global.css
+├── templates/
+│   └── BaseTemplate.tsx
+├── types/
+│   ├── blocks.ts
+│   ├── discharge.ts
+│   ├── files.ts
+│   └── index.ts
+└── utils/
+    ├── AppConfig.ts
+    ├── Helpers.ts
+    └── debounce.ts
+```

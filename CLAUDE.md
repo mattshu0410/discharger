@@ -77,12 +77,6 @@ supabase studio                       # Open studio
 4. **Type Safety**: End-to-end TypeScript with Zod validation for all forms and API boundaries
 5. **React Query Patterns**: Standardized query keys, error handling, and cache invalidation
 
-### Database Schema (Drizzle ORM)
-- PostgreSQL with support for both production and local development (PGlite)
-- Key tables: `user_profiles`, `patients`, `documents`, `document_chunks`, `discharge_summaries`
-- Row-level security for patient data isolation
-- UUID-based primary keys for enhanced security
-
 ### Component Architecture
 - Next.js 15 App Router with parallel route groups for layouts
 - Shadcn UI components with Tailwind CSS v4
@@ -92,37 +86,16 @@ supabase studio                       # Open studio
 
 ### AI Integration
 - LangChain for orchestration with support for multiple LLMs
-- Primary: Google Gemini 1.5 Flash for discharge generation
+- Primary: Google Gemini 2.0 Flash for discharge generation and block generation
 - OpenAI text-embedding-3-large for document embeddings
 - RAG pipeline for retrieving relevant medical guidelines
+- **Block Generation System**: AI-powered transformation of discharge summaries into patient-friendly blocks
 
 ### Development Tools
 - **Dev Seeding**: `/dev` page with tools to seed realistic test data
 - **Real PDFs**: Pregnancy/preeclampsia medical guidelines for testing
 - **Storage Management**: Automatic cleanup of development data including storage files
 - **Environment Detection**: Development-only endpoints with NODE_ENV checks
-
-## Current Architecture State
-
-Based on recent commits, the system has evolved through several major phases:
-
-### Phase 1: Foundation (Initial commits)
-- Basic Zustand + React Query state management setup
-- Initial Supabase integration
-- PRD documentation
-
-### Phase 2: UI Enhancement (Recent)
-- Snippet selector with `/` hotkey navigation
-- Document selector with `@` hotkey and live search
-- Action menu implementation (cursor refocus still buggy)
-- Sidebar routing redesign
-
-### Phase 3: Security & Storage (Latest)
-- Clerk + Supabase authentication integration
-- Private storage bucket with signed URLs
-- Document upload system with metadata support
-- PDF preview modal with react-pdf
-- Development tools with real PDF seeding
 
 ## PRD
 
@@ -136,80 +109,119 @@ Required environment variables (see `.env.example`):
 - `GOOGLE_API_KEY`: For Gemini
 - `OPENAI_API_KEY`: For embeddings
 
-## Current Focus Areas
+## Project File Structure & Organization
 
-Based on open GitHub issues and recent development, current priorities include:
+### Application Architecture (`src/app/`)
 
-### Phase 1: Core Discharge Summary System (HIGH PRIORITY)
-1. 🏥 **Enhanced Discharge API** ([Issue #3](https://github.com/mattshu0410/discharger/issues/3))
-   - Implement structured JSON response format with sections and citations
-   - Integrate vector search for document retrieval during generation
-   - Build comprehensive prompt template system with medical sections
-   - Add citation tracking linking summary content to source documents
+#### **Route Groups & Layouts**
+- **`(auth)/`** - Authenticated user area with Clerk integration
+  - **`(center)/`** - Centered layouts for auth pages (sign-in/sign-up)
+  - **`(sidebar)/`** - Main app with sidebar navigation
+    - `/` - Main discharge summary composer
+    - `/composer` - Patient-facing discharge block editor
+    - `/memory` - Document management and upload system
+    - `/dev` - Development tools and data seeding
+    - `/admin`, `/profile`, `/snippets` - Additional features
+- **`patient/[summaryId]`** - Public patient portal (mobile-optimized)
+- **`api/`** - Next.js API routes for backend functionality
 
-2. 🏥 **Interactive Discharge Component** ([Issue #3](https://github.com/mattshu0410/discharger/issues/3))
-   - Replace placeholder `DischargeSummary.tsx` with full interactive component
-   - Implement section-based rendering with copy-to-clipboard functionality
-   - Add feedback input system for regeneration with user guidance
-   - Create Zustand store for discharge summary state management
+#### **Key API Endpoints**
+- **Documents**: `/api/documents/*` - CRUD, upload, signed URLs
+- **Discharge**: `/api/discharge` - AI-powered summary generation  
+- **Blocks**: `/api/blocks/generate` - AI-powered block generation from discharge summaries
+- **Patient Summaries**: `/api/patient-summaries/*` - Block-based patient summaries with CRUD operations
+- **Patients**: `/api/patients/*` - Patient management with RLS
+- **Medical Data**: `/api/snippets/*`, `/api/hospitals/*`
+- **Dev Tools**: `/api/dev/*` - Data seeding utilities
 
-### Phase 2: User Experience & Integration (MEDIUM PRIORITY)
-3. 🔗 **Citation System & Context Viewer Integration** ([Issue #3](https://github.com/mattshu0410/discharger/issues/3))
-   - Bidirectional highlighting between discharge sections and source documents
-   - Citation detail popups showing source context and relevance scores
-   - Visual citation indicators in summary sections
+### Component Architecture (`src/components/`)
 
-4. ⚙️ **Rule Management System** ([Issue #3](https://github.com/mattshu0410/discharger/issues/3))
-   - User-defined formatting rules from feedback patterns
-   - Rule categorization and management interface
-   - Automatic rule application in future discharge generations
+#### **Core Application Components**
+- **`PatientForm.tsx`** - Main patient data entry with auto-save, hotkey selectors
+- **`Sidebar.tsx`** - Navigation with patient list and context switching
+- **`DataTable.tsx`** - Reusable table with sorting, pagination, CRUD actions
+- **`AutoSaveIndicator.tsx`** - Visual feedback for form persistence
 
-### Phase 3: Polish & Performance (LOW PRIORITY)
-5. 🔄 **Action Menu Polish**: Fix cursor refocus issues in textarea
-6. ⚡ **Performance Optimization**: Large document set handling and LLM response caching
-7. 📋 **Testing Infrastructure**: Comprehensive test coverage for discharge generation flow
+#### **Feature-Specific Component Groups**
+- **`DischargeSummary/`** - AI summary generation and display
+  - Content rendering, header controls, section management, feedback input
+- **`ContextViewer/`** - Patient context and document viewing
+  - Header, document list panel, user context display
+- **`DevicePreviewer/`** - Mobile device mockups for patient portal
+  - iPhone frame, responsive scaling, device variants
+- **`PatientSimplified/`** - Patient-facing interface components
+- **`blocks/`** - Medical content blocks (appointments, medications, tasks, alerts)
 
-### Completed ✅
-- **Document Upload Security**: Complete Clerk + Supabase integration
-- **PDF Preview System**: Full-featured document preview with zoom/scroll
-- **Storage Management**: Proper cleanup and signed URL access
+#### **UI Foundation (`ui/`)**
+- **Shadcn UI Library** (18 components): Form, input, button, dialog, table, etc.
+- **`file-upload.tsx`** - Advanced drag/drop upload with progress tracking
+- **Form Components** - React Hook Form + Zod validation integration
 
-## Known Issues
-- Action menu cursor refocus to textarea needs improvement
-- Document selector may need performance optimization for large document sets
-- Type mismatches between Date objects and string expectations in some components
+#### **Advanced Selectors**
+- **`DocumentSelector.tsx`** - `@` hotkey document insertion with search
+- **`SnippetSelector.tsx`** - `/` hotkey template insertion with filtering
+- **`DocumentPreviewModal.tsx`** - Full PDF viewer with react-pdf, zoom, metadata
 
-## Important File Locations
+### Data Layer & Utilities (`src/libs/`, `src/models/`)
 
-### Core Application
-- **Patient Management**: `src/components/PatientForm.tsx`
-- **Document System**:
-  - Upload: `src/app/api/documents/route.ts`
-  - Delete: `src/app/api/documents/[id]/route.ts`
-  - Signed URLs: `src/app/api/documents/[id]/signed-url/route.ts`
-  - Preview: `src/components/DocumentPreviewModal.tsx`
-- **Selectors**:
-  - Documents: `src/components/DocumentSelector.tsx`
-  - Snippets: `src/components/SnippetSelector.tsx`
-- **Memory Page**: `src/app/(auth)/(sidebar)/memory/`
+#### **Database & Storage**
+- **`supabase-client.ts`** - Browser client with Clerk JWT integration
+- **`supabase-server.ts`** - Server client for API routes and components
+- **`vectorStore.ts`** - RAG search with OpenAI embeddings + pgvector
 
-### API & Data
-- **React Query Hooks**: `src/api/*/queries.ts`
-- **Database Schema**: `src/models/Schema.ts`
-- **Store Definitions**: `src/stores/`
-- **Discharge Generation**: `src/app/api/discharge/route.ts`
+#### **AI & Document Processing**
+- **`documentProcessor.ts`** - Multi-format parsing (PDF, DOCX) with chunking
+- **LangChain Integration** - Google Gemini for generation, structured outputs
 
-### Development
-- **Dev Tools**: `src/app/(auth)/(sidebar)/dev/`
-- **Seed Data**: `src/app/api/dev/seed-user-data/route.ts`
-- **Test Assets**: `public/assets/files/` (medical PDFs)
+#### **Infrastructure**
+- **`Env.ts`** - Type-safe environment validation (T3 pattern)
+- **`Logger.ts`** - Centralized logging (Pino + Logtail/console)
+- **`Arcjet.ts`** - Rate limiting and security protection
+- **`onboarding-steps.ts`** - Interactive user tour with NextStepJS
 
-### Authentication & Storage
-- **Supabase Clients**:
-  - Client-side: `src/libs/supabase-client.ts`
-  - Server-side: `src/libs/supabase-server.ts`
-- **Document Processing**: `src/libs/documentProcessor.ts`
-- **Vector Store**: `src/libs/vectorStore.ts`
+### State Management (`src/stores/`)
+- **`patientStore`** - Current patient, context editing, document management
+- **`uiStore`** - Modal states, sidebar visibility, UI preferences
+- **`dischargeSummaryStore`** - AI summary state and feedback
+
+### API Integration (`src/api/`)
+- **React Query Hooks** - Custom hooks for all server state (documents, patients, snippets, users, blocks, patient-summaries)
+- **Standardized Patterns** - Query keys, error handling, cache invalidation
+- **Type Safety** - End-to-end TypeScript with Zod validation
+
+### Development & Testing
+
+#### **Quality Assurance**
+- **Testing**: Vitest (unit) + Playwright (E2E) with comprehensive setup
+- **Linting**: ESLint with Antfu config, TypeScript strict mode
+- **Git Workflow**: Husky hooks, lint-staged, conventional commits
+
+#### **Development Tools**
+- **`/dev` Page** - Realistic data seeding with medical PDFs
+- **Database Management** - Supabase CLI integration, migration scripts
+- **Build Analysis** - Bundle analyzer, performance monitoring
+- **Environment** - Local Supabase stack, PGlite for testing
+
+### Infrastructure & Deployment
+
+#### **Core Technologies**
+- **Framework**: Next.js 15 with App Router + React 19
+- **Styling**: Tailwind CSS v4 + Shadcn UI components
+- **Database**: PostgreSQL (Supabase) with pgvector for embeddings
+- **Authentication**: Clerk with JWT + Supabase RLS policies
+- **AI/ML**: LangChain + Google Gemini + OpenAI embeddings
+
+#### **Monitoring & Analytics**
+- **Error Tracking**: Sentry with source maps
+- **User Analytics**: PostHog with proxy configuration
+- **Logging**: Structured logging with Pino + Logtail
+- **Performance**: Vercel monitoring + bundle analysis
+
+#### **Security & Performance**
+- **Rate Limiting**: Arcjet protection
+- **File Storage**: Private Supabase Storage with 5-minute signed URLs
+- **Data Isolation**: User-scoped RLS policies
+- **Caching**: React Query + Next.js automatic optimization
 
 ## Development Workflow
 
