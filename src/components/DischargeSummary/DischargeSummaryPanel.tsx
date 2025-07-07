@@ -12,7 +12,7 @@ export function DischargeSummaryPanel() {
   // Loading state
   if (isGenerating) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+      <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
         <p>Generating discharge summary...</p>
       </div>
@@ -22,7 +22,7 @@ export function DischargeSummaryPanel() {
   // Error state
   if (error) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center">
+      <div className="h-full flex flex-col items-center justify-center">
         <div className="text-destructive text-center max-w-md">
           <p className="font-semibold mb-2">Error generating summary</p>
           <p className="text-sm text-muted-foreground">{error}</p>

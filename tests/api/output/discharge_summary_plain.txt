@@ -1,0 +1,60 @@
+# Discharge Summary (Plain Text)
+
+## Administrative Information
+
+Patient Full Name: Not available
+Date of Birth (Age in years): 58 years
+Sex: Female
+
+## Introduction + Summary of Care
+
+Dear Dr. X, thank you for reviewing patient, a 58 year old female to be discharged on [Discharge Date] from [Department] at [Facility]. The summary of their presentation and condition is documented below.
+- Principal diagnosis: Acute knee pain.
+- Reason for presentation: The patient presented with a two-month history of knee pain that acutely commenced during a yoga session while her knee and hip were flexed on the ground. Initially, the pain was 10/10, described as feeling "broken", and made it difficult to walk. She sought care at an acute care clinic immediately after the incident.
+- Secondary diagnoses: Chronic wrist pain.
+- Additional complications: No additional complications were noted during this presentation.
+- Past medical history: Significant past medical history includes chronic wrist pain, for which she has received two steroid injections, and she is perimenopausal.
+- Summary of salient points of the patient care:
+- The patient was initially assessed in an acute care clinic following the onset of symptoms.
+- Knee X-rays performed at the time showed no findings.
+- She was provided with crutches for ambulation.
+- Currently, she reports low pain levels but still experiences some pain while walking.
+- She has been managing her pain with ibuprofen.
+
+## Discharge Plan
+
+- Follow up with General Practitioner for ongoing management of knee pain and review of chronic wrist pain.
+- No specific follow-up pathology or labs are required at this time.
+- No specific referrals to other services or specialists are required at this time.
+
+## Issues List
+
+- Acute Knee Pain: Onset 2 months prior during a yoga session with initial 10/10 pain. Knee X-ray was negative. Currently, pain is low but present with walking.
+- Chronic Wrist Pain: History of two steroid injections.
+- Perimenopausal.
+
+## Medications
+
+New medications:
+- No new medications were prescribed during this admission.
+
+Changed medications:
+- No changes were made to existing medications during this admission.
+
+Unchanged medications:
+- Estrogen replacement (details not specified)
+- Glucosamine (details not specified)
+- Ibuprofen oral as needed for pain (details not specified)
+- Evening primrose oil (details not specified)
+- Turmeric (details not specified)
+
+Ceased medications:
+- No medications were ceased during this admission.
+
+## Information Provided to the Patient
+
+- Education was provided regarding activity modification and pain management strategies for her knee pain.
+- The patient was advised to continue using ibuprofen as needed for pain relief.
+- She was encouraged to follow up with her General Practitioner for ongoing assessment and management of both her knee and chronic wrist pain.
+- The patient demonstrated a good understanding of the instructions and her current condition.
+
