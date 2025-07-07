@@ -10,7 +10,11 @@
       "mcp__browser-tools__takeScreenshot",
       "mcp__supabase__list_projects",
       "mcp__supabase__list_tables",
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "WebFetch(domain:www.twilio.com)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)"
     ]
   },
   "enabledMcpjsonServers": [

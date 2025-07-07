@@ -1,7 +1,9 @@
 'use client';
 
-import type { Block, PatientProgress } from '@/types/blocks';
-import { useState } from 'react';
+import type { Block, MedicationBlock, PatientProgress, TaskBlock } from '@/types/blocks';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { usePatientSummary } from '@/api/patient-summaries/hooks';
 import { FloatingChat, PatientLayout } from '@/components/PatientSimplified';
 
 // Mock data for patient view - using static dates to avoid hydration issues
@@ -117,6 +119,17 @@ const mockPatientBlocks: Block[] = [
 ];
 
 export default function PatientSummaryPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const summaryId = params.summaryId as string;
+  const accessKey = searchParams.get('access');
+  console.warn('summaryId:', summaryId, 'accessKey:', accessKey);
+
+  // Fetch patient summary using unified hook with access key
+  const { data: summaryData, isLoading, error } = usePatientSummary(summaryId, {
+    accessKey: accessKey || undefined,
+  });
+
   const [blocks, setBlocks] = useState<Block[]>(mockPatientBlocks);
   const [progress, setProgress] = useState<PatientProgress>({
     totalTasks: 3,
@@ -127,6 +140,39 @@ export default function PatientSummaryPage() {
     totalAppointments: 1,
     overallCompletion: 45,
   });
+
+  // Type guards for block filtering
+  const isTaskBlock = (block: Block): block is TaskBlock => block.type === 'task';
+  const isMedicationBlock = (block: Block): block is MedicationBlock => block.type === 'medication';
+
+  // Update blocks when real data is loaded
+  useEffect(() => {
+    if (summaryData) {
+      setBlocks(summaryData.blocks || mockPatientBlocks);
+
+      // Calculate progress from actual blocks
+      const taskBlocks = summaryData.blocks?.filter(isTaskBlock) || [];
+      const medicationBlocks = summaryData.blocks?.filter(isMedicationBlock) || [];
+
+      const totalTasks = taskBlocks.reduce((total: number, block: TaskBlock) =>
+        total + (block.data.tasks?.length || 0), 0);
+      const completedTasks = taskBlocks.reduce((total: number, block: TaskBlock) =>
+        total + (block.data.tasks?.filter(task => task.completed)?.length || 0), 0);
+
+      const totalMedications = medicationBlocks.reduce((total: number, block: MedicationBlock) =>
+        total + (block.data.medications?.length || 0), 0);
+
+      setProgress({
+        totalTasks,
+        completedTasks,
+        medicationsTaken: 0, // This would be tracked separately in a real implementation
+        totalMedications,
+        appointmentsScheduled: 0, // This would be calculated from appointment blocks
+        totalAppointments: 0,
+        overallCompletion: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+      });
+    }
+  }, [summaryData]);
 
   const handleBlockInteraction = (blockId: string, interactionType: string, data: any) => {
     console.warn('Patient interaction:', { blockId, interactionType, data });
@@ -157,6 +203,42 @@ export default function PatientSummaryPage() {
     ));
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your discharge summary...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-destructive mb-2">Access Denied</h1>
+          <p className="text-muted-foreground mb-4">
+            The link you used is invalid or has expired. Please contact your healthcare provider for a new link.
+          </p>
+          {!accessKey && (
+            <p className="text-sm text-muted-foreground">
+              No access key provided in the URL.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const patientName = summaryData?.patients?.name || 'Patient';
+  const dischargeDate = summaryData?.created_at
+    ? new Date(summaryData.created_at).toLocaleDateString()
+    : '';
+
   return (
     <div className="relative h-screen">
       <PatientLayout
@@ -164,6 +246,10 @@ export default function PatientSummaryPage() {
         progress={progress}
         onBlockUpdate={handleBlockUpdate}
         onBlockInteraction={handleBlockInteraction}
+        patientName={patientName}
+        dischargeDate={dischargeDate}
+        patientSummaryId={summaryData?.id}
+        patientAccessKey={accessKey || undefined}
       />
       <FloatingChat isPreview={false} />
     </div>

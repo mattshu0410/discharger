@@ -11,6 +11,34 @@ const isProtectedRoute = createRouteMatcher([
   '/api(.*)', // Protect API routes
 ]);
 
+const isAlwaysPublicRoute = createRouteMatcher([
+  '/patient(.*)', // Public patient portal
+]);
+
+const isConditionallyPublicRoute = createRouteMatcher([
+  '/api/patient-summaries/:id/summary', // Public when access_key provided
+  '/api/patient-summaries/:id/translate', // Public when access_key provided
+  '/api/patient-summaries/:id/translations', // Public when access_key provided
+  '/api/patient-summaries/:id/translations/:locale', // Public when access_key provided
+]);
+
+// Smart function to determine if route should be public
+const isPublicRoute = (request: NextRequest): boolean => {
+  // Always public routes
+  if (isAlwaysPublicRoute(request)) {
+    return true;
+  }
+
+  // Conditionally public routes - only public if access_key parameter exists
+  if (isConditionallyPublicRoute(request)) {
+    const url = new URL(request.url);
+    const hasAccessKey = url.searchParams.has('access_key');
+    return hasAccessKey;
+  }
+
+  return false;
+};
+
 const isAuthPage = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
@@ -53,12 +81,14 @@ export default async function middleware(
   }
 
   // Run Clerk middleware for routes that need it (both auth pages and protected routes)
-  const needsClerkMiddleware = isAuthPage(request) || isProtectedRoute(request);
+  // But exclude public routes from both middleware and protection
+  const routeIsPublic = isPublicRoute(request);
+  const needsClerkMiddleware = (isAuthPage(request) || isProtectedRoute(request)) && !routeIsPublic;
 
   if (needsClerkMiddleware) {
     return clerkMiddleware(async (auth, req) => {
-      // Only enforce authentication on protected routes (not auth pages)
-      if (isProtectedRoute(req)) {
+      // Only enforce authentication on protected routes (not auth pages or public routes)
+      if (isProtectedRoute(req) && !isPublicRoute(req)) {
         const signInUrl = new URL('/sign-in', req.url);
         await auth.protect({
           unauthenticatedUrl: signInUrl.toString(),

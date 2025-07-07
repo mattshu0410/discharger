@@ -1,36 +1,39 @@
 import { currentUser } from '@clerk/nextjs/server';
+import { createAccessKeySupabaseClient } from '@/libs/supabase-access-key';
 import { createServerSupabaseClient } from '@/libs/supabase-server';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string; locale: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string; locale: string }> }) {
   try {
     const { id: patientSummaryId, locale } = await params;
-    const user = await currentUser();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const url = new URL(req.url);
+    const accessKey = url.searchParams.get('access_key');
+
+    // Determine which client to use
+    let supabase;
+
+    // Try Clerk auth first
+    try {
+      const user = await currentUser();
+      if (user) {
+        supabase = createServerSupabaseClient();
+      }
+    } catch {
+      // No Clerk auth
     }
 
-    const supabase = createServerSupabaseClient();
-
-    // First verify the user has access to the patient summary
-    const { data: summary, error: summaryError } = await supabase
-      .from('patient_summaries')
-      .select('id, doctor_id, patient_user_id')
-      .eq('id', patientSummaryId)
-      .single();
-
-    if (summaryError || !summary) {
-      return Response.json({ error: 'Patient summary not found' }, { status: 404 });
+    // If no Clerk auth and access key provided, use access key client
+    if (!supabase && accessKey) {
+      supabase = createAccessKeySupabaseClient(accessKey);
     }
 
-    // Check access permissions
-    const hasAccess = summary.doctor_id === user.id || summary.patient_user_id === user.id;
-    if (!hasAccess) {
-      return Response.json({ error: 'Access denied' }, { status: 403 });
+    // If no auth method available, return unauthorized
+    if (!supabase) {
+      return Response.json({ error: 'Unauthorized - authentication required' }, { status: 401 });
     }
 
-    // Get the specific translation
+    // Get the specific translation - RLS policies handle access control
     const { data: translation, error } = await supabase
       .from('summary_translations')
       .select('*')

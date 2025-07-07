@@ -6,12 +6,14 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useGenerateBlocks } from '@/api/blocks/hooks';
 import { useCreatePatientSummary, usePatientSummaries, useUpdatePatientSummaryBlocks } from '@/api/patient-summaries/hooks';
+import { AccessManagementPanel } from '@/components/AccessManagementPanel';
 import { AppointmentBlock } from '@/components/blocks/AppointmentBlock';
 import { MedicationBlock } from '@/components/blocks/MedicationBlock';
 import { RedFlagBlock } from '@/components/blocks/RedFlagBlock';
 import { TaskBlock } from '@/components/blocks/TaskBlock';
 import { DevicePreview } from '@/components/DevicePreviewer';
 import { FloatingChat, PatientLayout } from '@/components/PatientSimplified';
+import { SharePatientSummaryDialog } from '@/components/SharePatientSummaryDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -332,6 +334,7 @@ export default function ComposerPage() {
     totalAppointments: 0,
     overallCompletion: 0,
   });
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   // Zustand state
   const {
@@ -493,7 +496,7 @@ export default function ComposerPage() {
         <Separator className="my-4" />
 
         <h3 className="font-medium text-sm mb-3 text-muted-foreground">Current Blocks</h3>
-        <div className="space-y-2">
+        <div className="space-y-2 mb-6">
           {blocks.map(block => (
             <div key={block.id} className="p-2 rounded border bg-card">
               <span className="text-sm font-medium">{block.title}</span>
@@ -503,6 +506,14 @@ export default function ComposerPage() {
             </div>
           ))}
         </div>
+
+        {/* Access Management Panel */}
+        {latestSummary && (
+          <>
+            <Separator className="my-4" />
+            <AccessManagementPanel summaryId={latestSummary.id} />
+          </>
+        )}
       </div>
 
       {/* Main Content Area */}
@@ -523,7 +534,11 @@ export default function ComposerPage() {
               <Eye className="w-4 h-4 mr-1" />
               {previewMode ? 'Edit Mode' : 'Preview'}
             </Button>
-            <Button size="sm">
+            <Button
+              size="sm"
+              onClick={() => setShareDialogOpen(true)}
+              disabled={!latestSummary}
+            >
               <Share className="w-4 h-4 mr-1" />
               Share with Patient
             </Button>
@@ -602,6 +617,16 @@ export default function ComposerPage() {
           </div>
         </div>
       </div>
+
+      {/* Share Dialog */}
+      {latestSummary && (
+        <SharePatientSummaryDialog
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          summaryId={latestSummary.id}
+          patientName="Robert Chen" // TODO: Get from actual patient data
+        />
+      )}
     </div>
   );
 }

@@ -20,10 +20,19 @@ export const patientSummariesKeys = {
   lists: () => [...patientSummariesKeys.all, 'list'] as const,
   list: (params: ListPatientSummariesParams) => [...patientSummariesKeys.lists(), params] as const,
   details: () => [...patientSummariesKeys.all, 'detail'] as const,
-  detail: (id: string) => [...patientSummariesKeys.details(), id] as const,
+  detail: (id: string, accessKey?: string) =>
+    accessKey
+      ? [...patientSummariesKeys.details(), id, 'access-key', accessKey]
+      : [...patientSummariesKeys.details(), id] as const,
   translations: () => [...patientSummariesKeys.all, 'translations'] as const,
-  translationsList: (id: string) => [...patientSummariesKeys.translations(), id] as const,
-  translation: (id: string, locale: SupportedLocale) => [...patientSummariesKeys.translations(), id, locale] as const,
+  translationsList: (id: string, accessKey?: string) =>
+    accessKey
+      ? [...patientSummariesKeys.translations(), id, 'access-key', accessKey]
+      : [...patientSummariesKeys.translations(), id] as const,
+  translation: (id: string, locale: SupportedLocale, accessKey?: string) =>
+    accessKey
+      ? [...patientSummariesKeys.translations(), id, locale, 'access-key', accessKey]
+      : [...patientSummariesKeys.translations(), id, locale] as const,
 };
 
 // List patient summaries
@@ -35,10 +44,10 @@ export const usePatientSummaries = (params: ListPatientSummariesParams = {}) => 
 };
 
 // Get single patient summary
-export const usePatientSummary = (id: string) => {
+export const usePatientSummary = (id: string, options?: { accessKey?: string }) => {
   return useQuery({
-    queryKey: patientSummariesKeys.detail(id),
-    queryFn: () => getPatientSummary(id),
+    queryKey: patientSummariesKeys.detail(id, options?.accessKey),
+    queryFn: () => getPatientSummary(id, options),
     enabled: !!id,
   });
 };
@@ -63,13 +72,29 @@ export const useUpdatePatientSummary = () => {
     mutationFn: ({ id, data }: { id: string; data: UpdatePatientSummaryInput }) =>
       updatePatientSummary(id, data),
     onSuccess: (_, { id, data }) => {
-      queryClient.invalidateQueries({ queryKey: patientSummariesKeys.detail(id) });
+      // Invalidate all variants of this specific patient summary (with and without access keys)
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          // Match any detail query for this specific patient ID, regardless of access key
+          return query.queryKey.length >= 3
+            && query.queryKey[0] === 'patient-summaries'
+            && query.queryKey[1] === 'detail'
+            && query.queryKey[2] === id;
+        },
+      });
       queryClient.invalidateQueries({ queryKey: patientSummariesKeys.lists() });
 
-      // If blocks were updated, invalidate all translation queries
+      // If blocks were updated, invalidate all translation queries for this specific patient
       if (data.blocks) {
-        queryClient.invalidateQueries({ queryKey: patientSummariesKeys.translationsList(id) });
-        queryClient.invalidateQueries({ queryKey: patientSummariesKeys.translations() });
+        queryClient.invalidateQueries({
+          predicate: (query) => {
+            // Match any translation query for this specific patient summary ID
+            return query.queryKey.length >= 3
+              && query.queryKey[0] === 'patient-summaries'
+              && query.queryKey[1] === 'translations'
+              && query.queryKey[2] === id;
+          },
+        });
       }
     },
   });
@@ -83,12 +108,26 @@ export const useUpdatePatientSummaryBlocks = () => {
     mutationFn: ({ id, blocks }: { id: string; blocks: Block[] }) =>
       updatePatientSummaryBlocks(id, blocks),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: patientSummariesKeys.detail(id) });
+      // Invalidate all variants of this specific patient summary
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          return query.queryKey.length >= 3
+            && query.queryKey[0] === 'patient-summaries'
+            && query.queryKey[1] === 'detail'
+            && query.queryKey[2] === id;
+        },
+      });
       queryClient.invalidateQueries({ queryKey: patientSummariesKeys.lists() });
 
-      // Blocks were updated, invalidate all translation queries
-      queryClient.invalidateQueries({ queryKey: patientSummariesKeys.translationsList(id) });
-      queryClient.invalidateQueries({ queryKey: patientSummariesKeys.translations() });
+      // Blocks were updated, invalidate all translation queries for this patient
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          return query.queryKey.length >= 3
+            && query.queryKey[0] === 'patient-summaries'
+            && query.queryKey[1] === 'translations'
+            && query.queryKey[2] === id;
+        },
+      });
     },
   });
 };
@@ -106,19 +145,23 @@ export const useDeletePatientSummary = () => {
 };
 
 // Get translation for patient summary
-export const usePatientSummaryTranslation = (patientSummaryId: string, locale: SupportedLocale, options?: { enabled?: boolean }) => {
+export const usePatientSummaryTranslation = (
+  patientSummaryId: string,
+  locale: SupportedLocale,
+  options?: { enabled?: boolean; accessKey?: string },
+) => {
   return useQuery({
-    queryKey: patientSummariesKeys.translation(patientSummaryId, locale),
-    queryFn: () => getPatientSummaryTranslation(patientSummaryId, locale),
+    queryKey: patientSummariesKeys.translation(patientSummaryId, locale, options?.accessKey),
+    queryFn: () => getPatientSummaryTranslation(patientSummaryId, locale, options?.accessKey),
     enabled: !!patientSummaryId && !!locale && (options?.enabled !== false),
   });
 };
 
 // List available translations for patient summary
-export const usePatientSummaryTranslations = (patientSummaryId: string) => {
+export const usePatientSummaryTranslations = (patientSummaryId: string, options?: { accessKey?: string }) => {
   return useQuery({
-    queryKey: patientSummariesKeys.translationsList(patientSummaryId),
-    queryFn: () => listPatientSummaryTranslations(patientSummaryId),
+    queryKey: patientSummariesKeys.translationsList(patientSummaryId, options?.accessKey),
+    queryFn: () => listPatientSummaryTranslations(patientSummaryId, options?.accessKey),
     enabled: !!patientSummaryId,
   });
 };
@@ -150,7 +193,15 @@ export const useUpdatePatientSummaryLocale = () => {
     mutationFn: ({ id, locale }: { id: string; locale: SupportedLocale }) =>
       updatePatientSummaryLocale(id, locale),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: patientSummariesKeys.detail(id) });
+      // Invalidate all variants of this specific patient summary
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          return query.queryKey.length >= 3
+            && query.queryKey[0] === 'patient-summaries'
+            && query.queryKey[1] === 'detail'
+            && query.queryKey[2] === id;
+        },
+      });
       queryClient.invalidateQueries({ queryKey: patientSummariesKeys.lists() });
     },
   });

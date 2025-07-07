@@ -481,12 +481,11 @@ Layout Structure:
 
 ### Stage 3: Patient Portal Core
 
-#### 3.1 Authentication Setup
-- [ ] Configure Clerk for patient users
-- [ ] Create patient-specific auth middleware
-- [ ] Build magic link landing page
-- [ ] Implement auto-login flow
-- [ ] Add session management
+#### 3.1 Twilio SMS Share Patient Summary
+- [ ] Configure Supabase table patient_access_keys w/ id (uuid), summary_id (id from patient_summaries, foreign key), role, phone_number, created_at, is_active
+- [ ] UI for share summary, enter phone number and viewing current phone numbers with access, add and remove, enter drop-down role e.g. patient, caregiver
+- [ ] API endpoint for generating access key unique to combination of summary_id and phone number and/or if exists already returning link to current ID patient summary w/ accesskey
+- [ ] API Twilio endpoint for sending text messages with the unique link
 
 #### 3.2 Block Renderer System
 - [X] Create PatientLayout component
@@ -967,6 +966,8 @@ src/
     └── debounce.ts
 ```
 
+
+
 ### Multi-Language System Architecture
 
 The language switching system consists of several interconnected components:
@@ -991,3 +992,513 @@ The language switching system consists of several interconnected components:
    - If translation doesn't exist, AI creates it via `/translate` endpoint
    - Translated blocks are cached and displayed to user
    - React Query manages caching and invalidation of translation data
+
+
+
+
+
+⏺ Comprehensive Implementation Plan: Patient Summary Sharing with SMS
+
+  Overview
+
+  I'll create a feature that allows doctors to share patient summaries with patients and caregivers via SMS. This involves
+  creating a secure access key system, SMS integration with Twilio, and a comprehensive UI for managing access.
+
+  Database Schema Changes
+
+  1. New Table: patient_access_keys
+
+  - id (UUID, Primary Key)
+  - summary_id (UUID, Foreign Key to patient_summaries)
+  - role (TEXT: 'patient' | 'caregiver')
+  - phone_number (TEXT, E.164 format)
+  - access_key (TEXT, unique 64-char hex string)
+  - is_active (BOOLEAN, default true)
+  - created_at (TIMESTAMP WITH TIME ZONE)
+  - updated_at (TIMESTAMP WITH TIME ZONE)
+
+  Key Features:
+  - Unique constraint on (summary_id, phone_number) where is_active = true
+  - RLS policies for doctor access and public access via access_key
+  - Auto-generated secure access keys using gen_random_bytes(32)
+
+  API Endpoints
+
+  2. Access Key Management API
+
+  /api/patient-summaries/[summaryId]/access-keys
+  - GET: List all access keys for a summary
+  - POST: Create or retrieve existing access key for phone/role combination
+  - DELETE: Deactivate access key
+
+  /api/patient-summaries/[summaryId]/share-sms
+  - POST: Send SMS with access link to phone number
+
+  3. Public Access API
+
+  /api/patient-summaries/access/[accessKey]
+  - GET: Retrieve patient summary via access key (bypasses authentication)
+
+  UI Components
+
+  4. Share Dialog Component (SharePatientSummaryDialog)
+
+  Location: src/components/SharePatientSummaryDialog.tsx
+  - Modal triggered by "Share with Patient" button
+  - Phone number input with international format validation
+  - Role selector (Patient/Caregiver) using Badge components
+  - Send SMS button with loading states
+  - Success/error feedback with toast notifications
+
+  5. Access Management Panel (AccessManagementPanel)
+
+  Location: src/components/AccessManagementPanel.tsx
+  - Table showing current active access keys
+  - Columns: Phone Number, Role, Created Date, Actions
+  - Remove access functionality
+  - Real-time updates using React Query
+
+  6. Enhanced Composer Page
+
+  - Integrate SharePatientSummaryDialog into existing "Share with Patient" button
+  - Add access management panel (collapsible section)
+  - Conditional rendering based on summary existence
+
+  React Query Integration
+
+  7. API Hooks
+
+  Location: src/api/patient-access-keys/
+  - usePatientAccessKeys(summaryId) - Fetch access keys
+  - useCreateAccessKey() - Create new access key
+  - useDeactivateAccessKey() - Remove access
+  - useSendSMS() - Send SMS with link
+
+  Location: src/api/patient-summaries/
+  - usePublicPatientSummary(accessKey) - Public access endpoint
+
+  Security & Validation
+
+  8. Security Measures
+
+  - Access keys: 64-character cryptographically secure random strings
+  - Phone number validation using libphonenumber-js
+  - Rate limiting on SMS sending (Arcjet integration)
+  - RLS policies preventing unauthorized access
+  - Access key expiration (optional future enhancement)
+
+  9. Validation Schemas
+
+  Location: src/models/Schema.ts
+  - Zod schemas for phone number validation
+  - Role enum validation
+  - Access key format validation
+
+  SMS Integration
+
+  10. Twilio Service
+
+  Location: src/libs/twilio.ts
+  - Twilio client initialization with environment variables
+  - SMS sending function with error handling
+  - Message template for patient access links
+  - Australian phone number format handling
+
+  User Experience Flow
+
+  11. Doctor Workflow
+
+  1. Doctor completes patient summary in composer
+  2. Clicks "Share with Patient" button
+  3. Modal opens with phone number input and role selection
+  4. Doctor enters phone number, selects role (Patient/Caregiver)
+  5. Clicks "Send SMS" - system either:
+    - Creates new access key and sends SMS, OR
+    - Finds existing access key and sends SMS with existing link
+  6. Success notification shows
+  7. Doctor can view/manage all access keys in expandable panel
+
+  12. Patient/Caregiver Workflow
+
+  1. Receives SMS with unique link
+  2. Clicks link → redirects to /patient/[summaryId]?access=[accessKey]
+  3. System validates access key and displays patient summary
+  4. Full patient portal functionality available (view blocks, complete tasks, etc.)
+
+  Technical Implementation Details
+
+  13. Environment Variables
+
+  - NEXT_TWILIO_ACCOUNT_SID (already configured)
+  - NEXT_TWILIO_AUTH_TOKEN (already configured)
+  - NEXT_TWILIO_PHONE_NUMBER (new - the Australian number you purchased)
+
+  14. Link Generation
+
+  - Format: ${baseUrl}/patient/${summaryId}?access=${accessKey}
+  - Access key validation in patient portal layout
+  - Fallback to existing Clerk authentication if no access key
+
+  15. Error Handling
+
+  - Invalid phone numbers
+  - Twilio API failures
+  - Duplicate access key scenarios
+  - Network timeout handling
+  - User-friendly error messages
+
+  File Structure Changes
+
+  src/
+  ├── api/
+  │   └── patient-access-keys/
+  │       ├── hooks.ts       # React Query hooks
+  │       ├── queries.ts     # API query functions
+  │       └── types.ts       # TypeScript types
+  ├── app/api/
+  │   ├── patient-summaries/[id]/
+  │   │   ├── access-keys/
+  │   │   │   └── route.ts   # Access key CRUD
+  │   │   └── share-sms/
+  │   │       └── route.ts   # SMS sending
+  │   └── patient-summaries/access/[accessKey]/
+  │       └── route.ts       # Public access endpoint
+  ├── components/
+  │   ├── SharePatientSummaryDialog.tsx
+  │   └── AccessManagementPanel.tsx
+  ├── libs/
+  │   └── twilio.ts          # Twilio service
+  └── models/
+      └── Schema.ts          # Updated with access key schemas
+
+  Next Steps After Approval
+
+  1. Database Migration - Create patient_access_keys table
+  2. Twilio Service - Implement SMS sending functionality
+  3. API Endpoints - Create access key and SMS endpoints
+  4. UI Components - Build share dialog and access management
+  5. Integration - Connect everything in composer page
+  6. Testing - Test with real phone numbers
+  7. Error Handling - Comprehensive error scenarios
+
+  This plan provides a complete, secure, and user-friendly patient sharing system that integrates seamlessly with the existing
+  codebase architecture and follows established patterns for state management, API design, and UI components.
+
+## 🚀 IMPLEMENTATION STATUS - SMS SHARING SYSTEM
+
+### ✅ Completed Implementation (as of 2025-01-07)
+
+#### 1. Database Schema Implementation
+**Status: COMPLETED**
+- ✅ Created `patient_access_keys` table via Supabase migration
+- ✅ Added proper RLS policies for doctor access
+- ✅ Implemented unique constraints on (summary_id, phone_number) for active keys
+- ✅ Auto-generated 64-character secure access keys using `gen_random_bytes(32)`
+- ✅ Added proper indexes for performance
+
+**Migration Applied:**
+```sql
+-- Create patient_access_keys table for sharing patient summaries via SMS
+CREATE TABLE patient_access_keys (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  summary_id UUID REFERENCES patient_summaries(id) ON DELETE CASCADE,
+  role TEXT NOT NULL CHECK (role IN ('patient', 'caregiver')),
+  phone_number TEXT NOT NULL,
+  access_key TEXT NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(32), 'hex'),
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
+#### 2. SMS Service Implementation
+**Status: COMPLETED**
+- ✅ Created Twilio service (`src/libs/twilio.ts`)
+- ✅ Phone number validation using `libphonenumber-js`
+- ✅ E.164 format handling for international numbers
+- ✅ SMS message templates for patient access links
+- ✅ Error handling and logging
+- ✅ Support for Australian phone number format
+
+**File: `src/libs/twilio.ts`**
+- TwilioService class with SMS sending capabilities
+- Phone number validation and formatting
+- Custom message templates for patient/caregiver access
+- Environment variable configuration support
+
+#### 3. API Endpoints Implementation
+**Status: COMPLETED - All Core Endpoints**
+
+**Access Key Management:**
+- ✅ `GET /api/patient-summaries/[id]/access-keys` - List access keys
+- ✅ `POST /api/patient-summaries/[id]/access-keys` - Create/retrieve access key
+
+**SMS Sending:**
+- ✅ `POST /api/patient-summaries/[id]/share-sms` - Send SMS with access link
+
+**Public Access:**
+- ✅ `GET /api/patient-summaries/access/[accessKey]` - Public patient summary access
+
+**Translation Support (with dual auth):**
+- ✅ `POST /api/patient-summaries/[id]/translate` - Create translations (dual auth)
+- ✅ `GET /api/patient-summaries/[id]/translations` - List translations (dual auth)
+- ✅ `GET /api/patient-summaries/[id]/translations/[locale]` - Get specific translation (dual auth)
+
+#### 4. Security Implementation
+**Status: COMPLETED - Dual Authentication System**
+
+**Dual Authentication Pattern Implemented:**
+```typescript
+// Secure pattern for public endpoints
+let user = null;
+try {
+  user = await currentUser(); // Clerk auth
+} catch (error) {
+  // Clerk not available (public route)
+}
+
+if (user) {
+  // Standard Clerk authentication
+  const userHasAccess = summary.doctor_id === user.id || summary.patient_user_id === user.id;
+} else if (accessKey) {
+  // Access key validation
+  const { data: accessKeyData } = await supabase
+    .from('patient_access_keys')
+    .select('summary_id, is_active')
+    .eq('access_key', accessKey)
+    .eq('summary_id', patientSummaryId)
+    .eq('is_active', true)
+    .single();
+}
+```
+
+**Security Features:**
+- ✅ Cryptographically secure access keys (64-character hex)
+- ✅ Phone number validation and E.164 formatting
+- ✅ RLS policies for data isolation
+- ✅ Dual authentication (Clerk + access key)
+- ✅ Proper error handling and access logging
+
+#### 5. Frontend Implementation
+**Status: COMPLETED - Full UI Components**
+
+**SharePatientSummaryDialog Component:**
+- ✅ Location: `src/components/SharePatientSummaryDialog.tsx`
+- ✅ Phone number input with validation
+- ✅ Role selector (Patient/Caregiver) with Badge UI
+- ✅ SMS sending with loading states
+- ✅ Toast notifications for success/error feedback
+- ✅ React Hook Form + Zod validation
+
+**AccessManagementPanel Component:**
+- ✅ Location: `src/components/AccessManagementPanel.tsx`
+- ✅ Collapsible panel showing active access keys
+- ✅ Table with phone numbers, roles, creation dates
+- ✅ Remove access functionality
+- ✅ Real-time updates via React Query
+- ✅ Empty state handling
+
+**Composer Page Integration:**
+- ✅ Updated `src/app/(auth)/(sidebar)/composer/page.tsx`
+- ✅ Integrated SharePatientSummaryDialog with existing "Share with Patient" button
+- ✅ Added AccessManagementPanel to sidebar
+- ✅ Conditional rendering based on summary existence
+
+#### 6. Patient Portal Updates
+**Status: COMPLETED - Access Key Authentication**
+
+**Enhanced Patient Portal:**
+- ✅ Updated `src/app/patient/[summaryId]/page.tsx`
+- ✅ Access key extraction from URL parameters (`?access=...`)
+- ✅ Public API integration for summary fetching
+- ✅ Loading and error state handling
+- ✅ Translation support with access key authentication
+
+**Translation System with Dual Auth:**
+- ✅ Updated `src/components/PatientSimplified/PatientLayout.tsx`
+- ✅ Access key passing to translation hooks
+- ✅ Secure translation creation and retrieval
+- ✅ Language switcher functionality maintained
+
+#### 7. React Query Integration
+**Status: COMPLETED - Full API Layer**
+
+**API Layer Structure:**
+```
+src/api/patient-access-keys/
+├── hooks.ts        # React Query hooks
+├── queries.ts      # API query functions  
+└── types.ts        # TypeScript types
+```
+
+**Implemented Hooks:**
+- ✅ `usePatientAccessKeys(summaryId)` - Fetch access keys
+- ✅ `useCreateAccessKey()` - Create new access key
+- ✅ `useDeactivateAccessKey()` - Remove access
+- ✅ `useSendPatientAccessSMS()` - Send SMS with link
+- ✅ `usePublicPatientSummary(accessKey)` - Public access
+
+#### 8. Middleware Configuration
+**Status: COMPLETED - Public Routes Security**
+
+**Updated Middleware:**
+- ✅ File: `src/middleware.ts`
+- ✅ Public route patterns for patient access:
+  - `/patient(.*)` - Public patient portal
+  - `/api/patient-summaries/access/(.*)` - Public summary access
+  - `/api/patient-summaries/(.*)/translate` - Public translation creation
+  - `/api/patient-summaries/(.*)/translations` - Public translation listing
+  - `/api/patient-summaries/(.*)/translations/(.*)` - Public translation access
+
+#### 9. Type Safety & Validation
+**Status: COMPLETED - End-to-End TypeScript**
+
+**Type Definitions:**
+- ✅ `PatientAccessKey` interface
+- ✅ `CreateAccessKeyRequest/Response` types
+- ✅ `SendSMSRequest/Response` types
+- ✅ Updated `TranslateRequest` with optional `access_key`
+- ✅ Zod schemas for validation
+
+### 🔧 Current Authentication Architecture
+
+#### Standard Authenticated Routes (Doctors/Staff)
+```
+User → Clerk Auth → Middleware → API → Supabase (with RLS)
+```
+
+#### Public Patient Access Routes
+```
+Patient → SMS Link → Access Key → Public API → Supabase (Service Role/Dual Auth)
+```
+
+#### Dual Authentication Endpoints
+These endpoints support BOTH authentication methods:
+- `/api/patient-summaries/[id]/translate`
+- `/api/patient-summaries/[id]/translations`
+- `/api/patient-summaries/[id]/translations/[locale]`
+
+### ✅ RESOLVED - Security Refactoring Complete (2025-01-07)
+
+#### 1. Unified Authentication Pattern - IMPLEMENTED
+**Solution:** Replaced dual-client pattern with unified hooks and RLS-based security:
+
+```typescript
+// Unified Pattern - Single hook for both auth methods
+const { data: summary } = usePatientSummary(summaryId, { 
+  accessKey: patientAccessKey 
+});
+
+// JWT-based Access Key Authentication  
+const customJWT = jwt.sign({
+  sub: 'access_key_user',
+  role: 'anon', 
+  access_key: accessKey,
+  exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 90) // 3 months
+}, process.env.SUPABASE_JWT_SECRET!);
+```
+
+**RLS Policies Implemented:**
+```sql
+-- Access via Clerk auth OR valid access key
+CREATE POLICY "Access via access key" ON patient_summaries
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM patient_access_keys
+    WHERE patient_access_keys.summary_id = patient_summaries.id
+    AND patient_access_keys.access_key = (auth.jwt() ->> 'access_key')
+    AND patient_access_keys.is_active = true
+  )
+);
+```
+
+#### 2. Eliminated Service Role Security Risk - RESOLVED
+**Implementation:** 
+- ✅ Created dedicated `createAccessKeySupabaseClient()` with custom JWT
+- ✅ Removed all service role usage from patient access endpoints
+- ✅ Database-level access control via RLS policies
+- ✅ 3-month JWT tokens for patient convenience
+
+#### 3. Clean API Architecture - IMPLEMENTED
+**New Structure:**
+```
+/api/patient-summaries/[id]/summary    # Unified summary access (public)
+/api/patient-summaries/[id]/translate  # Unified translation (public)  
+/api/patient-summaries/[id]/access-keys # Access key management (protected)
+```
+
+**Middleware Patterns:**
+```typescript
+const isPublicRoute = createRouteMatcher([
+  '/patient(.*)',
+  '/api/patient-summaries/:id/summary',
+  '/api/patient-summaries/:id/translate', 
+  '/api/patient-summaries/:id/translations',
+  '/api/patient-summaries/:id/translations/:locale',
+]);
+```
+
+### 📁 Files Modified/Created
+
+#### New Files Created:
+```
+src/libs/twilio.ts
+src/api/patient-access-keys/
+├── hooks.ts
+├── queries.ts
+└── types.ts
+src/components/SharePatientSummaryDialog.tsx
+src/components/AccessManagementPanel.tsx
+src/app/api/patient-summaries/[id]/access-keys/route.ts
+src/app/api/patient-summaries/[id]/share-sms/route.ts
+src/app/api/patient-summaries/access/[accessKey]/route.ts
+```
+
+#### Modified Files:
+```
+src/middleware.ts                                           # Updated to use :id patterns
+src/app/(auth)/(sidebar)/composer/page.tsx                # Integrated sharing UI
+src/app/patient/[summaryId]/page.tsx                      # Updated to unified pattern
+src/components/PatientSimplified/PatientLayout.tsx        # Unified hook usage
+src/api/patient-summaries/hooks.ts                        # Unified pattern with access key support
+src/api/patient-summaries/queries.ts                      # Updated endpoints (/summary)
+src/api/patient-summaries/types.ts                        # Added access_key to TranslateRequest
+src/app/api/patient-summaries/[id]/summary/route.ts       # Moved from [id]/route.ts
+src/app/api/patient-summaries/[id]/translate/route.ts     # Access key authentication
+src/app/api/patient-summaries/[id]/translations/route.ts  # Access key authentication  
+src/app/api/patient-summaries/[id]/translations/[locale]/route.ts # Access key authentication
+```
+
+### 🎯 **Key Features Delivered**
+
+#### **🔐 Secure Patient Access System**
+- **SMS Sharing**: Doctors send secure links via SMS with 3-month access keys
+- **Access Management**: UI to create, view, and revoke patient/caregiver access
+- **RLS Security**: Database-level access control, no service role exposure
+- **Multi-Role Support**: Separate access for patients vs caregivers
+
+#### **🌍 AI-Powered Translation System** 
+- **10 Languages Supported**: Auto-translation using Google Gemini 2.0 Flash
+- **Smart Caching**: Translations cached in database, deleted when content changes
+- **Access Key Compatible**: Patients can translate summaries via SMS links
+- **Real-time UI**: Language switcher with flag icons and smooth loading states
+
+#### **🔄 Unified API Architecture**
+- **Single Hook Pattern**: `usePatientSummary(id, { accessKey })` supports both auth methods
+- **Clean Endpoints**: `/summary`, `/translate`, `/translations` with proper security boundaries
+- **Smart Cache Keys**: Separate cache entries for different authentication methods
+- **Surgical Invalidation**: Only invalidate specific patient's cache, not all patients
+
+### 🛡️ **Smart Middleware Implementation**
+
+**Dynamic Route Protection**: Middleware detects `access_key` parameter and conditionally makes routes public:
+
+```typescript
+// Doctor request (no access_key) → Protected → Clerk auth runs ✅
+GET /api/patient-summaries/123/translations
+
+// Patient request (with access_key) → Public → Access key auth ✅  
+GET /api/patient-summaries/123/translations?access_key=abc123
+```
+
+**Benefits**: Eliminates 401 errors for doctors while maintaining security for public patient access.

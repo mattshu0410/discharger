@@ -1,5 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server';
 import { z } from 'zod';
+import { createAccessKeySupabaseClient } from '@/libs/supabase-access-key';
 import { createServerSupabaseClient } from '@/libs/supabase-server';
 import { translationService } from '@/libs/translationService';
 
@@ -8,58 +9,97 @@ export const dynamic = 'force-dynamic';
 // Zod schema for translation request
 const translateRequestSchema = z.object({
   target_locale: z.enum(['en', 'es', 'fr', 'de', 'it', 'pt', 'zh', 'ja', 'ko', 'ar']),
+  access_key: z.string().optional(), // Optional access key for public access
 });
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    ;
     const { id: patientSummaryId } = await params;
-    const user = await currentUser();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const body = await req.json();
+    ;
+    const { target_locale, access_key } = translateRequestSchema.parse(body);
+    ;
+
+    // Determine which client to use
+    let supabase;
+
+    // Try Clerk auth first
+    try {
+      const user = await currentUser();
+      if (user) {
+        ;
+        // Use standard authenticated client
+        supabase = createServerSupabaseClient();
+      }
+    } catch (error) {
+      console.warn('[DEBUG] Clerk auth failed:', error instanceof Error ? error.message : 'Unknown error');
     }
 
-    const body = await req.json();
-    const { target_locale } = translateRequestSchema.parse(body);
+    // If no Clerk auth and access key provided, use access key client
+    if (!supabase && access_key) {
+      ;
+      supabase = createAccessKeySupabaseClient(access_key);
+    }
 
-    const supabase = createServerSupabaseClient();
+    ;
 
-    // First verify the user has access to the patient summary and get the blocks
+    // If no auth method available, return unauthorized
+    if (!supabase) {
+      ;
+      return Response.json({ error: 'Unauthorized - authentication required' }, { status: 401 });
+    }
+
+    ;
+    // Now we can query with RLS policies handling the access control
     const { data: summary, error: summaryError } = await supabase
       .from('patient_summaries')
-      .select('id, doctor_id, patient_user_id, blocks, preferred_locale')
+      .select('id, blocks, preferred_locale')
       .eq('id', patientSummaryId)
       .single();
 
+    console.warn('[DEBUG] Patient summary query result:', {
+      hasData: !!summary,
+      error: summaryError?.message,
+      summaryId: summary?.id,
+    });
+
     if (summaryError || !summary) {
-      return Response.json({ error: 'Patient summary not found' }, { status: 404 });
+      ;
+      // RLS policies will return no data if access is denied
+      return Response.json({ error: 'Patient summary not found or access denied' }, { status: 404 });
     }
 
-    // Check access permissions - both doctors and patients can create translations
-    const hasAccess = summary.doctor_id === user.id || summary.patient_user_id === user.id;
-    if (!hasAccess) {
-      return Response.json({ error: 'Access denied' }, { status: 403 });
-    }
-
+    ;
     // Check if translation already exists
-    const { data: existingTranslation } = await supabase
+    const { data: existingTranslation, error: existingError } = await supabase
       .from('summary_translations')
       .select('id')
       .eq('patient_summary_id', patientSummaryId)
       .eq('locale', target_locale)
       .single();
 
+    console.warn('[DEBUG] Existing translation check:', {
+      exists: !!existingTranslation,
+      error: existingError?.message,
+    });
+
     if (existingTranslation) {
+      ;
       return Response.json({ error: 'Translation already exists for this locale' }, { status: 409 });
     }
 
+    ;
     // Translate the blocks using the translation service
     const translatedBlocks = await translationService.translateBlocks(
       summary.blocks,
       target_locale,
       summary.preferred_locale as any, // Source locale from patient summary
     );
+    ;
 
-    // Create the translation
+    ;
+    // Create the translation - RLS policies will handle access control
     const { data: translation, error } = await supabase
       .from('summary_translations')
       .insert({
@@ -71,17 +111,20 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .single();
 
     if (error) {
-      console.error('Error creating translation:', error);
+      console.error('[DEBUG] Error creating translation:', error);
       return Response.json({ error: 'Failed to create translation' }, { status: 500 });
     }
 
+    ;
     return Response.json({ translation }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      ;
       return Response.json({ error: 'Invalid input', details: error.errors }, { status: 400 });
     }
 
-    console.error('Error in POST /api/patient-summaries/[id]/translate:', error);
+    console.error('[DEBUG] Unexpected error in translate endpoint:', error);
+    console.error('[DEBUG] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

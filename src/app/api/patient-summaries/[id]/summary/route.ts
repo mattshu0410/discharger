@@ -1,5 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server';
 import { z } from 'zod';
+import { createAccessKeySupabaseClient } from '@/libs/supabase-access-key';
 import { createServerSupabaseClient } from '@/libs/supabase-server';
 
 export const dynamic = 'force-dynamic';
@@ -13,16 +14,36 @@ const updatePatientSummarySchema = z.object({
   preferred_locale: z.string().optional(),
 });
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const user = await currentUser();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    const url = new URL(req.url);
+    const accessKey = url.searchParams.get('access_key');
+
+    // Determine which client to use
+    let supabase;
+
+    // Try Clerk auth first
+    try {
+      const user = await currentUser();
+      if (user) {
+        supabase = createServerSupabaseClient();
+      }
+    } catch {
+      // No Clerk auth
     }
 
-    const supabase = createServerSupabaseClient();
+    // If no Clerk auth and access key provided, use access key client
+    if (!supabase && accessKey) {
+      supabase = createAccessKeySupabaseClient(accessKey);
+    }
 
+    // If no auth method available, return unauthorized
+    if (!supabase) {
+      return Response.json({ error: 'Unauthorized - authentication required' }, { status: 401 });
+    }
+
+    // Query patient summary - RLS policies handle access control
     const { data, error } = await supabase
       .from('patient_summaries')
       .select(`
@@ -49,12 +70,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     if (error) {
       console.error('Error fetching patient summary:', error);
       return Response.json({ error: 'Patient summary not found' }, { status: 404 });
-    }
-
-    // Check access permissions
-    const hasAccess = data.doctor_id === user.id || data.patient_user_id === user.id;
-    if (!hasAccess) {
-      return Response.json({ error: 'Access denied' }, { status: 403 });
     }
 
     return Response.json({ summary: data });

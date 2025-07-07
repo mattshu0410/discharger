@@ -74,4 +74,5 @@ export type SupportedLocale = 'en' | 'es' | 'fr' | 'de' | 'it' | 'pt' | 'zh' | '
 export type TranslateRequest = {
   patient_summary_id: string;
   target_locale: SupportedLocale;
+  access_key?: string; // Optional access key for public access
 };

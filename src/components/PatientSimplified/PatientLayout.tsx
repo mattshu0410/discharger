@@ -32,6 +32,8 @@ type PatientLayoutProps = {
   dischargeDate?: string;
   // Patient summary ID for translation functionality
   patientSummaryId?: string;
+  // Access key for public access to translation
+  patientAccessKey?: string;
 };
 
 export function PatientLayout({
@@ -43,17 +45,25 @@ export function PatientLayout({
   patientName = 'John Doe',
   dischargeDate = 'Jan 15, 2024',
   patientSummaryId,
+  patientAccessKey,
 }: PatientLayoutProps) {
   // Translation state and hooks
   const [currentLocale, setCurrentLocale] = useState<SupportedLocale>('en');
 
-  // React Query hooks for translation functionality
-  const { data: summary } = usePatientSummary(patientSummaryId || '');
-  const { data: translations = [] } = usePatientSummaryTranslations(patientSummaryId || '');
+  // React Query hooks for translation functionality - unified pattern
+  const { data: summary } = usePatientSummary(patientSummaryId || '', {
+    accessKey: patientAccessKey,
+  });
+  const { data: translations = [] } = usePatientSummaryTranslations(patientSummaryId || '', {
+    accessKey: patientAccessKey,
+  });
   const { data: currentTranslation } = usePatientSummaryTranslation(
     patientSummaryId || '',
     currentLocale,
-    { enabled: !!patientSummaryId && currentLocale !== summary?.preferred_locale },
+    {
+      enabled: !!patientSummaryId && currentLocale !== summary?.preferred_locale,
+      accessKey: patientAccessKey,
+    },
   );
 
   // Mutations
@@ -114,10 +124,17 @@ export function PatientLayout({
 
     // Create new translation
     try {
-      await translateMutation.mutateAsync({
+      const translateRequest: any = {
         patient_summary_id: patientSummaryId,
         target_locale: locale,
-      });
+      };
+
+      // Include access key for public access
+      if (patientAccessKey) {
+        translateRequest.access_key = patientAccessKey;
+      }
+
+      await translateMutation.mutateAsync(translateRequest);
       toast.success(`Translation to ${locale} created successfully!`);
     } catch (error) {
       console.error('Failed to create translation:', error);

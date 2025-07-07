@@ -17,7 +17,7 @@ export function useOnboarding() {
       // Start the onboarding tour with delay to ensure DOM is ready
       const timeoutId = setTimeout(() => {
         console.warn('Calling startNextStep with "onboarding"');
-        startNextStep('onboarding');
+        // startNextStep('onboarding');
       }, 1000);
       return () => clearTimeout(timeoutId);
     } else {

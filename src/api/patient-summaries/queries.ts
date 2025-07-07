@@ -58,8 +58,14 @@ export const listPatientSummaries = async (params: ListPatientSummariesParams = 
 };
 
 // Get single patient summary
-export const getPatientSummary = async (id: string): Promise<PatientSummary> => {
-  const response = await fetch(`/api/patient-summaries/${id}`);
+export const getPatientSummary = async (id: string, options?: { accessKey?: string }): Promise<PatientSummary> => {
+  const url = new URL(`/api/patient-summaries/${id}/summary`, window.location.origin);
+
+  if (options?.accessKey) {
+    url.searchParams.append('access_key', options.accessKey);
+  }
+
+  const response = await fetch(url.toString());
 
   if (!response.ok) {
     const error = await response.json();
@@ -72,7 +78,7 @@ export const getPatientSummary = async (id: string): Promise<PatientSummary> => 
 
 // Update patient summary
 export const updatePatientSummary = async (id: string, data: UpdatePatientSummaryInput): Promise<PatientSummary> => {
-  const response = await fetch(`/api/patient-summaries/${id}`, {
+  const response = await fetch(`/api/patient-summaries/${id}/summary`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -106,7 +112,7 @@ export const updatePatientSummaryBlocks = async (id: string, blocks: Block[]): P
 
 // Delete patient summary
 export const deletePatientSummary = async (id: string): Promise<void> => {
-  const response = await fetch(`/api/patient-summaries/${id}`, {
+  const response = await fetch(`/api/patient-summaries/${id}/summary`, {
     method: 'DELETE',
   });
 
@@ -120,8 +126,16 @@ export const deletePatientSummary = async (id: string): Promise<void> => {
 export const getPatientSummaryTranslation = async (
   patientSummaryId: string,
   locale: SupportedLocale,
+  accessKey?: string,
 ): Promise<SummaryTranslation> => {
-  const response = await fetch(`/api/patient-summaries/${patientSummaryId}/translations/${locale}`);
+  const url = new URL(`/api/patient-summaries/${patientSummaryId}/translations/${locale}`, window.location.origin);
+
+  // Add access key as query parameter if provided
+  if (accessKey) {
+    url.searchParams.set('access_key', accessKey);
+  }
+
+  const response = await fetch(url.toString());
 
   if (!response.ok) {
     const error = await response.json();
@@ -134,10 +148,17 @@ export const getPatientSummaryTranslation = async (
 
 // Create or update translation for patient summary
 export const translatePatientSummary = async (data: TranslateRequest): Promise<SummaryTranslation> => {
+  const requestBody: any = { target_locale: data.target_locale };
+
+  // Include access key if provided (for public access)
+  if (data.access_key) {
+    requestBody.access_key = data.access_key;
+  }
+
   const response = await fetch(`/api/patient-summaries/${data.patient_summary_id}/translate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ target_locale: data.target_locale }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
@@ -152,8 +173,16 @@ export const translatePatientSummary = async (data: TranslateRequest): Promise<S
 // List available translations for patient summary
 export const listPatientSummaryTranslations = async (
   patientSummaryId: string,
+  accessKey?: string,
 ): Promise<SummaryTranslation[]> => {
-  const response = await fetch(`/api/patient-summaries/${patientSummaryId}/translations`);
+  const url = new URL(`/api/patient-summaries/${patientSummaryId}/translations`, window.location.origin);
+
+  // Add access key as query parameter if provided
+  if (accessKey) {
+    url.searchParams.set('access_key', accessKey);
+  }
+
+  const response = await fetch(url.toString());
 
   if (!response.ok) {
     const error = await response.json();
