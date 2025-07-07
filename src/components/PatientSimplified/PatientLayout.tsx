@@ -1,11 +1,22 @@
 'use client';
 
+import type { SupportedLocale } from '@/api/patient-summaries/types';
 import type { Block, PatientProgress } from '@/types/blocks';
 import { Phone } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import {
+  usePatientSummary,
+  usePatientSummaryTranslation,
+  usePatientSummaryTranslations,
+  useTranslatePatientSummary,
+  useUpdatePatientSummaryLocale,
+} from '@/api/patient-summaries/hooks';
 import { AppointmentBlock } from '@/components/blocks/AppointmentBlock';
 import { MedicationBlock } from '@/components/blocks/MedicationBlock';
 import { RedFlagBlock } from '@/components/blocks/RedFlagBlock';
 import { TaskBlock } from '@/components/blocks/TaskBlock';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,6 +30,8 @@ type PatientLayoutProps = {
   isPreview?: boolean;
   patientName?: string;
   dischargeDate?: string;
+  // Patient summary ID for translation functionality
+  patientSummaryId?: string;
 };
 
 export function PatientLayout({
@@ -29,7 +42,93 @@ export function PatientLayout({
   isPreview = false,
   patientName = 'John Doe',
   dischargeDate = 'Jan 15, 2024',
+  patientSummaryId,
 }: PatientLayoutProps) {
+  // Translation state and hooks
+  const [currentLocale, setCurrentLocale] = useState<SupportedLocale>('en');
+
+  // React Query hooks for translation functionality
+  const { data: summary } = usePatientSummary(patientSummaryId || '');
+  const { data: translations = [] } = usePatientSummaryTranslations(patientSummaryId || '');
+  const { data: currentTranslation } = usePatientSummaryTranslation(
+    patientSummaryId || '',
+    currentLocale,
+    { enabled: !!patientSummaryId && currentLocale !== summary?.preferred_locale },
+  );
+
+  // Mutations
+  const translateMutation = useTranslatePatientSummary();
+  const updateLocaleMutation = useUpdatePatientSummaryLocale();
+
+  // Update current locale when summary is loaded
+  useEffect(() => {
+    if (summary?.preferred_locale) {
+      setCurrentLocale(summary.preferred_locale as SupportedLocale);
+    }
+  }, [summary?.preferred_locale]);
+
+  // Calculate available translations
+  const availableTranslations = translations.map(t => t.locale as SupportedLocale);
+  if (summary?.preferred_locale && !availableTranslations.includes(summary.preferred_locale as SupportedLocale)) {
+    availableTranslations.push(summary.preferred_locale as SupportedLocale);
+  }
+
+  // Determine which blocks to display
+  const displayBlocks = (() => {
+    if (!patientSummaryId || !summary) {
+      return blocks; // Use fallback blocks if no summary
+    }
+
+    // If current locale is the original, use original blocks
+    if (currentLocale === summary.preferred_locale) {
+      return summary.blocks;
+    }
+
+    // If we have a translation for current locale, use translated blocks
+    if (currentTranslation) {
+      return currentTranslation.translated_blocks;
+    }
+
+    // Fallback to original blocks
+    return summary.blocks;
+  })();
+
+  // Handle language switching
+  const handleLocaleChange = async (locale: SupportedLocale) => {
+    if (!patientSummaryId || !summary || locale === currentLocale) {
+      return;
+    }
+
+    setCurrentLocale(locale);
+
+    // If switching to original language, just update locale preference
+    if (locale === summary.preferred_locale) {
+      return;
+    }
+
+    // Check if translation exists
+    const existingTranslation = translations.find(t => t.locale === locale);
+    if (existingTranslation) {
+      return; // Translation already exists, React Query will handle loading
+    }
+
+    // Create new translation
+    try {
+      await translateMutation.mutateAsync({
+        patient_summary_id: patientSummaryId,
+        target_locale: locale,
+      });
+      toast.success(`Translation to ${locale} created successfully!`);
+    } catch (error) {
+      console.error('Failed to create translation:', error);
+      toast.error('Failed to create translation. Please try again.');
+      // Revert to previous locale on error
+      setCurrentLocale(summary.preferred_locale as SupportedLocale);
+    }
+  };
+
+  const isTranslating = translateMutation.isPending;
+  const isUpdatingLocale = updateLocaleMutation.isPending;
   const renderBlock = (block: Block) => {
     switch (block.type) {
       case 'medication':
@@ -97,6 +196,16 @@ export function PatientLayout({
                 </Badge>
               )}
             </div>
+            {patientSummaryId && (
+              <LanguageSwitcher
+                currentLocale={currentLocale}
+                onLocaleChange={handleLocaleChange}
+                isUpdatingLocale={isUpdatingLocale}
+                isTranslating={isTranslating}
+                availableTranslations={availableTranslations}
+                variant="compact"
+              />
+            )}
           </div>
 
           {/* Progress Bar */}
@@ -129,7 +238,7 @@ export function PatientLayout({
         </Card>
 
         {/* Blocks */}
-        {blocks
+        {displayBlocks
           .map(renderBlock)}
 
         {/* Emergency Contact Card */}

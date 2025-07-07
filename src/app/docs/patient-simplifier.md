@@ -196,6 +196,7 @@ classDiagram
 
 ### Block Type Definitions
 
+```typescript
 export type BlockType = 'text' | 'medication' | 'task' | 'redFlag' | 'appointment';
 
 export type BaseBlock = {
@@ -514,13 +515,18 @@ Layout Structure:
 - [X] Build medication checklist
 - [ ] Add medication info links
 
-#### 4.3 Multi-language Support with Lingo.dev
-- [ ] Integrate Lingo.dev SDK
-- [ ] Configure supported languages
-- [ ] Create language switcher
-- [ ] Implement dynamic translation:
+#### 4.3 Multi-language Support with AI Translation
+- [X] Add database schema for translations (summary_translations table)
+- [X] Create translation service using LangChain + Google Gemini
+- [X] Add language switcher to PatientLayout
+- [X] Implement React Query hooks for translation management
+- [X] Configure supported languages (10 languages)
+- [X] Create LanguageSwitcher component
+- [X] Implement dynamic AI-powered translation
+- [X] Cache translations in database
+- [X] Add cascaded deletion when blocks are updated
 - [ ] Add RTL layout support
-- [ ] Cache translations locally
+- [ ] Implement locale preferences persistence
 
 ### Stage 5: Advanced Features
 
@@ -755,9 +761,9 @@ src/
 │   │   └── queries.ts
 │   ├── index.ts
 │   ├── patient-summaries/
-│   │   ├── hooks.ts
-│   │   ├── queries.ts
-│   │   └── types.ts
+│   │   ├── hooks.ts               # React Query hooks for patient summary management
+│   │   ├── queries.ts             # API query functions with translation support
+│   │   └── types.ts               # TypeScript types including SupportedLocale
 │   ├── patients/
 │   │   ├── hooks.ts
 │   │   ├── queries.ts
@@ -819,9 +825,17 @@ src/
 │   │   ├── patient-summaries/
 │   │   │   ├── [id]/
 │   │   │   │   ├── blocks/
-│   │   │   │   │   └── route.ts
-│   │   │   │   └── route.ts
-│   │   │   └── route.ts
+│   │   │   │   │   └── route.ts        # Update patient summary blocks
+│   │   │   │   ├── locale/
+│   │   │   │   │   └── route.ts        # Update locale preference
+│   │   │   │   ├── route.ts            # Get/update single patient summary
+│   │   │   │   ├── translate/
+│   │   │   │   │   └── route.ts        # Create new AI translation
+│   │   │   │   └── translations/
+│   │   │   │       ├── [locale]/
+│   │   │   │       │   └── route.ts    # Get specific translation
+│   │   │   │       └── route.ts        # List all translations
+│   │   │   └── route.ts                # List/create patient summaries
 │   │   ├── patients/
 │   │   │   ├── [id]/
 │   │   │   │   └── route.ts
@@ -853,7 +867,7 @@ src/
 │   │   ├── onborda-implementation-guide.md
 │   │   ├── patient-lifecycle-refactor.md
 │   │   ├── patient-portal-implementation-plan.md
-│   │   └── patient-simplifier
+│   │   └── patient-simplifier.md
 │   ├── global-error.tsx
 │   ├── layout.tsx
 │   ├── patient/
@@ -886,10 +900,11 @@ src/
 │   │   └── index.ts
 │   ├── DocumentPreviewModal.tsx
 │   ├── DocumentSelector.tsx
+│   ├── LanguageSwitcher.tsx          # Language switcher component with flag icons
 │   ├── PatientForm.tsx
 │   ├── PatientSimplified/
 │   │   ├── FloatingChat.tsx
-│   │   ├── PatientLayout.tsx
+│   │   ├── PatientLayout.tsx         # Main patient portal layout with translation integration
 │   │   └── index.ts
 │   ├── Sidebar.tsx
 │   ├── SnippetSelector.tsx
@@ -951,3 +966,28 @@ src/
     ├── Helpers.ts
     └── debounce.ts
 ```
+
+### Multi-Language System Architecture
+
+The language switching system consists of several interconnected components:
+
+1. **API Layer (`src/api/patient-summaries/`)**: 
+   - `types.ts` defines `SupportedLocale` type for the 10 supported languages
+   - `queries.ts` contains API functions for translation management
+   - `hooks.ts` provides React Query hooks for translation state management
+
+2. **UI Components**:
+   - `LanguageSwitcher.tsx` provides a dropdown with flag icons and language names
+   - `PatientLayout.tsx` integrates the language switcher and manages translation state
+
+3. **API Routes (`src/app/api/patient-summaries/[id]/`)**: 
+   - `translate/route.ts` creates AI-powered translations using Google Gemini
+   - `translations/route.ts` and `translations/[locale]/route.ts` manage stored translations
+   - `locale/route.ts` updates user locale preferences
+
+4. **Data Flow**:
+   - User selects language in `LanguageSwitcher`
+   - `PatientLayout` calls translation hooks from `src/api/patient-summaries/hooks.ts`
+   - If translation doesn't exist, AI creates it via `/translate` endpoint
+   - Translated blocks are cached and displayed to user
+   - React Query manages caching and invalidation of translation data

@@ -9,7 +9,8 @@
       "mcp__browser-tools__getSelectedElement",
       "mcp__browser-tools__takeScreenshot",
       "mcp__supabase__list_projects",
-      "mcp__supabase__list_tables"
+      "mcp__supabase__list_tables",
+      "mcp__supabase__execute_sql"
     ]
   },
   "enabledMcpjsonServers": [

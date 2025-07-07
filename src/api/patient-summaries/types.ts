@@ -8,6 +8,7 @@ export type PatientSummary = {
   blocks: Block[];
   discharge_text?: string;
   status: 'draft' | 'published' | 'archived';
+  preferred_locale: string;
   created_at: string;
   updated_at: string;
   patients?: {
@@ -23,6 +24,7 @@ export type CreatePatientSummaryInput = {
   blocks: Block[];
   discharge_text?: string;
   status?: 'draft' | 'published' | 'archived';
+  preferred_locale?: string;
 };
 
 export type UpdatePatientSummaryInput = {
@@ -30,6 +32,7 @@ export type UpdatePatientSummaryInput = {
   discharge_text?: string;
   status?: 'draft' | 'published' | 'archived';
   patient_user_id?: string;
+  preferred_locale?: string;
 };
 
 export type ListPatientSummariesParams = {
@@ -45,4 +48,30 @@ export type ListPatientSummariesResponse = {
 
 export type PatientSummaryResponse = {
   summary: PatientSummary;
+};
+
+export type SummaryTranslation = {
+  id: string;
+  patient_summary_id: string;
+  locale: string;
+  translated_blocks: Block[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateTranslationInput = {
+  patient_summary_id: string;
+  locale: string;
+  translated_blocks: Block[];
+};
+
+export type TranslationResponse = {
+  translation: SummaryTranslation;
+};
+
+export type SupportedLocale = 'en' | 'es' | 'fr' | 'de' | 'it' | 'pt' | 'zh' | 'ja' | 'ko' | 'ar';
+
+export type TranslateRequest = {
+  patient_summary_id: string;
+  target_locale: SupportedLocale;
 };

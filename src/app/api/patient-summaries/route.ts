@@ -10,6 +10,7 @@ const createPatientSummarySchema = z.object({
   blocks: z.array(z.any()), // Block array - will be validated against Block type
   discharge_text: z.string().optional(),
   status: z.enum(['draft', 'published', 'archived']).default('draft'),
+  preferred_locale: z.string().default('en'),
 });
 
 // Zod schema for query parameters
@@ -43,6 +44,7 @@ export async function GET(req: Request) {
         blocks,
         discharge_text,
         status,
+        preferred_locale,
         created_at,
         updated_at,
         patients (
@@ -86,7 +88,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { patient_id, blocks, discharge_text, status } = createPatientSummarySchema.parse(body);
+    const { patient_id, blocks, discharge_text, status, preferred_locale } = createPatientSummarySchema.parse(body);
 
     const supabase = createServerSupabaseClient();
 
@@ -111,6 +113,7 @@ export async function POST(req: Request) {
         blocks,
         discharge_text,
         status,
+        preferred_locale,
       })
       .select(`
         id,
@@ -120,6 +123,7 @@ export async function POST(req: Request) {
         blocks,
         discharge_text,
         status,
+        preferred_locale,
         created_at,
         updated_at,
         patients (

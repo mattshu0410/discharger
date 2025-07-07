@@ -4,59 +4,49 @@ import { createServerSupabaseClient } from '@/libs/supabase-server';
 
 export const dynamic = 'force-dynamic';
 
-// Zod schema for updating blocks
-const updateBlocksSchema = z.object({
-  blocks: z.array(z.any()), // Block array - will be validated against Block type
+// Zod schema for locale update
+const updateLocaleSchema = z.object({
+  preferred_locale: z.enum(['en', 'es', 'fr', 'de', 'it', 'pt', 'zh', 'ja', 'ko', 'ar']),
 });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params;
+    const { id: patientSummaryId } = await params;
     const user = await currentUser();
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
-    const { blocks } = updateBlocksSchema.parse(body);
+    const { preferred_locale } = updateLocaleSchema.parse(body);
 
     const supabase = createServerSupabaseClient();
 
-    // First verify the summary exists and user has access
-    const { data: existingSummary, error: fetchError } = await supabase
+    // First verify the user has access to the patient summary
+    const { data: summary, error: summaryError } = await supabase
       .from('patient_summaries')
       .select('id, doctor_id, patient_user_id')
-      .eq('id', id)
+      .eq('id', patientSummaryId)
       .single();
 
-    if (fetchError || !existingSummary) {
+    if (summaryError || !summary) {
       return Response.json({ error: 'Patient summary not found' }, { status: 404 });
     }
 
-    // Check access permissions - only doctors can edit for now
-    if (existingSummary.doctor_id !== user.id) {
+    // Check access permissions - both doctors and patients can update locale preference
+    const hasAccess = summary.doctor_id === user.id || summary.patient_user_id === user.id;
+    if (!hasAccess) {
       return Response.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Delete all existing translations since blocks are being updated
-    const { error: deleteError } = await supabase
-      .from('summary_translations')
-      .delete()
-      .eq('patient_summary_id', id);
-
-    if (deleteError) {
-      console.error('Error deleting translations:', deleteError);
-      // Continue with update even if translation deletion fails
-    }
-
-    // Update only the blocks
+    // Update the locale preference
     const { data, error } = await supabase
       .from('patient_summaries')
       .update({
-        blocks,
+        preferred_locale,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', id)
+      .eq('id', patientSummaryId)
       .select(`
         id,
         patient_id,
@@ -78,8 +68,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       .single();
 
     if (error) {
-      console.error('Error updating patient summary blocks:', error);
-      return Response.json({ error: 'Failed to update blocks' }, { status: 500 });
+      console.error('Error updating locale preference:', error);
+      return Response.json({ error: 'Failed to update locale preference' }, { status: 500 });
     }
 
     return Response.json({ summary: data });
@@ -88,7 +78,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return Response.json({ error: 'Invalid input', details: error.errors }, { status: 400 });
     }
 
-    console.error('Error in PATCH /api/patient-summaries/[id]/blocks:', error);
+    console.error('Error in PATCH /api/patient-summaries/[id]/locale:', error);
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -4,6 +4,10 @@ import type {
   ListPatientSummariesResponse,
   PatientSummary,
   PatientSummaryResponse,
+  SummaryTranslation,
+  SupportedLocale,
+  TranslateRequest,
+  TranslationResponse,
   UpdatePatientSummaryInput,
 } from './types';
 import type { Block } from '@/types/blocks';
@@ -110,4 +114,72 @@ export const deletePatientSummary = async (id: string): Promise<void> => {
     const error = await response.json();
     throw new Error(error.error || 'Failed to delete patient summary');
   }
+};
+
+// Get translation for patient summary
+export const getPatientSummaryTranslation = async (
+  patientSummaryId: string,
+  locale: SupportedLocale,
+): Promise<SummaryTranslation> => {
+  const response = await fetch(`/api/patient-summaries/${patientSummaryId}/translations/${locale}`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to fetch translation');
+  }
+
+  const result: TranslationResponse = await response.json();
+  return result.translation;
+};
+
+// Create or update translation for patient summary
+export const translatePatientSummary = async (data: TranslateRequest): Promise<SummaryTranslation> => {
+  const response = await fetch(`/api/patient-summaries/${data.patient_summary_id}/translate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ target_locale: data.target_locale }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to translate patient summary');
+  }
+
+  const result: TranslationResponse = await response.json();
+  return result.translation;
+};
+
+// List available translations for patient summary
+export const listPatientSummaryTranslations = async (
+  patientSummaryId: string,
+): Promise<SummaryTranslation[]> => {
+  const response = await fetch(`/api/patient-summaries/${patientSummaryId}/translations`);
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to fetch translations');
+  }
+
+  const result: { translations: SummaryTranslation[] } = await response.json();
+  return result.translations;
+};
+
+// Update patient summary locale preference
+export const updatePatientSummaryLocale = async (
+  id: string,
+  locale: SupportedLocale,
+): Promise<PatientSummary> => {
+  const response = await fetch(`/api/patient-summaries/${id}/locale`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ preferred_locale: locale }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to update locale preference');
+  }
+
+  const result: PatientSummaryResponse = await response.json();
+  return result.summary;
 };

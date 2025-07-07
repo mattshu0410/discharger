@@ -10,6 +10,7 @@ const updatePatientSummarySchema = z.object({
   discharge_text: z.string().optional(),
   status: z.enum(['draft', 'published', 'archived']).optional(),
   patient_user_id: z.string().optional(), // For when patient authentication is implemented
+  preferred_locale: z.string().optional(),
 });
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -32,6 +33,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         blocks,
         discharge_text,
         status,
+        preferred_locale,
         created_at,
         updated_at,
         patients (
@@ -91,6 +93,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       return Response.json({ error: 'Access denied' }, { status: 403 });
     }
 
+    // If blocks are being updated, delete all existing translations
+    if (updates.blocks) {
+      const { error: deleteError } = await supabase
+        .from('summary_translations')
+        .delete()
+        .eq('patient_summary_id', id);
+
+      if (deleteError) {
+        console.error('Error deleting translations:', deleteError);
+        // Continue with update even if translation deletion fails
+      }
+    }
+
     // Update the summary
     const { data, error } = await supabase
       .from('patient_summaries')
@@ -107,6 +122,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         blocks,
         discharge_text,
         status,
+        preferred_locale,
         created_at,
         updated_at,
         patients (

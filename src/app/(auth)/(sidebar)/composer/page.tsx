@@ -550,6 +550,7 @@ export default function ComposerPage() {
                       isPreview={true}
                       patientName="Robert Chen"
                       dischargeDate="Jan 5, 2025"
+                      patientSummaryId={latestSummary?.id}
                     />
                   </DevicePreview>
                 </div>
@@ -566,22 +567,22 @@ export default function ComposerPage() {
         </div>
 
         {/* Discharge Input Area - Always visible at bottom */}
-        <div className="border-t p-4 bg-muted/30 flex-shrink-0">
-          <div className="max-w-4xl mx-auto">
+        <div className="border-t p-4 bg-muted/30 flex-shrink-0 h-48">
+          <div className="max-w-4xl mx-auto h-full flex flex-col">
             <label htmlFor="dischargeText" className="block text-sm font-medium mb-2">
               Paste discharge summary to generate blocks
             </label>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-1">
               <Textarea
                 value={dischargeText}
                 onChange={e => setDischargeText(e.target.value)}
-                className="flex-1 min-h-[100px]"
+                className="flex-1 resize-none h-full overflow-y-auto"
                 placeholder="Patient was admitted with acute appendicitis and underwent laparoscopic appendectomy..."
               />
               <Button
                 onClick={handleGenerate}
                 disabled={!dischargeText || isGenerating}
-                className="px-6"
+                className="px-6 self-start"
               >
                 {isGenerating
                   ? (
