@@ -11,6 +11,7 @@ import { twilioService } from '@/libs/twilio';
  * Get all access keys for a patient summary
  */
 export async function GET(
+  _request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   try {
