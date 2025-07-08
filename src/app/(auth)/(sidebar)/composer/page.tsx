@@ -2,7 +2,7 @@
 
 import type { Block } from '@/types/blocks';
 import { AlertTriangle, Calendar, CheckSquare, Eye, FileText, Pill, Plus, Send, Share } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useGenerateBlocks } from '@/api/blocks/hooks';
 import { useCreatePatientSummary, usePatientSummaries, useUpdatePatientSummaryBlocks } from '@/api/patient-summaries/hooks';
@@ -38,35 +38,35 @@ const mockBlocks: Block[] = [
       appointments: [
         {
           id: 'appt1',
-          clinicName: 'Cardiology - Dr. Martinez',
+          clinicName: 'Example - Dr. Hippocrates (Cardiology)',
           description: 'Check your medications and heart health.',
           status: 'already_booked',
           date: new Date('2025-01-08T09:00:00'),
         },
         {
           id: 'appt2',
-          clinicName: 'Cardiac Rehabilitation - Heart Center',
+          clinicName: 'Example - Heart Center (Cardiac Rehabilitation)',
           description: 'Intake appointment for cardiac rehab program',
           status: 'already_booked',
           date: new Date('2025-01-15T14:00:00'),
         },
         {
           id: 'appt3',
-          clinicName: 'Primary Care - Dr. Williams',
+          clinicName: 'Example - Dr. Williams (Primary Care)',
           description: 'General follow-up and medication review',
           status: 'already_booked',
           date: new Date('2025-01-15T10:30:00'),
         },
         {
           id: 'appt4',
-          clinicName: 'Endocrinology - Dr. Patel',
+          clinicName: 'Example - Dr. Patel (Endocrinology)',
           description: 'Diabetes management, consider starting dulaglutide',
           status: 'already_booked',
           date: new Date('2025-01-22T11:00:00'),
         },
         {
           id: 'appt5',
-          clinicName: 'Nephrology - Dr. Thompson',
+          clinicName: 'Example - Dr. Thompson (Nephrology)',
           description: 'Kidney function monitoring (if creatinine remains elevated)',
           status: 'clinic_will_call',
         },
@@ -88,7 +88,7 @@ const mockBlocks: Block[] = [
       medications: [
         {
           id: 'med1',
-          name: 'Aspirin',
+          name: 'Example - Aspirin',
           dosage: '81mg',
           frequency: 'Once daily',
           duration: 'Ongoing',
@@ -97,7 +97,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'med2',
-          name: 'Ticagrelor',
+          name: 'Example - Ticagrelor',
           dosage: '90mg',
           frequency: 'Twice daily',
           duration: '12 months',
@@ -106,7 +106,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'med3',
-          name: 'Metoprolol Succinate',
+          name: 'Example - Metoprolol Succinate',
           dosage: '50mg',
           frequency: 'Once daily',
           duration: 'Ongoing',
@@ -115,7 +115,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'med4',
-          name: 'Atorvastatin',
+          name: 'Example - Atorvastatin',
           dosage: '80mg',
           frequency: 'Once daily',
           duration: 'Ongoing',
@@ -124,7 +124,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'med5',
-          name: 'Lisinopril',
+          name: 'Example - Lisinopril',
           dosage: '10mg',
           frequency: 'Once daily',
           duration: 'Ongoing',
@@ -133,7 +133,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'med6',
-          name: 'Spironolactone',
+          name: 'Example - Spironolactone',
           dosage: '12.5mg',
           frequency: 'Once daily',
           duration: 'Ongoing',
@@ -142,7 +142,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'med7',
-          name: 'Empagliflozin',
+          name: 'Example - Empagliflozin',
           dosage: '10mg',
           frequency: 'Once daily',
           duration: 'Ongoing',
@@ -151,7 +151,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'med8',
-          name: 'Insulin Glargine',
+          name: 'Example - Insulin Glargine',
           dosage: '20 units',
           frequency: 'Once daily at bedtime',
           duration: 'Ongoing',
@@ -160,7 +160,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'med9',
-          name: 'Insulin Aspart',
+          name: 'Example - Insulin Aspart',
           dosage: 'As per sliding scale',
           frequency: 'Before meals',
           duration: 'Ongoing',
@@ -169,7 +169,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'med10',
-          name: 'Nitroglycerin Sublingual',
+          name: 'Example - Nitroglycerin Sublingual',
           dosage: '0.4mg',
           frequency: 'As needed',
           duration: 'As needed',
@@ -178,7 +178,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'med11',
-          name: 'Amlodipine',
+          name: 'Example - Amlodipine',
           dosage: '5mg',
           frequency: 'Once daily',
           duration: 'Ongoing',
@@ -204,7 +204,7 @@ const mockBlocks: Block[] = [
       tasks: [
         {
           id: 'task0',
-          title: 'Book GP Appointment',
+          title: 'Example - Book GP Appointment',
           description: 'Please book an appointment with your local GP to get a referral.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'high',
@@ -212,7 +212,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'task1',
-          title: 'Monitor blood sugar levels',
+          title: 'Example - Monitor blood sugar levels',
           description: 'Check blood sugar before meals and at bedtime. Keep a log.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'high',
@@ -220,7 +220,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'task2',
-          title: 'Take medications as prescribed',
+          title: 'Example - Take medications as prescribed',
           description: 'Follow the medication schedule carefully. Do not skip doses.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'high',
@@ -228,7 +228,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'task3',
-          title: 'Monitor for chest pain',
+          title: 'Example - Monitor for chest pain',
           description: 'Use nitroglycerin as instructed. Call 000 if pain persists.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'high',
@@ -236,7 +236,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'task4',
-          title: 'Gradual activity increase',
+          title: 'Example - Gradual activity increase',
           description: 'Begin with light walking. Avoid heavy lifting >5kg for 1 week.',
           dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
           priority: 'medium',
@@ -244,7 +244,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'task5',
-          title: 'Monitor kidney function',
+          title: 'Example - Monitor kidney function',
           description: 'Watch for changes in urine, swelling in legs/feet.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'medium',
@@ -252,7 +252,7 @@ const mockBlocks: Block[] = [
         },
         {
           id: 'task6',
-          title: 'Heart-healthy diet',
+          title: 'Example - Heart-healthy diet',
           description: 'Low sodium, diabetic-friendly diet. Limit saturated fats.',
           dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
           priority: 'medium',
@@ -335,6 +335,7 @@ export default function ComposerPage() {
     overallCompletion: 0,
   });
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const autoSavedForPatient = useRef(new Set<string>());
 
   // Zustand state
   const {
@@ -358,6 +359,25 @@ export default function ComposerPage() {
   // Get the latest summary for current patient
   const latestSummary = summariesData?.summaries?.[0];
   const blocks = latestSummary?.blocks || mockBlocks;
+
+  // Auto-save mock blocks when patient has no existing summary
+  useEffect(() => {
+    if (
+      currentPatientId
+      && !isLoadingSummaries
+      && summariesData
+      && summariesData.summaries.length === 0
+      && !autoSavedForPatient.current.has(currentPatientId)
+    ) {
+      autoSavedForPatient.current.add(currentPatientId);
+      createPatientSummaryMutation.mutate({
+        patient_id: currentPatientId,
+        blocks: mockBlocks,
+        discharge_text: '',
+        status: 'draft',
+      });
+    }
+  }, [currentPatientId, isLoadingSummaries, summariesData]);
 
   // Use mutation's isPending instead of local state
   const isGenerating = generateBlocksMutation.isPending;
