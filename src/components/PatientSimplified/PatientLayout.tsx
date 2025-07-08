@@ -20,6 +20,7 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { LoadingBlock } from '@/components/ui/loading-block';
 import { Progress } from '@/components/ui/progress';
 
 type PatientLayoutProps = {
@@ -57,7 +58,7 @@ export function PatientLayout({
   const { data: translations = [] } = usePatientSummaryTranslations(patientSummaryId || '', {
     accessKey: patientAccessKey,
   });
-  const { data: currentTranslation } = usePatientSummaryTranslation(
+  const { data: currentTranslation, isLoading: isLoadingTranslation } = usePatientSummaryTranslation(
     patientSummaryId || '',
     currentLocale,
     {
@@ -146,6 +147,8 @@ export function PatientLayout({
 
   const isTranslating = translateMutation.isPending;
   const isUpdatingLocale = updateLocaleMutation.isPending;
+  const isLoading = isTranslating || isUpdatingLocale || isLoadingTranslation;
+
   const renderBlock = (block: Block) => {
     switch (block.type) {
       case 'medication':
@@ -255,8 +258,11 @@ export function PatientLayout({
         </Card>
 
         {/* Blocks */}
-        {displayBlocks
-          .map(renderBlock)}
+        {isLoading
+          ? Array.from({ length: displayBlocks.length }, (_, index) => (
+              <LoadingBlock key={`loading-${index}`} />
+            ))
+          : displayBlocks.map(renderBlock)}
 
         {/* Emergency Contact Card */}
         <Card className="border-red-200 bg-red-50">

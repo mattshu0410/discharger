@@ -16,7 +16,11 @@
       "Bash(npx tsc:*)",
       "Bash(grep:*)",
       "WebFetch(domain:ui.shadcn.com)",
-      "WebFetch(domain:tanstack.com)"
+      "WebFetch(domain:tanstack.com)",
+      "WebFetch(domain:www.react-hook-form.com)",
+      "WebFetch(domain:nextjs.org)",
+      "WebFetch(domain:react.dev)",
+      "Bash(find:*)"
     ]
   },
   "enabledMcpjsonServers": [

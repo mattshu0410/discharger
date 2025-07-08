@@ -1,8 +1,10 @@
 'use client';
 
 import type { AppointmentBlock as AppointmentBlockType, BlockProps } from '@/types/blocks';
-import { Calendar, Edit3 } from 'lucide-react';
+import { Calendar, Edit3, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,19 +14,60 @@ import { Textarea } from '@/components/ui/textarea';
 export function AppointmentBlock({ block, mode, onUpdate }: BlockProps<AppointmentBlockType>) {
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const handleEdit = (appointmentId: string, field: string, value: string) => {
+  // React Hook Form setup with reactive values from server state
+  const { control, handleSubmit, watch } = useForm({
+    values: block, // Reactive sync with entire block from server state
+    resetOptions: {
+      keepDirtyValues: false, // Don't keep user edits during server updates
+    },
+  });
+
+  // Watch for immediate UI updates during editing
+  const watchedBlock = watch();
+
+  // Field array for managing appointments dynamically
+  const { append, remove } = useFieldArray({
+    control,
+    name: 'data.appointments',
+  });
+
+  const handleDone = handleSubmit((formData) => {
     if (onUpdate) {
-      const updatedBlock = {
-        ...block,
-        data: {
-          ...block.data,
-          appointments: block.data.appointments.map(appointment =>
-            appointment.id === appointmentId ? { ...appointment, [field]: value } : appointment,
-          ),
-        },
-      };
-      onUpdate(updatedBlock);
+      onUpdate(formData);
     }
+    setEditingId(null);
+  });
+
+  const handleDeleteAppointment = async (index: number, clinicName: string) => {
+    try {
+      const appointmentBeingDeleted = watchedBlock.data?.appointments?.[index];
+
+      // Clear editingId if we're deleting the currently edited item
+      if (appointmentBeingDeleted?.id === editingId) {
+        setEditingId(null);
+      }
+
+      remove(index);
+      // Wait a tick to ensure state is updated before calling handleDone
+      await new Promise(resolve => setTimeout(resolve, 0));
+      handleDone();
+      toast.success(`Appointment "${clinicName}" deleted successfully`);
+    } catch (error) {
+      toast.error('Failed to delete appointment');
+      console.warn(error);
+    }
+  };
+
+  const handleAddAppointment = () => {
+    const newAppointment = {
+      id: `appt_${Date.now()}`,
+      clinicName: '',
+      description: '',
+      status: 'patient_to_book' as const,
+      date: undefined,
+    };
+    append(newAppointment);
+    setEditingId(newAppointment.id);
   };
 
   const getStatusBadge = (status: string) => {
@@ -94,10 +137,15 @@ export function AppointmentBlock({ block, mode, onUpdate }: BlockProps<Appointme
           <Calendar className="w-5 h-5" />
           {mode === 'edit'
             ? (
-                <Input
-                  value={block.title}
-                  onChange={e => onUpdate?.({ ...block, title: e.target.value })}
-                  className="font-medium border-none p-0 h-auto bg-transparent text-green-900 flex-1"
+                <Controller
+                  name="title"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      className="font-medium border-none p-0 h-auto bg-transparent text-green-900 flex-1"
+                    />
+                  )}
                 />
               )
             : (
@@ -107,35 +155,61 @@ export function AppointmentBlock({ block, mode, onUpdate }: BlockProps<Appointme
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        {block.data.appointments.map((appointment) => {
+        {(mode === 'edit' ? watchedBlock.data?.appointments : block.data.appointments)?.map((appointment, index) => {
           const statusBadge = getStatusBadge(appointment.status);
           return (
             <div key={appointment.id} className="p-4 border-b border-green-100 last:border-b-0 bg-white">
               {mode === 'edit' && editingId === appointment.id
                 ? (
                     <div className="space-y-3">
-                      <Input
-                        value={appointment.clinicName}
-                        onChange={e => handleEdit(appointment.id, 'clinicName', e.target.value)}
-                        placeholder="Clinic name"
+                      <Controller
+                        name={`data.appointments.${index}.clinicName`}
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            placeholder="Clinic name"
+                          />
+                        )}
                       />
-                      <Textarea
-                        value={appointment.description}
-                        onChange={e => handleEdit(appointment.id, 'description', e.target.value)}
-                        placeholder="Description"
-                        className="min-h-[60px]"
+                      <Controller
+                        name={`data.appointments.${index}.description`}
+                        control={control}
+                        render={({ field }) => (
+                          <Textarea
+                            {...field}
+                            placeholder="Description"
+                            className="min-h-[60px]"
+                          />
+                        )}
                       />
                       <div className="flex gap-2">
-                        <select
-                          value={appointment.status}
-                          onChange={e => handleEdit(appointment.id, 'status', e.target.value)}
-                          className="px-2 py-1 border rounded text-sm"
+                        <Controller
+                          name={`data.appointments.${index}.status`}
+                          control={control}
+                          render={({ field }) => (
+                            <select
+                              {...field}
+                              className="px-2 py-1 border rounded text-sm"
+                            >
+                              <option value="patient_to_book">Patient to Book</option>
+                              <option value="clinic_will_call">Clinic Will Call</option>
+                              <option value="already_booked">Already Booked</option>
+                            </select>
+                          )}
+                        />
+                        <Button size="sm" onClick={handleDone} type="button">Done</Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            const clinicName = appointment.clinicName || 'Appointment';
+                            handleDeleteAppointment(index, clinicName);
+                          }}
+                          type="button"
                         >
-                          <option value="patient_to_book">Patient to Book</option>
-                          <option value="clinic_will_call">Clinic Will Call</option>
-                          <option value="already_booked">Already Booked</option>
-                        </select>
-                        <Button size="sm" onClick={() => setEditingId(null)}>Done</Button>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   )
@@ -180,7 +254,12 @@ export function AppointmentBlock({ block, mode, onUpdate }: BlockProps<Appointme
 
         {mode === 'edit' && (
           <div className="p-4 border-t border-green-200">
-            <Button variant="outline" className="w-full border-dashed border-green-300 text-green-700">
+            <Button
+              variant="outline"
+              className="w-full border-dashed border-green-300 text-green-700"
+              onClick={handleAddAppointment}
+              type="button"
+            >
               + Add Appointment
             </Button>
           </div>

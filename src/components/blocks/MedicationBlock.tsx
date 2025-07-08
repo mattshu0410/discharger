@@ -1,8 +1,10 @@
 'use client';
 
 import type { BlockProps, MedicationBlock as MedicationBlockType } from '@/types/blocks';
-import { Edit3, Pill } from 'lucide-react';
-import { useState } from 'react';
+import { Edit3, Pill, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,19 +13,101 @@ import { Input } from '@/components/ui/input';
 export function MedicationBlock({ block, mode, onUpdate }: BlockProps<MedicationBlockType>) {
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const handleEdit = (medicationId: string, field: string, value: string) => {
+  // React Hook Form setup with reactive values from server state
+  const { control, handleSubmit, watch } = useForm({
+    values: block, // Reactive sync with entire block from server state
+    resetOptions: {
+      keepDirtyValues: false, // Keep user edits during server updates
+    },
+  });
+
+  // Watch for immediate UI updates during editing
+  const watchedBlock = watch();
+
+  // Debug: Watch for state changes
+  useEffect(() => {
+    console.warn('📊 Server state changed:', {
+      medications: block.data.medications?.map(m => ({ id: m.id, name: m.name })),
+      count: block.data.medications?.length,
+    });
+  }, [block.data.medications]);
+
+  useEffect(() => {
+    console.warn('📝 Form state changed:', {
+      medications: watchedBlock.data?.medications?.map(m => ({ id: m.id, name: m.name })),
+      count: watchedBlock.data?.medications?.length,
+    });
+  }, [watchedBlock.data?.medications]);
+
+  useEffect(() => {
+    console.warn('✏️ EditingId changed:', editingId);
+  }, [editingId]);
+
+  // Field array for managing medications dynamically
+  const { append, remove } = useFieldArray({
+    control,
+    name: 'data.medications',
+  });
+
+  const handleDone = handleSubmit((formData) => {
+    console.warn('🔄 handleDone - Sending to server:', {
+      formData: formData.data.medications,
+      editingId,
+    });
     if (onUpdate) {
-      const updatedBlock = {
-        ...block,
-        data: {
-          ...block.data,
-          medications: block.data.medications.map(med =>
-            med.id === medicationId ? { ...med, [field]: value } : med,
-          ),
-        },
-      };
-      onUpdate(updatedBlock);
+      onUpdate(formData);
     }
+    setEditingId(null);
+  });
+
+  const handleDeleteMedication = async (index: number, medicationName: string) => {
+    try {
+      const medicationBeingDeleted = watchedBlock.data?.medications?.[index];
+
+      console.warn('🗑️ Before delete:', {
+        index,
+        medicationBeingDeleted,
+        watchedMeds: watchedBlock.data?.medications?.map(m => ({ id: m.id, name: m.name })),
+        serverMeds: block.data.medications?.map(m => ({ id: m.id, name: m.name })),
+        editingId,
+        willClearEditingId: medicationBeingDeleted?.id === editingId,
+      });
+
+      // Clear editingId if we're deleting the currently edited item
+      if (medicationBeingDeleted?.id === editingId) {
+        console.warn('🧹 Clearing editingId');
+        setEditingId(null);
+      }
+
+      remove(index);
+      console.warn('🔄 After remove:', {
+        watchedMeds: watchedBlock.data?.medications?.map(m => ({ id: m.id, name: m.name })),
+      });
+
+      // Wait a tick to ensure state is updated before calling handleDone
+      await new Promise(resolve => setTimeout(resolve, 0));
+      handleDone();
+      toast.success(`Medication "${medicationName}" deleted successfully`);
+    } catch (error) {
+      console.error('❌ Delete error:', error);
+      toast.error('Failed to delete medication');
+    }
+  };
+
+  const handleAddMedication = () => {
+    const newMedication = {
+      id: `med_${Date.now()}`,
+      name: '',
+      dosage: '',
+      frequency: '',
+      duration: '',
+      status: 'new' as const,
+      instructions: '',
+    };
+    console.warn('➕ Adding medication:', newMedication);
+    append(newMedication);
+    setEditingId(newMedication.id);
+    console.warn('📝 Set editingId to:', newMedication.id);
   };
 
   const getStatusColor = (status: string) => {
@@ -94,10 +178,15 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
           <Pill className="w-5 h-5" />
           {mode === 'edit'
             ? (
-                <Input
-                  value={block.title}
-                  onChange={e => onUpdate?.({ ...block, title: e.target.value })}
-                  className="font-medium border-none p-0 h-auto bg-transparent text-blue-900 flex-1"
+                <Controller
+                  name="title"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      className="font-medium border-none p-0 h-auto bg-transparent text-blue-900 flex-1"
+                    />
+                  )}
                 />
               )
             : (
@@ -107,45 +196,82 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        {block.data.medications.map(medication => (
+        {(mode === 'edit' ? watchedBlock.data?.medications : block.data.medications)?.map((medication, index) => (
           <div key={medication.id} className="p-4 border-b border-blue-100 last:border-b-0 bg-white">
             {mode === 'edit' && editingId === medication.id
               ? (
                   <div className="space-y-3">
-                    <Input
-                      value={medication.name}
-                      onChange={e => handleEdit(medication.id, 'name', e.target.value)}
-                      placeholder="Medication name"
+                    <Controller
+                      name={`data.medications.${index}.name`}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          placeholder="Medication name"
+                        />
+                      )}
                     />
                     <div className="grid grid-cols-2 gap-2">
-                      <Input
-                        value={medication.dosage}
-                        onChange={e => handleEdit(medication.id, 'dosage', e.target.value)}
-                        placeholder="Dosage"
+                      <Controller
+                        name={`data.medications.${index}.dosage`}
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            placeholder="Dosage"
+                          />
+                        )}
                       />
-                      <Input
-                        value={medication.frequency}
-                        onChange={e => handleEdit(medication.id, 'frequency', e.target.value)}
-                        placeholder="Frequency"
+                      <Controller
+                        name={`data.medications.${index}.frequency`}
+                        control={control}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            placeholder="Frequency"
+                          />
+                        )}
                       />
                     </div>
-                    <Input
-                      value={medication.instructions || ''}
-                      onChange={e => handleEdit(medication.id, 'instructions', e.target.value)}
-                      placeholder="Instructions"
+                    <Controller
+                      name={`data.medications.${index}.instructions`}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          value={field.value || ''}
+                          placeholder="Instructions"
+                        />
+                      )}
                     />
                     <div className="flex gap-2">
-                      <select
-                        value={medication.status}
-                        onChange={e => handleEdit(medication.id, 'status', e.target.value)}
-                        className="px-2 py-1 border rounded text-sm"
+                      <Controller
+                        name={`data.medications.${index}.status`}
+                        control={control}
+                        render={({ field }) => (
+                          <select
+                            {...field}
+                            className="px-2 py-1 border rounded text-sm"
+                          >
+                            <option value="new">New</option>
+                            <option value="changed">Changed</option>
+                            <option value="unchanged">Unchanged</option>
+                            <option value="stopped">Stopped</option>
+                          </select>
+                        )}
+                      />
+                      <Button size="sm" onClick={handleDone} type="button">Done</Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                          const medicationName = medication.name || 'Medication';
+                          handleDeleteMedication(index, medicationName);
+                        }}
+                        type="button"
                       >
-                        <option value="new">New</option>
-                        <option value="changed">Changed</option>
-                        <option value="unchanged">Unchanged</option>
-                        <option value="stopped">Stopped</option>
-                      </select>
-                      <Button size="sm" onClick={() => setEditingId(null)}>Done</Button>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 )
@@ -190,7 +316,12 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
 
         {mode === 'edit' && (
           <div className="p-4 border-t border-blue-200">
-            <Button variant="outline" className="w-full border-dashed border-blue-300 text-blue-700">
+            <Button
+              variant="outline"
+              className="w-full border-dashed border-blue-300 text-blue-700"
+              onClick={handleAddMedication}
+              type="button"
+            >
               + Add Medication
             </Button>
           </div>

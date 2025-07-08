@@ -1,7 +1,9 @@
 'use client';
 import type { BlockProps, TaskBlock as TaskBlockType } from '@/types/blocks';
-import { Calendar, Check, CheckSquare, Edit3, Square } from 'lucide-react';
+import { Calendar, Check, CheckSquare, Edit3, Square, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +12,23 @@ import { Textarea } from '@/components/ui/textarea';
 
 export function TaskBlock({ block, mode, onUpdate, onInteraction }: BlockProps<TaskBlockType>) {
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // React Hook Form setup with reactive values from server state
+  const { control, handleSubmit, watch } = useForm({
+    values: block, // Reactive sync with entire block from server state
+    resetOptions: {
+      keepDirtyValues: false, // Don't keep user edits during server updates
+    },
+  });
+
+  // Watch for immediate UI updates during editing
+  const watchedBlock = watch();
+
+  // Field array for managing tasks dynamically
+  const { append, remove } = useFieldArray({
+    control,
+    name: 'data.tasks',
+  });
 
   const handleTaskComplete = (taskId: string, completed: boolean) => {
     if (mode === 'patient' && onInteraction) {
@@ -30,19 +49,45 @@ export function TaskBlock({ block, mode, onUpdate, onInteraction }: BlockProps<T
     }
   };
 
-  const handleEdit = (taskId: string, field: string, value: string) => {
+  const handleDone = handleSubmit((formData) => {
     if (onUpdate) {
-      const updatedBlock = {
-        ...block,
-        data: {
-          ...block.data,
-          tasks: block.data.tasks.map(task =>
-            task.id === taskId ? { ...task, [field]: value } : task,
-          ),
-        },
-      };
-      onUpdate(updatedBlock);
+      onUpdate(formData);
     }
+    setEditingId(null);
+  });
+
+  const handleDeleteTask = async (index: number, taskTitle: string) => {
+    try {
+      const taskBeingDeleted = watchedBlock.data?.tasks?.[index];
+
+      // Clear editingId if we're deleting the currently edited item
+      if (taskBeingDeleted?.id === editingId) {
+        setEditingId(null);
+      }
+
+      remove(index);
+      // Wait a tick to ensure state is updated before calling handleDone
+      await new Promise(resolve => setTimeout(resolve, 0));
+      handleDone();
+      toast.success(`Task "${taskTitle}" deleted successfully`);
+    } catch (error) {
+      toast.error('Failed to delete task');
+      console.warn(error);
+    }
+  };
+
+  const handleAddTask = () => {
+    const newTask = {
+      id: `task_${Date.now()}`,
+      title: '',
+      description: '',
+      priority: 'medium' as const,
+      completed: false,
+      dueDate: undefined,
+      completedAt: undefined,
+    };
+    append(newTask);
+    setEditingId(newTask.id);
   };
 
   const getPriorityColor = (priority: string) => {
@@ -149,10 +194,15 @@ export function TaskBlock({ block, mode, onUpdate, onInteraction }: BlockProps<T
           <CheckSquare className="w-5 h-5" />
           {mode === 'edit'
             ? (
-                <Input
-                  value={block.title}
-                  onChange={e => onUpdate?.({ ...block, title: e.target.value })}
-                  className="font-medium border-none p-0 h-auto bg-transparent text-green-900 flex-1"
+                <Controller
+                  name="title"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      className="font-medium border-none p-0 h-auto bg-transparent text-green-900 flex-1"
+                    />
+                  )}
                 />
               )
             : (
@@ -162,33 +212,59 @@ export function TaskBlock({ block, mode, onUpdate, onInteraction }: BlockProps<T
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        {block.data.tasks.map(task => (
+        {(mode === 'edit' ? watchedBlock.data?.tasks : block.data.tasks)?.map((task, index) => (
           <div key={task.id} className="p-4 border-b border-green-100 last:border-b-0">
             {mode === 'edit' && editingId === task.id
               ? (
                   <div className="space-y-3">
-                    <Input
-                      value={task.title}
-                      onChange={e => handleEdit(task.id, 'title', e.target.value)}
-                      placeholder="Task title"
+                    <Controller
+                      name={`data.tasks.${index}.title`}
+                      control={control}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          placeholder="Task title"
+                        />
+                      )}
                     />
-                    <Textarea
-                      value={task.description}
-                      onChange={e => handleEdit(task.id, 'description', e.target.value)}
-                      placeholder="Task description"
-                      className="min-h-[60px]"
+                    <Controller
+                      name={`data.tasks.${index}.description`}
+                      control={control}
+                      render={({ field }) => (
+                        <Textarea
+                          {...field}
+                          placeholder="Task description"
+                          className="min-h-[60px]"
+                        />
+                      )}
                     />
                     <div className="flex gap-2">
-                      <select
-                        value={task.priority}
-                        onChange={e => handleEdit(task.id, 'priority', e.target.value)}
-                        className="px-2 py-1 border rounded text-sm"
+                      <Controller
+                        name={`data.tasks.${index}.priority`}
+                        control={control}
+                        render={({ field }) => (
+                          <select
+                            {...field}
+                            className="px-2 py-1 border rounded text-sm"
+                          >
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                          </select>
+                        )}
+                      />
+                      <Button size="sm" onClick={handleDone} type="button">Done</Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => {
+                          const taskTitle = task.title || 'Task';
+                          handleDeleteTask(index, taskTitle);
+                        }}
+                        type="button"
                       >
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                      </select>
-                      <Button size="sm" onClick={() => setEditingId(null)}>Done</Button>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 )
@@ -229,7 +305,12 @@ export function TaskBlock({ block, mode, onUpdate, onInteraction }: BlockProps<T
 
         {mode === 'edit' && (
           <div className="p-4 border-t border-green-200">
-            <Button variant="outline" className="w-full border-dashed border-green-300 text-green-700">
+            <Button
+              variant="outline"
+              className="w-full border-dashed border-green-300 text-green-700"
+              onClick={handleAddTask}
+              type="button"
+            >
               + Add Task
             </Button>
           </div>

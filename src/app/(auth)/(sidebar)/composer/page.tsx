@@ -15,6 +15,7 @@ import { FloatingChat, PatientLayout } from '@/components/PatientSimplified';
 import { SharePatientSummaryDialog } from '@/components/SharePatientSummaryDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { LoadingBlock } from '@/components/ui/loading-block';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { usePatientStore } from '@/stores/patientStore';
@@ -350,7 +351,7 @@ export default function ComposerPage() {
   const updateBlocksMutation = useUpdatePatientSummaryBlocks();
 
   // Get patient summaries for current patient
-  const { data: summariesData } = usePatientSummaries({
+  const { data: summariesData, isLoading: isLoadingSummaries } = usePatientSummaries({
     patientId: currentPatientId || undefined,
   });
 
@@ -360,6 +361,7 @@ export default function ComposerPage() {
 
   // Use mutation's isPending instead of local state
   const isGenerating = generateBlocksMutation.isPending;
+  const isLoading = isLoadingSummaries || isGenerating;
 
   const handleBlockUpdate = (blockId: string, updatedBlock: Block) => {
     if (!latestSummary?.id) {
@@ -475,7 +477,7 @@ export default function ComposerPage() {
   return (
     <div className="flex h-screen bg-background">
       {/* Block Library Sidebar */}
-      <div className="w-80 border-r bg-muted/30 p-4 overflow-y-auto">
+      <div className="hidden w-80 border-r bg-muted/30 p-4 overflow-y-auto">
         <h2 className="font-semibold text-lg mb-4">Block Library</h2>
 
         <div className="space-y-2 mb-6">
@@ -566,8 +568,11 @@ export default function ComposerPage() {
           // Editable Blocks Mode
                 <div className="h-full p-6 overflow-y-auto">
                   <div className="max-w-4xl mx-auto space-y-6 pb-6">
-                    {blocks
-                      .map(renderBlock)}
+                    {isLoading
+                      ? Array.from({ length: blocks.length || 4 }, (_, index) => (
+                          <LoadingBlock key={`loading-${index}`} />
+                        ))
+                      : blocks.map(renderBlock)}
                   </div>
                 </div>
               )}
@@ -588,14 +593,14 @@ export default function ComposerPage() {
               />
               <Button
                 onClick={handleGenerate}
-                disabled={!dischargeText || isGenerating}
+                disabled={!dischargeText || isLoading}
                 className="px-6 self-start"
               >
-                {isGenerating
+                {isLoading
                   ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                        Generating...
+                        {isLoadingSummaries ? 'Loading...' : 'Generating...'}
                       </>
                     )
                   : (
