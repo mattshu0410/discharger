@@ -4,10 +4,11 @@ import type { PatientAccessKey } from '@/api/patient-access-keys/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { ChevronDown, ChevronUp, MessageSquare, Phone, Printer, QrCode, Send, Trash2, User, Users } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useDeactivateAccessKey, usePatientAccessKeys, useSendPatientAccessSMS } from '@/api/patient-access-keys/hooks';
+import { useDeactivateAccessKey, useGenerateQRCode, usePatientAccessKeys, useSendPatientAccessSMS } from '@/api/patient-access-keys/hooks';
 import { AccessKeyRoleSchema, PhoneNumberSchema } from '@/api/patient-access-keys/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -78,7 +79,9 @@ export function SharePatientSummaryDialog({
   const [selectedRole, setSelectedRole] = useState<'patient' | 'caregiver'>('patient');
   const [accessPanelOpen, setAccessPanelOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('text-patient');
+  const [qrCodeData, setQRCodeData] = useState<{ accessUrl: string; role: 'patient' | 'caregiver' } | null>(null);
   const sendSMSMutation = useSendPatientAccessSMS();
+  const generateQRCodeMutation = useGenerateQRCode();
   const { data: accessKeysResponse, isLoading: accessKeysLoading, error: accessKeysError } = usePatientAccessKeys(summaryId);
   const deactivateAccessKeyMutation = useDeactivateAccessKey();
 
@@ -117,6 +120,24 @@ export function SharePatientSummaryDialog({
   const handleRoleSelect = (role: 'patient' | 'caregiver') => {
     setSelectedRole(role);
     form.setValue('role', role);
+  };
+
+  const handleGenerateQRCode = async (role: 'patient' | 'caregiver') => {
+    try {
+      const result = await generateQRCodeMutation.mutateAsync({
+        summary_id: summaryId,
+        role,
+      });
+
+      if (result.success && result.access_url) {
+        setQRCodeData({
+          accessUrl: result.access_url,
+          role,
+        });
+      }
+    } catch (error) {
+      console.error('QR code generation failed:', error);
+    }
   };
 
   const handleRemoveAccess = async (_accessKey: PatientAccessKey) => {
@@ -309,18 +330,105 @@ export function SharePatientSummaryDialog({
             </TabsContent>
 
             <TabsContent value="qr-code" className="mt-6">
-              <div className="text-center py-12">
-                <QrCode className="w-24 h-24 mx-auto mb-6 text-muted-foreground/50" />
-                <h3 className="text-lg font-semibold mb-2">QR Code Sharing</h3>
-                <p className="text-muted-foreground mb-6">
-                  Generate a QR code that patients can scan to access their summary.
-                </p>
-                <Button variant="outline" disabled>
-                  <QrCode className="w-4 h-4 mr-2" />
-                  Generate QR Code
-                </Button>
-                <div className="text-xs text-muted-foreground mt-4">
-                  Coming soon - QR code generation for easy mobile access
+              <div className="space-y-6">
+                {/* Role Selection for QR Code */}
+                <div className="space-y-3">
+                  <Label>Select Role</Label>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={selectedRole === 'patient' ? 'default' : 'outline'}
+                      onClick={() => setSelectedRole('patient')}
+                      className="flex-1"
+                      disabled={generateQRCodeMutation.isPending}
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Patient
+                    </Button>
+                    <Button
+                      variant={selectedRole === 'caregiver' ? 'default' : 'outline'}
+                      onClick={() => setSelectedRole('caregiver')}
+                      className="flex-1"
+                      disabled={generateQRCodeMutation.isPending}
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Caregiver
+                    </Button>
+                  </div>
+                </div>
+
+                {/* QR Code Display */}
+                {qrCodeData && qrCodeData.role === selectedRole
+                  ? (
+                      <div className="text-center space-y-4">
+                        <div className="bg-white p-6 rounded-lg border inline-block">
+                          <QRCodeSVG
+                            value={qrCodeData.accessUrl}
+                            size={200}
+                            level="M"
+                            marginSize={4}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium">
+                            QR Code for
+                            {' '}
+                            {qrCodeData.role === 'patient' ? 'Patient' : 'Caregiver'}
+                            {' '}
+                            Access
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Scan this QR code to access the patient summary
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => handleGenerateQRCode(selectedRole)}
+                          disabled={generateQRCodeMutation.isPending}
+                        >
+                          <QrCode className="w-4 h-4 mr-2" />
+                          Generate New QR Code
+                        </Button>
+                      </div>
+                    )
+                  : (
+                      <div className="text-center py-12">
+                        <QrCode className="w-24 h-24 mx-auto mb-6 text-muted-foreground/50" />
+                        <h3 className="text-lg font-semibold mb-2">QR Code Sharing</h3>
+                        <p className="text-muted-foreground mb-6">
+                          Generate a QR code that
+                          {' '}
+                          {selectedRole === 'patient' ? 'patients' : 'caregivers'}
+                          {' '}
+                          can scan to access the summary.
+                        </p>
+                        <Button
+                          onClick={() => handleGenerateQRCode(selectedRole)}
+                          disabled={generateQRCodeMutation.isPending}
+                          variant="outline"
+                        >
+                          {generateQRCodeMutation.isPending
+                            ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                                  Generating...
+                                </>
+                              )
+                            : (
+                                <>
+                                  <QrCode className="w-4 h-4 mr-2" />
+                                  Generate QR Code
+                                </>
+                              )}
+                        </Button>
+                      </div>
+                    )}
+
+                {/* Information Text */}
+                <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-md">
+                  <p>
+                    The QR code provides secure access to the patient summary. Each QR code is unique and
+                    can be scanned with any QR code reader app.
+                  </p>
                 </div>
               </div>
             </TabsContent>

@@ -3,6 +3,8 @@ import type {
   CreateAccessKeyResponse,
   DeactivateAccessKeyRequest,
   DeactivateAccessKeyResponse,
+  GenerateQRCodeRequest,
+  GenerateQRCodeResponse,
   ListAccessKeysResponse,
   SendSMSRequest,
   SendSMSResponse,
@@ -146,6 +148,43 @@ export async function deactivateAccessKey(request: DeactivateAccessKeyRequest): 
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to deactivate access key',
+    };
+  }
+}
+
+/**
+ * Generate QR code access link
+ */
+export async function generateQRCode(request: GenerateQRCodeRequest): Promise<GenerateQRCodeResponse> {
+  try {
+    const response = await fetch(`/api/patient-summaries/${request.summary_id}/qr-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        role: request.role,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      return {
+        success: false,
+        error: errorData || `HTTP ${response.status}`,
+      };
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      access_url: data.access_url,
+      access_key: data.access_key,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate QR code',
     };
   }
 }

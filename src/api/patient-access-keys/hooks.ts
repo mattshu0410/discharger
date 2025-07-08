@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import {
   createAccessKey,
   deactivateAccessKey,
+  generateQRCode,
   getPatientAccessKeys,
   sendPatientAccessSMS,
 } from './queries';
@@ -101,6 +102,25 @@ export function useDeactivateAccessKey() {
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to remove access');
+    },
+  });
+}
+
+/**
+ * Hook to generate QR code access link
+ */
+export function useGenerateQRCode() {
+  return useMutation({
+    mutationFn: generateQRCode,
+    onSuccess: (data) => {
+      if (data.success) {
+        toast.success('QR code generated successfully!');
+      } else {
+        toast.error(data.error || 'Failed to generate QR code');
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to generate QR code');
     },
   });
 }

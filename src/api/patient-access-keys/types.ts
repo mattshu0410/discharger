@@ -37,6 +37,11 @@ export const DeactivateAccessKeySchema = z.object({
   access_key_id: z.string().uuid('Invalid access key ID'),
 });
 
+export const GenerateQRCodeSchema = z.object({
+  summary_id: z.string().uuid('Invalid summary ID'),
+  role: AccessKeyRoleSchema,
+});
+
 // API response types
 export type CreateAccessKeyResponse = {
   success: boolean;
@@ -64,9 +69,17 @@ export type DeactivateAccessKeyResponse = {
   error?: string;
 };
 
+export type GenerateQRCodeResponse = {
+  success: boolean;
+  access_url?: string;
+  access_key?: string;
+  error?: string;
+};
+
 // Request types
 export type CreateAccessKeyRequest = z.infer<typeof CreateAccessKeySchema>;
 export type SendSMSRequest = z.infer<typeof SendSMSSchema>;
 export type DeactivateAccessKeyRequest = z.infer<typeof DeactivateAccessKeySchema>;
+export type GenerateQRCodeRequest = z.infer<typeof GenerateQRCodeSchema>;
 
 export type AccessKeyRole = z.infer<typeof AccessKeyRoleSchema>;
