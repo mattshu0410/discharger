@@ -14,7 +14,9 @@
       "WebFetch(domain:www.twilio.com)",
       "mcp__ide__getDiagnostics",
       "Bash(npx tsc:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:tanstack.com)"
     ]
   },
   "enabledMcpjsonServers": [

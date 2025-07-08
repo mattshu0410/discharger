@@ -6,7 +6,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useGenerateBlocks } from '@/api/blocks/hooks';
 import { useCreatePatientSummary, usePatientSummaries, useUpdatePatientSummaryBlocks } from '@/api/patient-summaries/hooks';
-import { AccessManagementPanel } from '@/components/AccessManagementPanel';
 import { AppointmentBlock } from '@/components/blocks/AppointmentBlock';
 import { MedicationBlock } from '@/components/blocks/MedicationBlock';
 import { RedFlagBlock } from '@/components/blocks/RedFlagBlock';
@@ -507,13 +506,6 @@ export default function ComposerPage() {
           ))}
         </div>
 
-        {/* Access Management Panel */}
-        {latestSummary && (
-          <>
-            <Separator className="my-4" />
-            <AccessManagementPanel summaryId={latestSummary.id} />
-          </>
-        )}
       </div>
 
       {/* Main Content Area */}

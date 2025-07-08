@@ -1,14 +1,21 @@
 'use client';
 
+import type { PatientAccessKey } from '@/api/patient-access-keys/types';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Phone, Send, User, Users } from 'lucide-react';
+import { format } from 'date-fns';
+import { ChevronDown, ChevronUp, MessageSquare, Phone, Printer, QrCode, Send, Trash2, User, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useSendPatientAccessSMS } from '@/api/patient-access-keys/hooks';
+import { useDeactivateAccessKey, usePatientAccessKeys, useSendPatientAccessSMS } from '@/api/patient-access-keys/hooks';
 import { AccessKeyRoleSchema, PhoneNumberSchema } from '@/api/patient-access-keys/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +33,26 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const ShareFormSchema = z.object({
   phone_number: PhoneNumberSchema,
@@ -49,7 +76,13 @@ export function SharePatientSummaryDialog({
   patientName,
 }: SharePatientSummaryDialogProps) {
   const [selectedRole, setSelectedRole] = useState<'patient' | 'caregiver'>('patient');
+  const [accessPanelOpen, setAccessPanelOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('text-patient');
   const sendSMSMutation = useSendPatientAccessSMS();
+  const { data: accessKeysResponse, isLoading: accessKeysLoading, error: accessKeysError } = usePatientAccessKeys(summaryId);
+  const deactivateAccessKeyMutation = useDeactivateAccessKey();
+
+  const accessKeys = accessKeysResponse?.success ? accessKeysResponse.access_keys || [] : [];
 
   const form = useForm<ShareFormData>({
     resolver: zodResolver(ShareFormSchema),
@@ -86,138 +119,341 @@ export function SharePatientSummaryDialog({
     form.setValue('role', role);
   };
 
+  const handleRemoveAccess = async (_accessKey: PatientAccessKey) => {
+    // if (confirm(`Remove access for ${accessKey.phone_number}?`)) {
+    //   try {
+    //     await deactivateAccessKeyMutation.mutateAsync({
+    //       access_key_id: accessKey.id,
+    //     });
+    //   } catch (error) {
+    //     // Error handling is done in the hook
+    //     console.error('Failed to remove access:', error);
+    //   }
+    // }
+  };
+
+  const formatPhoneNumber = (phone: string) => {
+    // Simple formatting for display - assumes E.164 format
+    if (phone.startsWith('+61')) {
+      const number = phone.slice(3);
+      if (number.length === 9) {
+        return `+61 ${number.slice(0, 1)} ${number.slice(1, 5)} ${number.slice(5)}`;
+      }
+    }
+    return phone;
+  };
+
+  const getRoleIcon = (role: 'patient' | 'caregiver') => {
+    return role === 'patient'
+      ? (
+          <User className="w-3 h-3" />
+        )
+      : (
+          <Users className="w-3 h-3" />
+        );
+  };
+
+  const getRoleBadgeVariant = (role: 'patient' | 'caregiver') => {
+    return role === 'patient' ? 'default' : 'secondary';
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Share Patient Summary</DialogTitle>
-          <DialogDescription>
-            Send a secure link to the patient or their caregiver via SMS.
-          </DialogDescription>
-        </DialogHeader>
+    <TooltipProvider>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Share Patient Summary</DialogTitle>
+            <DialogDescription>
+              Share the patient summary via SMS, QR code, or print.
+            </DialogDescription>
+          </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Patient Name Field */}
-            <FormField
-              control={form.control}
-              name="patient_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Patient Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="Enter patient name"
-                      disabled={sendSMSMutation.isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="text-patient" className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Text Patient
+              </TabsTrigger>
+              <TabsTrigger value="qr-code" className="flex items-center gap-2">
+                <QrCode className="w-4 h-4" />
+                QR Code
+              </TabsTrigger>
+              <TabsTrigger value="pdf-print" className="flex items-center gap-2">
+                <Printer className="w-4 h-4" />
+                PDF Print
+              </TabsTrigger>
+            </TabsList>
 
-            {/* Phone Number Field */}
-            <FormField
-              control={form.control}
-              name="phone_number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        {...field}
-                        type="tel"
-                        placeholder="+61 4XX XXX XXX"
-                        className="pl-10"
-                        disabled={sendSMSMutation.isPending}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Role Selection */}
-            <div className="space-y-3">
-              <Label>Role</Label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleRoleSelect('patient')}
-                  disabled={sendSMSMutation.isPending}
-                  className="flex-1"
-                >
-                  <Badge
-                    variant={selectedRole === 'patient' ? 'default' : 'outline'}
-                    className="w-full justify-center gap-2 py-2 px-4 cursor-pointer hover:bg-accent"
-                  >
-                    <User className="w-4 h-4" />
-                    Patient
-                  </Badge>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleRoleSelect('caregiver')}
-                  disabled={sendSMSMutation.isPending}
-                  className="flex-1"
-                >
-                  <Badge
-                    variant={selectedRole === 'caregiver' ? 'default' : 'outline'}
-                    className="w-full justify-center gap-2 py-2 px-4 cursor-pointer hover:bg-accent"
-                  >
-                    <Users className="w-4 h-4" />
-                    Caregiver
-                  </Badge>
-                </button>
-              </div>
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={sendSMSMutation.isPending}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={sendSMSMutation.isPending}
-                className="flex-1"
-              >
-                {sendSMSMutation.isPending
-                  ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                        Sending...
-                      </>
-                    )
-                  : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Send SMS
-                      </>
+            <TabsContent value="text-patient" className="mt-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Patient Name Field */}
+                  <FormField
+                    control={form.control}
+                    name="patient_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Patient Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="Enter patient name"
+                            disabled={sendSMSMutation.isPending}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-              </Button>
-            </div>
-          </form>
-        </Form>
+                  />
 
-        {/* Information Text */}
-        <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-md">
-          <p>
-            A secure link will be sent to the provided phone number. The recipient can access
-            the patient summary without creating an account.
-          </p>
-        </div>
-      </DialogContent>
-    </Dialog>
+                  {/* Phone Number Field */}
+                  <FormField
+                    control={form.control}
+                    name="phone_number"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              {...field}
+                              type="tel"
+                              placeholder="+61 4XX XXX XXX"
+                              className="pl-10"
+                              disabled={sendSMSMutation.isPending}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Role Selection */}
+                  <div className="space-y-3">
+                    <Label>Role</Label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleRoleSelect('patient')}
+                        disabled={sendSMSMutation.isPending}
+                        className="flex-1"
+                      >
+                        <Badge
+                          variant={selectedRole === 'patient' ? 'default' : 'outline'}
+                          className="w-full justify-center gap-2 py-2 px-4 cursor-pointer hover:bg-accent"
+                        >
+                          <User className="w-4 h-4" />
+                          Patient
+                        </Badge>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRoleSelect('caregiver')}
+                        disabled={sendSMSMutation.isPending}
+                        className="flex-1"
+                      >
+                        <Badge
+                          variant={selectedRole === 'caregiver' ? 'default' : 'outline'}
+                          className="w-full justify-center gap-2 py-2 px-4 cursor-pointer hover:bg-accent"
+                        >
+                          <Users className="w-4 h-4" />
+                          Caregiver
+                        </Badge>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => onOpenChange(false)}
+                      disabled={sendSMSMutation.isPending}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={sendSMSMutation.isPending}
+                      className="flex-1"
+                    >
+                      {sendSMSMutation.isPending
+                        ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                              Sending...
+                            </>
+                          )
+                        : (
+                            <>
+                              <Send className="w-4 h-4 mr-2" />
+                              Send SMS
+                            </>
+                          )}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+
+              {/* Information Text */}
+              <div className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-md">
+                <p>
+                  A secure link will be sent to the provided phone number. The recipient can access
+                  the patient summary without creating an account.
+                </p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="qr-code" className="mt-6">
+              <div className="text-center py-12">
+                <QrCode className="w-24 h-24 mx-auto mb-6 text-muted-foreground/50" />
+                <h3 className="text-lg font-semibold mb-2">QR Code Sharing</h3>
+                <p className="text-muted-foreground mb-6">
+                  Generate a QR code that patients can scan to access their summary.
+                </p>
+                <Button variant="outline" disabled>
+                  <QrCode className="w-4 h-4 mr-2" />
+                  Generate QR Code
+                </Button>
+                <div className="text-xs text-muted-foreground mt-4">
+                  Coming soon - QR code generation for easy mobile access
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="pdf-print" className="mt-6">
+              <div className="text-center py-12">
+                <Printer className="w-24 h-24 mx-auto mb-6 text-muted-foreground/50" />
+                <h3 className="text-lg font-semibold mb-2">PDF Print</h3>
+                <p className="text-muted-foreground mb-6">
+                  Generate a printable PDF version of the patient summary.
+                </p>
+                <Button variant="outline" disabled>
+                  <Printer className="w-4 h-4 mr-2" />
+                  Generate PDF
+                </Button>
+                <div className="text-xs text-muted-foreground mt-4">
+                  Coming soon - PDF generation for printing and offline access
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          {/* Access Management Section - Only show on Text Patient tab */}
+          {activeTab === 'text-patient' && (
+            <div className="border-t pt-4">
+              <Collapsible open={accessPanelOpen} onOpenChange={setAccessPanelOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-between"
+                    disabled={accessKeysLoading}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      Access Management
+                      {accessKeys.length > 0 && (
+                        <Badge variant="outline" className="ml-1">
+                          {accessKeys.length}
+                        </Badge>
+                      )}
+                    </span>
+                    {accessPanelOpen
+                      ? (
+                          <ChevronUp className="w-4 h-4" />
+                        )
+                      : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                  </Button>
+                </CollapsibleTrigger>
+
+                <CollapsibleContent className="mt-3">
+                  {accessKeysLoading
+                    ? (
+                        <div className="flex items-center justify-center py-8">
+                          <div className="w-6 h-6 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
+                          <span className="ml-3 text-muted-foreground">Loading access keys...</span>
+                        </div>
+                      )
+                    : accessKeysError
+                      ? (
+                          <div className="text-center py-8 text-destructive">
+                            Failed to load access keys
+                          </div>
+                        )
+                      : accessKeys.length === 0
+                        ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                              <Phone className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+                              <p className="text-sm">No shared access yet</p>
+                              <p className="text-xs">Use the form above to send SMS links</p>
+                            </div>
+                          )
+                        : (
+                            <div className="border rounded-md">
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Phone Number</TableHead>
+                                    <TableHead>Role</TableHead>
+                                    <TableHead>Shared</TableHead>
+                                    <TableHead className="w-[50px]"></TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {accessKeys.map(accessKey => (
+                                    <TableRow key={accessKey.id}>
+                                      <TableCell className="font-mono text-sm">
+                                        {formatPhoneNumber(accessKey.phone_number)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge
+                                          variant={getRoleBadgeVariant(accessKey.role)}
+                                          className="gap-1"
+                                        >
+                                          {getRoleIcon(accessKey.role)}
+                                          {accessKey.role === 'patient' ? 'Patient' : 'Caregiver'}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell className="text-sm text-muted-foreground">
+                                        {format(new Date(accessKey.created_at), 'MMM d, yyyy')}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => handleRemoveAccess(accessKey)}
+                                              disabled={deactivateAccessKeyMutation.isPending}
+                                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                                            >
+                                              <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Remove access</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          )}
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </TooltipProvider>
   );
 }
