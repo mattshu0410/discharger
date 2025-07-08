@@ -117,7 +117,8 @@ export function PatientLayout({
       return;
     }
 
-    // Check if translation exists
+    //
+    //  if translation exists
     const existingTranslation = translations.find(t => t.locale === locale);
     if (existingTranslation) {
       return; // Translation already exists, React Query will handle loading

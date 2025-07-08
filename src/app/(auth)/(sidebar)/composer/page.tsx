@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useGenerateBlocks } from '@/api/blocks/hooks';
 import { useCreatePatientSummary, usePatientSummaries, useUpdatePatientSummaryBlocks } from '@/api/patient-summaries/hooks';
+import { usePatient } from '@/api/patients/queries';
 import { AppointmentBlock } from '@/components/blocks/AppointmentBlock';
 import { MedicationBlock } from '@/components/blocks/MedicationBlock';
 import { RedFlagBlock } from '@/components/blocks/RedFlagBlock';
@@ -351,6 +352,9 @@ export default function ComposerPage() {
   const createPatientSummaryMutation = useCreatePatientSummary();
   const updateBlocksMutation = useUpdatePatientSummaryBlocks();
 
+  // Get current patient data
+  const { data: currentPatient } = usePatient(currentPatientId || '');
+
   // Get patient summaries for current patient
   const { data: summariesData, isLoading: isLoadingSummaries } = usePatientSummaries({
     patientId: currentPatientId || undefined,
@@ -535,8 +539,12 @@ export default function ComposerPage() {
         {/* Header */}
         <div className="border-b p-4 flex items-center justify-between flex-shrink-0">
           <div>
-            <h1 className="text-xl font-semibold">Digital Patient Advocate Composer</h1>
-            <p className="text-sm text-muted-foreground">Patient: Robert Chen • Discharged Jan 5, 2025</p>
+            <h1 className="text-xl font-semibold">Discharge Simplifier</h1>
+            <p className="text-sm text-muted-foreground">
+              {currentPatient
+                ? `Patient: ${currentPatient.name} • Age: ${currentPatient.age} • ${currentPatient.sex}`
+                : 'No patient selected'}
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -579,8 +587,8 @@ export default function ComposerPage() {
                         onBlockUpdate={handleBlockUpdate}
                         onBlockInteraction={handleBlockInteraction}
                         isPreview={true}
-                        patientName="Robert Chen"
-                        dischargeDate="Jan 5, 2025"
+                        patientName={currentPatient?.name || 'Patient'}
+                        dischargeDate={latestSummary?.created_at ? new Date(latestSummary.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         patientSummaryId={latestSummary?.id}
                       />
                     </DevicePreview>
@@ -649,7 +657,7 @@ export default function ComposerPage() {
           open={shareDialogOpen}
           onOpenChange={setShareDialogOpen}
           summaryId={latestSummary.id}
-          patientName="Robert Chen" // TODO: Get from actual patient data
+          patientName={currentPatient?.name || 'Patient'}
         />
       )}
     </div>

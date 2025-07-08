@@ -3,13 +3,17 @@
 import type { PatientAccessKey } from '@/api/patient-access-keys/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { ChevronDown, ChevronUp, MessageSquare, Phone, Printer, QrCode, Send, Trash2, User, Users } from 'lucide-react';
+import { ChevronDown, ChevronUp, FileDown, MessageSquare, Phone, Printer, QrCode, Send, Trash2, User, Users } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { usePDF } from 'react-to-pdf';
+import { toast } from 'sonner';
 import { z } from 'zod';
 import { useDeactivateAccessKey, useGenerateQRCode, usePatientAccessKeys, useSendPatientAccessSMS } from '@/api/patient-access-keys/hooks';
 import { AccessKeyRoleSchema, PhoneNumberSchema } from '@/api/patient-access-keys/types';
+import { usePatientSummary } from '@/api/patient-summaries/hooks';
+import { PatientSummaryPDF } from '@/components/PatientSimplified';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -85,6 +89,18 @@ export function SharePatientSummaryDialog({
   const { data: accessKeysResponse, isLoading: accessKeysLoading, error: accessKeysError } = usePatientAccessKeys(summaryId);
   const deactivateAccessKeyMutation = useDeactivateAccessKey();
 
+  // Fetch patient summary for PDF generation
+  const { data: summaryData } = usePatientSummary(summaryId);
+
+  // PDF generation hook
+  const { toPDF, targetRef } = usePDF({
+    filename: `${patientName.replace(/\s+/g, '-').toLowerCase()}-discharge-summary-${format(new Date(), 'yyyy-MM-dd')}.pdf`,
+    page: {
+      format: 'A4',
+      margin: { top: 20, right: 20, bottom: 20, left: 20 },
+    },
+  });
+
   const accessKeys = accessKeysResponse?.success ? accessKeysResponse.access_keys || [] : [];
 
   const form = useForm<ShareFormData>({
@@ -151,6 +167,16 @@ export function SharePatientSummaryDialog({
     //     console.error('Failed to remove access:', error);
     //   }
     // }
+  };
+
+  const handleGeneratePDF = async () => {
+    try {
+      await toPDF();
+      toast.success('PDF downloaded successfully!');
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      toast.error('Failed to generate PDF. Please try again.');
+    }
   };
 
   const formatPhoneNumber = (phone: string) => {
@@ -440,12 +466,21 @@ export function SharePatientSummaryDialog({
                 <p className="text-muted-foreground mb-6">
                   Generate a printable PDF version of the patient summary.
                 </p>
-                <Button variant="outline" disabled>
-                  <Printer className="w-4 h-4 mr-2" />
-                  Generate PDF
+                <Button
+                  variant="outline"
+                  onClick={handleGeneratePDF}
+                  disabled={!summaryData}
+                >
+                  <FileDown className="w-4 h-4 mr-2" />
+                  Download PDF
                 </Button>
+                {!summaryData && (
+                  <div className="text-xs text-muted-foreground mt-4">
+                    Loading patient summary data...
+                  </div>
+                )}
                 <div className="text-xs text-muted-foreground mt-4">
-                  Coming soon - PDF generation for printing and offline access
+                  The PDF will include all medications, tasks, appointments, and important instructions.
                 </div>
               </div>
             </TabsContent>
@@ -562,6 +597,19 @@ export function SharePatientSummaryDialog({
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Hidden PDF Content for generation */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+        <div ref={targetRef}>
+          {summaryData && (
+            <PatientSummaryPDF
+              patientName={patientName}
+              dischargeDate={summaryData.created_at ? format(new Date(summaryData.created_at), 'MMM d, yyyy') : undefined}
+              blocks={summaryData.blocks}
+            />
+          )}
+        </div>
+      </div>
     </TooltipProvider>
   );
 }

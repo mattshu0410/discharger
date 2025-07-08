@@ -9,6 +9,7 @@ const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)', // Protect dashboard and sub-routes
   '/memory(.*)', // Protect memory pages
   '/api(.*)', // Protect API routes
+  '/composer(.*)', // Protect composer pages
 ]);
 
 const isAlwaysPublicRoute = createRouteMatcher([

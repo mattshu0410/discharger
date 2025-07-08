@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import path from 'node:path';
 import withBundleAnalyzer from '@next/bundle-analyzer';
 import { withSentryConfig } from '@sentry/nextjs';
 import './src/libs/Env';
@@ -15,6 +16,18 @@ let nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '50mb', // Increase from default 1mb to 50mb for large PDF uploads
     },
+    turbo: {
+      resolveAlias: {
+        html2canvas: 'html2canvas-pro',
+      },
+    },
+  },
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      html2canvas: path.resolve(__dirname, 'node_modules/html2canvas-pro'),
+    };
+    return config;
   },
   // PostHog rewrites to proxy ingest API and static assets
   async rewrites() {
