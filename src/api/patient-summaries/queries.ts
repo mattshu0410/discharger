@@ -148,25 +148,51 @@ export const getPatientSummaryTranslation = async (
 
 // Create or update translation for patient summary
 export const translatePatientSummary = async (data: TranslateRequest): Promise<SummaryTranslation> => {
-  const requestBody: any = { target_locale: data.target_locale };
+  console.warn('[DEBUG] translatePatientSummary called with:', {
+    patient_summary_id: data.patient_summary_id,
+    target_locale: data.target_locale,
+    has_access_key: !!data.access_key,
+    access_key_length: data.access_key?.length,
+  });
 
-  // Include access key if provided (for public access)
+  const requestBody = { target_locale: data.target_locale };
+
+  // Build URL with access key as query parameter if provided (for public access)
+  const url = new URL(`/api/patient-summaries/${data.patient_summary_id}/translate`, window.location.origin);
   if (data.access_key) {
-    requestBody.access_key = data.access_key;
+    url.searchParams.set('access_key', data.access_key);
+    console.warn('[DEBUG] Access key included in URL params');
   }
 
-  const response = await fetch(`/api/patient-summaries/${data.patient_summary_id}/translate`, {
+  console.warn('[DEBUG] Making POST request to:', url.toString());
+  console.warn('[DEBUG] Request body:', requestBody);
+
+  const response = await fetch(url.toString(), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(requestBody),
   });
 
+  console.warn('[DEBUG] Response status:', response.status, response.statusText);
+  console.warn('[DEBUG] Response headers:', Object.fromEntries(response.headers.entries()));
+
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to translate patient summary');
+    console.warn('[DEBUG] Response not OK, attempting to parse error...');
+    try {
+      const error = await response.json();
+      console.warn('[DEBUG] Parsed error response:', error);
+      throw new Error(error.error || 'Failed to translate patient summary');
+    } catch {
+      console.warn('[DEBUG] Failed to parse error as JSON, getting text...');
+      const text = await response.text();
+      console.warn('[DEBUG] Raw error response:', `${text.substring(0, 500)}...`);
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
   }
 
+  console.warn('[DEBUG] Translation successful, parsing response...');
   const result: TranslationResponse = await response.json();
+  console.warn('[DEBUG] Translation result:', { translationId: result.translation?.id });
   return result.translation;
 };
 

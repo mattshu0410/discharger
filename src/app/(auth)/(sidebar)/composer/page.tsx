@@ -539,77 +539,85 @@ export default function ComposerPage() {
           </div>
         </div>
 
-        {/* Preview/Edit Area */}
-        <div className="flex-1 overflow-hidden">
-          {previewMode
-            ? (
-          // Device Preview Mode
-                <div className="h-full flex items-center justify-center">
-                  <DevicePreview
-                    onClose={() => setPreviewMode(false)}
-                    deviceType="phone"
-                    showCloseButton={false}
-                    floatingElements={<FloatingChat isPreview={true} />}
-                  >
-                    <PatientLayout
-                      blocks={blocks}
-                      progress={progress}
-                      onBlockUpdate={handleBlockUpdate}
-                      onBlockInteraction={handleBlockInteraction}
-                      isPreview={true}
-                      patientName="Robert Chen"
-                      dischargeDate="Jan 5, 2025"
-                      patientSummaryId={latestSummary?.id}
-                    />
-                  </DevicePreview>
-                </div>
-              )
-            : (
-          // Editable Blocks Mode
-                <div className="h-full p-6 overflow-y-auto">
-                  <div className="max-w-4xl mx-auto space-y-6 pb-6">
-                    {isLoading
-                      ? Array.from({ length: blocks.length || 4 }, (_, index) => (
-                          <LoadingBlock key={`loading-${index}`} />
-                        ))
-                      : blocks.map(renderBlock)}
+        {/* Main Content - Side by Side Layout */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Side - Preview/Edit Area */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {previewMode
+              ? (
+            // Device Preview Mode
+                  <div className="h-full flex items-center justify-center">
+                    <DevicePreview
+                      onClose={() => setPreviewMode(false)}
+                      deviceType="phone"
+                      showCloseButton={false}
+                      floatingElements={<FloatingChat isPreview={true} />}
+                    >
+                      <PatientLayout
+                        blocks={blocks}
+                        progress={progress}
+                        onBlockUpdate={handleBlockUpdate}
+                        onBlockInteraction={handleBlockInteraction}
+                        isPreview={true}
+                        patientName="Robert Chen"
+                        dischargeDate="Jan 5, 2025"
+                        patientSummaryId={latestSummary?.id}
+                      />
+                    </DevicePreview>
                   </div>
-                </div>
-              )}
-        </div>
+                )
+              : (
+            // Editable Blocks Mode
+                  <div className="h-full p-6 overflow-y-auto">
+                    <div className="max-w-4xl mx-auto space-y-6 pb-6">
+                      {isLoading
+                        ? Array.from({ length: blocks.length || 4 }, (_, index) => (
+                            <LoadingBlock key={`loading-${index}`} />
+                          ))
+                        : blocks.map(renderBlock)}
+                    </div>
+                  </div>
+                )}
+          </div>
 
-        {/* Discharge Input Area - Always visible at bottom */}
-        <div className="border-t p-4 bg-muted/30 flex-shrink-0 h-48">
-          <div className="max-w-4xl mx-auto h-full flex flex-col">
-            <label htmlFor="dischargeText" className="block text-sm font-medium mb-2">
-              Paste discharge summary to generate blocks
-            </label>
-            <div className="flex gap-3 flex-1">
-              <Textarea
-                value={dischargeText}
-                onChange={e => setDischargeText(e.target.value)}
-                className="flex-1 resize-none h-full overflow-y-auto"
-                placeholder="Patient was admitted with acute appendicitis and underwent laparoscopic appendectomy..."
-              />
-              <Button
-                onClick={handleGenerate}
-                disabled={!dischargeText || isLoading}
-                className="px-6 self-start"
-              >
-                {isLoading
-                  ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                        {isLoadingSummaries ? 'Loading...' : 'Generating...'}
-                      </>
-                    )
-                  : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Generate Blocks
-                      </>
-                    )}
-              </Button>
+          {/* Right Side - Discharge Input Section */}
+          <div className="w-96 border-l bg-muted/30 flex flex-col">
+            <div className="p-6 flex-1 flex flex-col">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold mb-2">Discharge Summary</h3>
+                <p className="text-sm text-muted-foreground">
+                  Paste discharge summary to generate blocks
+                </p>
+              </div>
+
+              <div className="flex-1 flex flex-col space-y-4">
+                <Textarea
+                  value={dischargeText}
+                  onChange={e => setDischargeText(e.target.value)}
+                  className="flex-1 resize-none overflow-y-auto min-h-0"
+                  placeholder="Patient was admitted with acute appendicitis and underwent laparoscopic appendectomy..."
+                />
+
+                <Button
+                  onClick={handleGenerate}
+                  disabled={!dischargeText || isLoading}
+                  className="w-full"
+                >
+                  {isLoading
+                    ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                          {isLoadingSummaries ? 'Loading...' : 'Generating...'}
+                        </>
+                      )
+                    : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Generate Blocks
+                        </>
+                      )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>

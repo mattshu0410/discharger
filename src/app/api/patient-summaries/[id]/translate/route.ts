@@ -6,20 +6,35 @@ import { translationService } from '@/libs/translationService';
 
 export const dynamic = 'force-dynamic';
 
-// Zod schema for translation request
+// Zod schema for translation request body
 const translateRequestSchema = z.object({
   target_locale: z.enum(['en', 'es', 'fr', 'de', 'it', 'pt', 'zh', 'ja', 'ko', 'ar']),
-  access_key: z.string().optional(), // Optional access key for public access
 });
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  console.warn('[DEBUG] POST /api/patient-summaries/[id]/translate endpoint hit');
+  console.warn('[DEBUG] Request URL:', req.url);
+  console.warn('[DEBUG] Request method:', req.method);
+
   try {
-    ;
     const { id: patientSummaryId } = await params;
+    console.warn('[DEBUG] Patient Summary ID from params:', patientSummaryId);
+
     const body = await req.json();
-    ;
-    const { target_locale, access_key } = translateRequestSchema.parse(body);
-    ;
+    console.warn('[DEBUG] Request body received:', body);
+
+    // Parse request body
+    const { target_locale } = translateRequestSchema.parse(body);
+
+    // Get access key from URL parameters
+    const url = new URL(req.url);
+    const access_key = url.searchParams.get('access_key');
+
+    console.warn('[DEBUG] Parsed and validated:', {
+      target_locale,
+      has_access_key: !!access_key,
+      access_key_length: access_key?.length,
+    });
 
     // Determine which client to use
     let supabase;

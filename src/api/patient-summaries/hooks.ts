@@ -173,13 +173,13 @@ export const useTranslatePatientSummary = () => {
   return useMutation({
     mutationFn: translatePatientSummary,
     onSuccess: (_data, variables) => {
-      // Invalidate the specific translation query
+      // Invalidate the specific translation query (with access key if provided)
       queryClient.invalidateQueries({
-        queryKey: patientSummariesKeys.translation(variables.patient_summary_id, variables.target_locale),
+        queryKey: patientSummariesKeys.translation(variables.patient_summary_id, variables.target_locale, variables.access_key),
       });
-      // Invalidate the translations list
+      // Invalidate the translations list (with access key if provided)
       queryClient.invalidateQueries({
-        queryKey: patientSummariesKeys.translationsList(variables.patient_summary_id),
+        queryKey: patientSummariesKeys.translationsList(variables.patient_summary_id, variables.access_key),
       });
     },
   });
