@@ -95,6 +95,7 @@
     "react-markdown": "^10.1.0",
     "react-pdf": "^9.2.1",
     "react-resizable-panels": "^3.0.2",
+    "react-to-pdf": "^2.0.1",
     "sonner": "^2.0.3",
     "svix": "^1.67.0",
     "tailwind-merge": "^3.2.0",

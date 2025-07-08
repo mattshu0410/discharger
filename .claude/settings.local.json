@@ -20,7 +20,10 @@
       "WebFetch(domain:www.react-hook-form.com)",
       "WebFetch(domain:nextjs.org)",
       "WebFetch(domain:react.dev)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "WebFetch(domain:react-hook-form.com)",
+      "WebFetch(domain:tkdodo.eu)",
+      "WebFetch(domain:www.npmjs.com)"
     ]
   },
   "enabledMcpjsonServers": [

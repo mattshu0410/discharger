@@ -13,21 +13,14 @@ export function useAutoSave() {
       setSaveStatus('saving');
       setSaveError(null);
 
-      const isNewPatient = patientId.startsWith('new-');
+      // Update existing patient
+      await updatePatient.mutateAsync({
+        id: patientId,
+        data: { context },
+      });
 
-      if (isNewPatient) {
-        // Don't auto-save new patients - they should only be created via explicit form submission
-        setSaveStatus('idle');
-      } else {
-        // Update existing patient
-        await updatePatient.mutateAsync({
-          id: patientId,
-          data: { context },
-        });
-
-        setSaveStatus('saved');
-        setLastSaved(new Date());
-      }
+      setSaveStatus('saved');
+      setLastSaved(new Date());
     } catch (error) {
       console.error('Failed to save patient context:', error);
       setSaveStatus('error');

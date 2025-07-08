@@ -2,25 +2,23 @@
 import {
   Archive,
   BookOpen,
+  FileDown,
   FileText,
   HardDrive,
-  Menu,
   PanelLeft,
   Plus,
-  Settings,
   SidebarClose,
   User,
   UserCircle,
   X,
+  Zap,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { toast } from 'sonner';
-import { useDocumentsByIds } from '@/api/documents/queries';
-import { useDeletePatient, usePatient, usePatients } from '@/api/patients/queries';
+import { useDeletePatient, usePatients } from '@/api/patients/queries';
 import { Button } from '@/components/ui/button';
+import { useCreatePatientFlow } from '@/hooks/useCreatePatientFlow';
 import { cn } from '@/libs/utils';
-import { useDischargeSummaryStore } from '@/stores';
 import { usePatientStore } from '@/stores/patientStore';
 import { useUIStore } from '@/stores/uiStore';
 
@@ -29,15 +27,6 @@ export function NewSidebar() {
   const pathname = usePathname();
   const currentPatientId = usePatientStore(state => state.currentPatientId);
   const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
-  const createNewPatient = usePatientStore(state => state.createNewPatient);
-  const addDocumentsFromGeneration = usePatientStore(state => state.addDocumentsFromGeneration);
-
-  // Discharge summary store
-  const setDischargeSummary = useDischargeSummaryStore(state => state.setDischargeSummary);
-  const clearSummary = useDischargeSummaryStore(state => state.clearSummary);
-
-  // Check if this is a new/temporary patient
-  const isNewPatient = currentPatientId && typeof currentPatientId === 'string' && currentPatientId.startsWith('new-');
 
   // UI state from the new UI store (only non-navigation state)
   const isSidebarOpen = useUIStore(state => state.isSidebarOpen);
@@ -45,53 +34,7 @@ export function NewSidebar() {
 
   const { data: patients } = usePatients();
   const deletePatientMutation = useDeletePatient();
-
-  // Create temporary patient entry for the sidebar
-  const temporaryPatient = isNewPatient
-    ? {
-        id: currentPatientId!,
-        name: 'New Patient',
-        context: 'Creating new patient...',
-        isTemporary: true,
-      }
-    : null;
-
-  // Fetch patient data when currentPatientId changes (to load discharge summary)
-  const { data: currentPatientData } = usePatient(currentPatientId || '');
-
-  // Fetch documents when patient has saved document IDs
-  const savedDocumentIds = currentPatientData?.document_ids || [];
-  const { data: savedDocuments = [] } = useDocumentsByIds(savedDocumentIds);
-
-  // Load discharge summary and documents when patient data is fetched
-  useEffect(() => {
-    if (currentPatientData && !isNewPatient) {
-      // Load discharge summary if it exists
-      if (currentPatientData.discharge_text) {
-        try {
-          const dischargeSummary = JSON.parse(currentPatientData.discharge_text);
-          setDischargeSummary(dischargeSummary);
-          // console.warn('Loaded discharge summary from Supabase');
-        } catch (parseError) {
-          console.error('Failed to parse discharge summary:', parseError);
-        }
-      }
-
-      // Load saved documents when they're fetched
-      if (savedDocuments.length > 0) {
-        addDocumentsFromGeneration(savedDocuments);
-        // console.warn('Loaded saved documents for patient:', savedDocuments.map(d => d.filename));
-      }
-    }
-  }, [currentPatientData, savedDocuments, setDischargeSummary, isNewPatient, addDocumentsFromGeneration]);
-
-  // Clear discharge summary when switching patients
-  useEffect(() => {
-    return () => {
-      // Cleanup when component unmounts or patient changes
-      clearSummary();
-    };
-  }, [currentPatientId, clearSummary]);
+  const { createNewPatient, isCreating } = useCreatePatientFlow();
 
   // Handle patient deletion
   const handleDeletePatient = async (patientId: string, patientName: string) => {
@@ -122,11 +65,6 @@ export function NewSidebar() {
     });
   };
 
-  // Combine temporary patient with existing patients
-  const allPatients = temporaryPatient
-    ? [temporaryPatient, ...(patients || [])]
-    : (patients || []);
-
   // Derive active settings tab from URL
   const activeSettingsTab
     = pathname === '/memory'
@@ -135,33 +73,79 @@ export function NewSidebar() {
         ? 'snippets'
         : pathname === '/profile'
           ? 'profile'
-          : 'memory'; // default
+          : null; // no default - only highlight when actually on a settings page
 
   return (
     <div
       id="sidebar"
       className={cn(
-        'h-full transition-all duration-300 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r border-[var(--sidebar-border)] flex flex-col',
+        'h-screen overflow-hidden transition-all duration-300 bg-[var(--sidebar)] text-[var(--sidebar-foreground)] border-r border-[var(--sidebar-border)] flex flex-col',
         isSidebarOpen ? 'w-64 min-w-[16rem]' : 'w-12 min-w-[3rem]',
       )}
     >
-      {/* Toggle button */}
-      <button
-        id="sidebar-toggle"
-        type="button"
-        className="m-2 p-1 rounded hover:bg-[var(--sidebar-accent)] transition-colors"
-        onClick={toggleSidebar}
-        aria-label="Toggle sidebar"
-      >
-        {isSidebarOpen ? <SidebarClose size={20} /> : <PanelLeft size={20} />}
-      </button>
+      {/* Top controls - toggle and new patient button */}
+      <div className="flex items-center gap-2 p-3 border-b border-[var(--sidebar-border)]">
+        {isSidebarOpen && (
+          <Button
+            id="new-patient-btn"
+            className="flex-1 justify-start h-9"
+            size="sm"
+            onClick={createNewPatient}
+            disabled={isCreating}
+          >
+            <Plus size={16} className="mr-2" />
+            New Patient
+          </Button>
+        )}
+        <button
+          id="sidebar-toggle"
+          type="button"
+          className="h-9 w-9 flex items-center justify-center rounded hover:bg-[var(--sidebar-accent)] transition-colors flex-shrink-0"
+          onClick={toggleSidebar}
+          aria-label="Toggle sidebar"
+        >
+          {isSidebarOpen ? <SidebarClose size={20} /> : <PanelLeft size={20} />}
+        </button>
+      </div>
 
       {isSidebarOpen && (
         <div className="flex-1 overflow-y-auto flex flex-col">
-          {/* Settings section - always at top */}
-          <div className="px-4 py-2 space-y-2 border-b border-[var(--sidebar-border)]">
-            <div className="text-xs font-semibold text-[var(--sidebar-accent-foreground)] uppercase tracking-wider flex items-center gap-2">
-              <Settings size={16} />
+          {/* Workflows section - new section at top */}
+          <div className="px-4 py-4 space-y-2 border-b border-[var(--sidebar-border)]">
+            <div className="text-xs font-semibold text-[var(--sidebar-accent-foreground)] uppercase tracking-wider mb-2">
+              Workflows
+            </div>
+            <button
+              type="button"
+              className={cn(
+                'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
+                pathname === '/'
+                  ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
+                  : 'hover:bg-[var(--sidebar-accent)]',
+              )}
+              onClick={() => router.push('/')}
+            >
+              <Zap size={16} />
+              Auto-Discharge
+            </button>
+            <button
+              type="button"
+              className={cn(
+                'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
+                pathname === '/composer'
+                  ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
+                  : 'hover:bg-[var(--sidebar-accent)]',
+              )}
+              onClick={() => router.push('/composer')}
+            >
+              <FileDown size={16} />
+              Discharge Simplifier
+            </button>
+          </div>
+
+          {/* Settings section - now below workflows */}
+          <div className="px-4 py-4 space-y-2 border-b border-[var(--sidebar-border)]">
+            <div className="text-xs font-semibold text-[var(--sidebar-accent-foreground)] uppercase tracking-wider mb-2">
               Settings
             </div>
             <button
@@ -217,31 +201,15 @@ export function NewSidebar() {
 
           {/* Patient section - always below settings */}
           <div className="flex-1 flex flex-col min-h-0">
-            {/* New Patient Button */}
-            <div className="px-4 py-2">
-              <Button
-                id="new-patient-btn"
-                className="w-full justify-start"
-                size="sm"
-                onClick={() => {
-                  createNewPatient();
-                }}
-              >
-                <Plus size={16} className="mr-2" />
-                New Patient
-              </Button>
-            </div>
-
             {/* Patient list header */}
-            <div className="px-4 py-2 text-xs font-semibold text-[var(--sidebar-accent-foreground)] uppercase tracking-wider flex items-center gap-2">
-              <Menu size={16} />
+            <div className="px-4 py-4 text-xs font-semibold text-[var(--sidebar-accent-foreground)] uppercase tracking-wider">
               Patients
             </div>
 
             {/* Scrollable patient list */}
             <div className="flex-1 overflow-y-auto px-2">
               <ul className="space-y-1 pb-4">
-                {allPatients.map(p => (
+                {(patients || []).map(p => (
                   <li key={p.id} className="list-none">
                     <div
                       className={cn(
@@ -249,8 +217,6 @@ export function NewSidebar() {
                         currentPatientId === p.id
                           ? 'bg-[var(--sidebar-primary)] text-[var(--sidebar-primary-foreground)]'
                           : 'hover:bg-[var(--sidebar-accent)]',
-                        // Special styling for temporary patient
-                        'isTemporary' in p && p.isTemporary && 'border-2 border-dashed border-yellow-400/50 bg-yellow-50/10',
                       )}
                     >
                       <button
@@ -260,43 +226,27 @@ export function NewSidebar() {
                           setCurrentPatientId(p.id);
                         }}
                       >
-                        {/* Different icon for temporary patient */}
-                        {'isTemporary' in p && p.isTemporary
-                          ? (
-                              <div className="w-[18px] h-[18px] rounded-full bg-gradient-to-br from-yellow-200 to-yellow-400 flex items-center justify-center flex-shrink-0">
-                                <Plus size={10} className="text-yellow-800" />
-                              </div>
-                            )
-                          : (
-                              <User size={18} className="flex-shrink-0" />
-                            )}
+                        <User size={18} className="flex-shrink-0" />
                         <div className="flex flex-col overflow-hidden flex-1 min-w-0 w-full">
                           <div className="font-medium text-base leading-tight flex items-center gap-2 min-w-0 w-full">
                             <span className="truncate flex-1 min-w-0">{p.name}</span>
-                            {'isTemporary' in p && p.isTemporary && (
-                              <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] rounded-full border flex-shrink-0">
-                                Temp
-                              </span>
-                            )}
                           </div>
                           <div className="text-xs text-muted-foreground truncate whitespace-nowrap overflow-hidden w-full min-w-0">{p.context?.replace(/\n/g, ' ')}</div>
                         </div>
                       </button>
 
-                      {/* Delete button - only show for non-temporary patients */}
-                      {!('isTemporary' in p && p.isTemporary) && (
-                        <button
-                          type="button"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500 hover:text-white rounded text-muted-foreground"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeletePatient(p.id, p.name);
-                          }}
-                          title={`Delete ${p.name}`}
-                        >
-                          <X size={14} />
-                        </button>
-                      )}
+                      {/* Delete button */}
+                      <button
+                        type="button"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500 hover:text-white rounded text-muted-foreground"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePatient(p.id, p.name);
+                        }}
+                        title={`Delete ${p.name}`}
+                      >
+                        <X size={14} />
+                      </button>
                     </div>
                   </li>
                 ))}

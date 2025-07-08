@@ -18,7 +18,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useAutoSave } from '@/hooks/useAutoSave';
-import { useNewPatient } from '@/hooks/useNewPatient';
 import { useDischargeSummaryStore, useUIStore } from '@/stores';
 import { setAutoSaveFunction, usePatientStore } from '@/stores/patientStore';
 
@@ -96,15 +95,13 @@ export function PatientForm() {
   const setDischargeSummary = useDischargeSummaryStore(state => state.setDischargeSummary);
   const setDischargeIsGenerating = useDischargeSummaryStore(state => state.setIsGenerating);
   const setDischargeError = useDischargeSummaryStore(state => state.setError);
+  const clearSummary = useDischargeSummaryStore(state => state.clearSummary);
 
   // Initialize autosave
   const { savePatientContext } = useAutoSave();
 
   // Update patient mutation for saving discharge and document IDs
   const updatePatientMutation = useUpdatePatient();
-
-  // Iniitalize new patient creation
-  const { createNewPatient: createPatientAPI, isCreating } = useNewPatient();
 
   // UI state from uiStore
   const openDocumentSelector = useUIStore(state => state.openDocumentSelector);
@@ -129,33 +126,63 @@ export function PatientForm() {
   useEffect(() => {
     if (fetchedDocuments.length > 0 && documentsToFetch.length > 0) {
       addDocumentsFromGeneration(fetchedDocuments);
-      setDocumentsToFetch([]); // Clear to prevent re-fetching
+      // Clear the documents to fetch to prevent re-fetching
+      setDocumentsToFetch(prevDocs => prevDocs.length > 0 ? [] : prevDocs);
     }
   }, [fetchedDocuments, documentsToFetch.length, addDocumentsFromGeneration]);
 
-  // Check if this is a new patient (starts with "new-")
-  const isNewPatient = currentPatientId && typeof currentPatientId === 'string' && currentPatientId.startsWith('new-');
-
-  // Fetch current patient data when a patient is selected (but not for new patients)
+  // Fetch current patient data when a patient is selected
   const { data: currentPatient, isLoading: isPatientLoading } = useQuery({
     queryKey: ['getPatientbyId', currentPatientId],
     queryFn: async () => {
       const existingPatient = await getPatientById(currentPatientId!);
       return existingPatient;
     },
-    enabled: !!currentPatientId && !isNewPatient,
+    enabled: !!currentPatientId,
+    staleTime: 0, // Always consider data stale to force refetch
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes (formerly cacheTime)
   });
 
-  // For new patients, isPatientLoading should be false
-  const actualIsLoading = isNewPatient ? false : isPatientLoading;
+  // Check if we're in a loading/transitioning state
+  const isLoadingOrTransitioning = Boolean(isPatientLoading || (currentPatientId && currentPatient?.id !== currentPatientId));
 
-  // Load context from backend when patient data is fetched (only for existing patients)
+  // Fetch documents when patient has saved document IDs
+  const savedDocumentIds = currentPatient?.document_ids || [];
+  const { data: savedDocuments = [] } = useDocumentsByIds(savedDocumentIds);
+
+  // Load all patient data when fetched
   useEffect(() => {
-    if (currentPatient && currentPatient.context && !isNewPatient) {
-      // console.warn(`Loading patient context from backend: ${currentPatient.context.slice(0, 50)}...`);
-      loadContextFromBackend(currentPatient.context);
+    if (currentPatient) {
+      // Load context
+      if (currentPatient.context) {
+        loadContextFromBackend(currentPatient.context);
+      }
+
+      // Load discharge summary if it exists
+      if (currentPatient.discharge_text) {
+        try {
+          const dischargeSummary = JSON.parse(currentPatient.discharge_text);
+          setDischargeSummary(dischargeSummary);
+        } catch (parseError) {
+          console.error('Failed to parse discharge summary:', parseError);
+        }
+      }
     }
-  }, [currentPatient, loadContextFromBackend, isNewPatient]);
+  }, [currentPatient, loadContextFromBackend, setDischargeSummary]);
+
+  // Load saved documents when they're fetched
+  useEffect(() => {
+    if (savedDocuments.length > 0) {
+      addDocumentsFromGeneration(savedDocuments);
+    }
+  }, [savedDocuments, addDocumentsFromGeneration]);
+
+  // Clear discharge summary when switching patients
+  useEffect(() => {
+    return () => {
+      clearSummary();
+    };
+  }, [currentPatientId, clearSummary]);
 
   const formSchema = z.object({
     name: z.string().min(1),
@@ -167,11 +194,12 @@ export function PatientForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: isNewPatient ? '' : (currentPatient?.name || ''),
+      name: currentPatient?.name || '',
       context: currentPatientContext || '',
     },
   });
 
+  // Set up the autosave function in the store
   useEffect(() => {
     const saveWithName = async (patientId: string, context: string) => {
       const patientName = form.getValues('name');
@@ -180,18 +208,15 @@ export function PatientForm() {
     setAutoSaveFunction(saveWithName);
   }, [savePatientContext, form]);
 
-  // Update form values when patient or context changes
+  // Update form values when patient changes
   useEffect(() => {
-    if (isNewPatient) {
-      form.setValue('name', '');
-    } else if (currentPatient) {
-      form.setValue('name', currentPatient.name || '');
+    if (currentPatient) {
+      form.reset({
+        name: currentPatient.name || '',
+        context: currentPatient.context || '',
+      });
     }
-  }, [currentPatient, isNewPatient, form]);
-
-  useEffect(() => {
-    form.setValue('context', currentPatientContext || '');
-  }, [currentPatientContext, form]);
+  }, [currentPatient, form]);
 
   // Refs to track the previous state of selectors
   const prevIsDocumentSelectorOpenRef = useRef<boolean>(false);
@@ -234,7 +259,7 @@ export function PatientForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          patientId: isNewPatient ? null : currentPatientId,
+          patientId: currentPatientId,
           context,
           documentIds: documentIds || [],
         }),
@@ -262,7 +287,7 @@ export function PatientForm() {
 
       // Save discharge summary and document IDs to Supabase if we have a valid patient ID
       const patientId = response.summary.patientId;
-      if (patientId && !isNewPatient) {
+      if (patientId) {
         try {
           await updatePatientMutation.mutateAsync({
             id: patientId,
@@ -288,10 +313,24 @@ export function PatientForm() {
     },
   });
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // Save name changes immediately (not debounced)
+    if (currentPatientId && value.trim()) {
+      updatePatientMutation.mutate({
+        id: currentPatientId,
+        data: { name: value },
+      });
+    }
+  };
+
   const handleContextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
     const cursorPos = e.currentTarget.selectionStart;
-    updateCurrentPatientContext(e.target.value);
-    form.setValue('context', e.target.value);
+
+    // Update the store which will trigger debounced auto-save
+    updateCurrentPatientContext(value);
 
     // Update bracket positions if navigation is active
     const isNavigationActive = useUIStore.getState().isBracketNavigationActive;
@@ -300,7 +339,7 @@ export function PatientForm() {
     }
 
     if (isDocumentSelectorOpen) {
-      const textFromTrigger = currentPatientContext.substring(triggerPosition || 0, cursorPos);
+      const textFromTrigger = value.substring(triggerPosition || 0, cursorPos);
 
       if ((!textFromTrigger.startsWith('@'))
         || (textFromTrigger.includes(' ') || textFromTrigger.includes('\n'))) {
@@ -312,7 +351,7 @@ export function PatientForm() {
     }
 
     if (isSnippetSelectorOpen) {
-      const textFromTrigger = currentPatientContext.substring(triggerPosition || 0, cursorPos);
+      const textFromTrigger = value.substring(triggerPosition || 0, cursorPos);
 
       if ((!textFromTrigger.startsWith('/'))
         || (textFromTrigger.includes(' ') || textFromTrigger.includes('\n'))) {
@@ -376,10 +415,7 @@ export function PatientForm() {
     // Store current cursor position before updating context
     const currentCursorPos = textareaRef.current?.selectionStart || 0;
 
-    // Add document reference to context
-    const newContext = `${currentPatientContext}`;
-    updateCurrentPatientContext(newContext);
-    form.setValue('context', newContext);
+    // Don't modify context when selecting documents
 
     // Close document selector
     closeDocumentSelector();
@@ -392,7 +428,7 @@ export function PatientForm() {
     }, 0);
 
     // Save updated document IDs to Supabase if we have a valid patient ID
-    if (currentPatientId && !isNewPatient) {
+    if (currentPatientId) {
       const updatedDocumentIds = [...selectedDocuments, document].map(d => d.id);
       try {
         await updatePatientMutation.mutateAsync({
@@ -452,42 +488,20 @@ export function PatientForm() {
   return (
     <div className="flex flex-col gap-6 flex-1">
       {/* Patient Info Header */}
-      {isNewPatient
-        ? (
-            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-              <div className="flex items-center gap-2 mb-1">
-                <strong className="text-yellow-800">New Patient (Temporary)</strong>
-              </div>
-              <p className="text-sm text-yellow-700">
-                Patient will be created when you click "Generate Discharge Summary"
-              </p>
-            </div>
-          )
-        : currentPatient && (
-          <div className="p-3 bg-muted rounded-md">
-            <strong className="text-sm">{currentPatient.name}</strong>
-            {actualIsLoading && <span className="ml-2 text-xs text-muted-foreground">Loading...</span>}
-          </div>
-        )}
+      {currentPatient && (
+        <div className="p-3 bg-muted rounded-md">
+          <strong className="text-sm">{currentPatient.name}</strong>
+          {isLoadingOrTransitioning && <span className="ml-2 text-xs text-muted-foreground">Loading...</span>}
+        </div>
+      )}
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(async ({ context, name }: FormValues) => {
-            try {
-              if (isNewPatient) {
-                // Create new patient first before generating discharge
-                await createPatientAPI(name, context);
-                // After creation, the store will have the real patient ID
-                // and we can proceed with discharge generation
-              }
-              generateDischargeText.mutate({
-                context,
-                documentIds: selectedDocuments.map((d: Document) => d.id),
-              });
-            } catch (error) {
-              console.error('Failed to create patient:', error);
-              // Error is already handled by the useNewPatient hook with toast
-            }
+          onSubmit={form.handleSubmit(async ({ context }: FormValues) => {
+            generateDischargeText.mutate({
+              context,
+              documentIds: selectedDocuments.map((d: Document) => d.id),
+            });
           })}
           className="space-y-6 flex-1 flex flex-col"
         >
@@ -499,18 +513,16 @@ export function PatientForm() {
                 <FormLabel>Patient Name</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={isNewPatient ? 'Enter patient name (required)' : 'Enter patient name'}
+                    placeholder="Enter patient name"
                     {..._field}
-                    disabled={actualIsLoading || (!isNewPatient && !currentPatient)}
-                    className={isNewPatient ? 'ring-2 ring-primary/20' : ''}
+                    onChange={(e) => {
+                      _field.onChange(e);
+                      handleNameChange(e);
+                    }}
+                    disabled={isLoadingOrTransitioning || !currentPatient}
                   />
                 </FormControl>
                 <FormMessage />
-                {isNewPatient && !_field.value && (
-                  <p className="text-xs text-muted-foreground">
-                    Patient name is required to create a new patient
-                  </p>
-                )}
               </FormItem>
             )}
           />
@@ -551,7 +563,7 @@ export function PatientForm() {
                     id="patient-context-textarea"
                     ref={textareaRef}
                     placeholder={
-                      actualIsLoading
+                      isLoadingOrTransitioning
                         ? 'Loading patient data...'
                         : 'Enter clinical notes here... Use @ to add documents and / to add snippets'
                     }
@@ -559,8 +571,7 @@ export function PatientForm() {
                     value={currentPatientContext}
                     onChange={handleContextChange}
                     onKeyDown={handleKeyDown}
-                    disabled={actualIsLoading}
-
+                    disabled={isLoadingOrTransitioning}
                   />
                 </FormControl>
                 <FormMessage />
@@ -571,24 +582,20 @@ export function PatientForm() {
           <Button
             id="generate-discharge-btn"
             type="submit"
-            disabled={generateDischargeText.isPending || !currentPatientContext.trim() || actualIsLoading || isCreating}
+            disabled={generateDischargeText.isPending || !currentPatientContext.trim() || isLoadingOrTransitioning}
             className="w-full"
 
           >
-            {generateDischargeText.isPending || isGenerating || isCreating
+            {generateDischargeText.isPending || isGenerating
               ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isCreating ? 'Creating Patient...' : 'Generating Summary...'}
+                    Generating Summary...
                   </>
                 )
-              : isNewPatient
-                ? (
-                    'Create Patient & Generate Discharge Summary'
-                  )
-                : (
-                    'Generate Discharge Summary'
-                  )}
+              : (
+                  'Generate Discharge Summary'
+                )}
           </Button>
         </form>
       </Form>
@@ -615,10 +622,6 @@ export function PatientForm() {
           {' '}
           {selectedDocuments.length}
           {' '}
-          |
-          Is new patient:
-          {' '}
-          {isNewPatient ? 'Yes' : 'No'}
         </div>
       )}
     </div>

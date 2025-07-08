@@ -7,6 +7,24 @@ import { debounce } from '@/utils/debounce';
 // Configuration for autosave behavior
 const AUTOSAVE_DEBOUNCE_DELAY = 2000; // 2 seconds - adjust this to make autosave faster/slower
 
+// Store a reference to the auto-save function that will be set from the component
+let autoSaveFunction: ((patientId: string, context: string, patientName?: string) => Promise<void>) | null = null;
+
+export function setAutoSaveFunction(fn: (patientId: string, context: string, patientName?: string) => Promise<void>) {
+  autoSaveFunction = fn;
+}
+
+// Create a single debounced save function that persists
+const debouncedSave = debounce(async (patientId: string, context: string, patientName?: string) => {
+  if (context.trim() && autoSaveFunction) {
+    try {
+      await autoSaveFunction(patientId, context, patientName);
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    }
+  }
+}, AUTOSAVE_DEBOUNCE_DELAY);
+
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 type PatientState = {
@@ -30,12 +48,16 @@ type PatientState = {
   lastSaved: Date | null;
   saveError: string | null;
 
+  // Track pending patient creation
+  pendingPatientCreation: string | null; // ID of patient being created
+  creationPromise: Promise<any> | null; // Promise tracking the creation
+
   // Actions
   setCurrentPatientId: (id: string | null) => void;
   updateCurrentPatientContext: (context: string) => void;
   loadContextFromBackend: (context: string) => void;
   setIsGenerating: (generating: boolean) => void;
-  createNewPatient: () => void;
+  setPendingPatientCreation: (id: string | null, promise: Promise<any> | null) => void;
   addDocument: (document: Document) => void;
   removeDocument: (documentId: string) => void;
   clearDocuments: () => void;
@@ -45,26 +67,7 @@ type PatientState = {
   setLastSaved: (date: Date | null) => void;
 };
 
-// Store a reference to the auto-save function that will be set from the component
-let autoSaveFunction: ((patientId: string, context: string, patientName?: string) => Promise<void>) | null = null;
-
-export function setAutoSaveFunction(fn: (patientId: string, context: string, patientName?: string) => Promise<void>) {
-  autoSaveFunction = fn;
-}
-
-// Debounced save function for auto-saving context
-const debouncedSave = debounce(async (patientId: string, context: string, patientName?: string) => {
-  if (context.trim() && autoSaveFunction) {
-    // console.warn('Auto-saving context for patient:', patientId, `${context.slice(0, 50)}...`);
-    try {
-      await autoSaveFunction(patientId, context, patientName);
-    } catch (error) {
-      console.error('Auto-save failed:', error);
-    }
-  }
-}, AUTOSAVE_DEBOUNCE_DELAY);
-
-const usePatientStore = create<PatientState>()(
+export const usePatientStore = create<PatientState>()(
   // persist is Zustand middleware that stores the state in localStorage saved to their device so if they reopen the browser, Zustand rehydrates the saved state from localStorage
   persist(
     // recall immutable means you have to make a copy of the object and modify that copy instead of changing the original object. To detect state change you need the original object reference. So you need states to be immutable. But immer makes it less verbose to write out immutable code e.g. instead of {...state, currentPatientId: 1} you can just state.currentPatientId = 1.
@@ -78,28 +81,64 @@ const usePatientStore = create<PatientState>()(
       saveStatus: 'idle' as SaveStatus,
       lastSaved: null,
       saveError: null,
+      pendingPatientCreation: null,
+      creationPromise: null,
 
       // Actions
-      setCurrentPatientId: id => set((state) => {
-        // Auto-save previous patient's context before switching
-        const previousId = state.currentPatientId;
-        const previousContext = state.currentPatientContext;
-        // Only save if there was actually a patient selected and something was typed in the context input field
-        if (previousId && previousContext.trim() && previousId !== id) {
-          debouncedSave(previousId, previousContext);
-        }
+      setCurrentPatientId: (id) => {
+        const pendingCreation = usePatientStore.getState().pendingPatientCreation;
+        const creationPromise = usePatientStore.getState().creationPromise;
 
-        // Only reset context and flags if the patient ID actually changes
-        if (previousId !== id) {
-          state.currentPatientContext = ''; // Reset context, will be loaded from server
-          state.isContextLoadedFromBackend = false; // Reset the loaded flag
-          state.selectedDocuments = []; // Clear documents when switching patients
-          state.saveStatus = 'idle'; // Reset save status
-          state.saveError = null; // Clear any previous errors
+        // If there's a pending patient creation and we're switching to a different patient, wait for it
+        if (pendingCreation && pendingCreation !== id && creationPromise) {
+          creationPromise.then(() => {
+            // After creation completes, proceed with the switch
+            set((state) => {
+              const previousId = state.currentPatientId;
+
+              // Only reset context and flags if the patient ID actually changes
+              if (previousId !== id) {
+                state.currentPatientContext = ''; // Reset context, will be loaded from server
+                state.isContextLoadedFromBackend = false; // Reset the loaded flag
+                state.selectedDocuments = []; // Clear documents when switching patients
+                state.saveStatus = 'idle'; // Reset save status
+                state.saveError = null; // Clear any previous errors
+              }
+              state.currentPatientId = id;
+            });
+          }).catch((error) => {
+            console.error('Patient creation failed while switching:', error);
+            // Still proceed with the switch even if creation failed
+            set((state) => {
+              const previousId = state.currentPatientId;
+
+              if (previousId !== id) {
+                state.currentPatientContext = '';
+                state.isContextLoadedFromBackend = false;
+                state.selectedDocuments = [];
+                state.saveStatus = 'idle';
+                state.saveError = null;
+              }
+              state.currentPatientId = id;
+            });
+          });
+        } else {
+          // No pending creation, proceed normally
+          set((state) => {
+            const previousId = state.currentPatientId;
+
+            // Only reset context and flags if the patient ID actually changes
+            if (previousId !== id) {
+              state.currentPatientContext = ''; // Reset context, will be loaded from server
+              state.isContextLoadedFromBackend = false; // Reset the loaded flag
+              state.selectedDocuments = []; // Clear documents when switching patients
+              state.saveStatus = 'idle'; // Reset save status
+              state.saveError = null; // Clear any previous errors
+            }
+            state.currentPatientId = id;
+          });
         }
-        state.currentPatientId = id;
-        // console.warn('Current patient ID set to', id);
-      }),
+      },
 
       updateCurrentPatientContext: context => set((state) => {
         state.currentPatientContext = context;
@@ -125,21 +164,9 @@ const usePatientStore = create<PatientState>()(
         state.isGenerating = generating;
       }),
 
-      createNewPatient: () => set((state) => {
-        // Auto-save current patient's context before creating new patient
-        const previousId = state.currentPatientId;
-        const previousContext = state.currentPatientContext;
-        if (previousId && previousContext.trim()) {
-          debouncedSave(previousId, previousContext);
-        }
-
-        // Use special prefix for new patients to distinguish from existing ones
-        state.currentPatientId = `new-${Date.now()}`; // Unique new patient ID
-        state.currentPatientContext = '';
-        state.isContextLoadedFromBackend = false;
-        state.selectedDocuments = [];
-        state.saveStatus = 'idle';
-        state.saveError = null;
+      setPendingPatientCreation: (id, promise) => set((state) => {
+        state.pendingPatientCreation = id;
+        state.creationPromise = promise;
       }),
 
       addDocument: document => set((state) => {
@@ -194,5 +221,3 @@ const usePatientStore = create<PatientState>()(
     },
   ),
 );
-
-export { usePatientStore };
