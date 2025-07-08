@@ -154,17 +154,25 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
                     <div className="flex-1">
                       <div className={`font-medium mb-1 ${getMedicationClassName(medication.status)}`}>
                         {medication.name}
-                        {' '}
-                        {medication.dosage}
-                        <Badge variant="outline" className={`ml-2 ${getStatusColor(medication.status)}`}>
-                          {medication.status}
-                        </Badge>
                       </div>
+                      {' '}
+                      <div className={`text-sm text-gray-600 mb-1 ${getMedicationClassName(medication.status)}`}>
+                        {medication.dosage}
+                        {' '}
+                        •
+                        {' '}
+                        {medication.frequency}
+
+                      </div>
+
                       <div className={`text-sm ${getMedicationClassName(medication.status)}`}>
                         {medication.instructions || medication.frequency}
                       </div>
                     </div>
-                    <div className="ml-4">
+                    <div className="ml-4 flex items-center gap-2">
+                      <Badge variant="outline" className={`px-3 py-1 text-sm ml-2 ${getStatusColor(medication.status)}`}>
+                        {medication.status}
+                      </Badge>
                       {mode === 'edit' && (
                         <Button
                           variant="ghost"
