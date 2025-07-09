@@ -11,7 +11,6 @@ import type {
   UpdatePatientSummaryInput,
 } from './types';
 import type { Block } from '@/types/blocks';
-import { logger } from '@/libs/Logger';
 // import { logger } from '@/libs/Logger';
 
 // Create new patient summary
@@ -186,8 +185,7 @@ export const translatePatientSummary = async (data: TranslateRequest): Promise<S
       throw new Error(error.error || 'Failed to translate patient summary');
     } catch {
       // logger.debug('Failed to parse error as JSON, getting text...');
-      const text = await response.text();
-      logger.debug('Raw error response:', `${text.substring(0, 500)}...`);
+      // logger.debug('Raw error response:', `${text.substring(0, 500)}...`);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
   }
