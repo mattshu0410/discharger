@@ -181,13 +181,13 @@ export function SharePatientSummaryDialog({
 
   const formatPhoneNumber = (phone: string) => {
     // Simple formatting for display - assumes E.164 format
-    if (phone.startsWith('+61')) {
+    if (phone && phone.startsWith('+61')) {
       const number = phone.slice(3);
       if (number.length === 9) {
         return `+61 ${number.slice(0, 1)} ${number.slice(1, 5)} ${number.slice(5)}`;
       }
     }
-    return phone;
+    return phone || '';
   };
 
   const getRoleIcon = (role: 'patient' | 'caregiver') => {

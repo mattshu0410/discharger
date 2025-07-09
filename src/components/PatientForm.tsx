@@ -341,7 +341,7 @@ export function PatientForm() {
     if (isDocumentSelectorOpen) {
       const textFromTrigger = value.substring(triggerPosition || 0, cursorPos);
 
-      if ((!textFromTrigger.startsWith('@'))
+      if ((!textFromTrigger || !textFromTrigger.startsWith('@'))
         || (textFromTrigger.includes(' ') || textFromTrigger.includes('\n'))) {
         closeDocumentSelector();
       } else if (textareaRef.current) {
@@ -353,7 +353,7 @@ export function PatientForm() {
     if (isSnippetSelectorOpen) {
       const textFromTrigger = value.substring(triggerPosition || 0, cursorPos);
 
-      if ((!textFromTrigger.startsWith('/'))
+      if ((!textFromTrigger || !textFromTrigger.startsWith('/'))
         || (textFromTrigger.includes(' ') || textFromTrigger.includes('\n'))) {
         closeSnippetSelector();
       } else if (textareaRef.current) {
