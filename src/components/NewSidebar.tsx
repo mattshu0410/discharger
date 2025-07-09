@@ -1,8 +1,10 @@
 'use client';
+import { useClerk, useUser } from '@clerk/nextjs';
 import {
   FileDown,
   FileText,
   HardDrive,
+  LogOut,
   PanelLeft,
   Plus,
   SidebarClose,
@@ -14,6 +16,7 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useDeletePatient, usePatients } from '@/api/patients/queries';
+import { useUserProfile } from '@/api/users/queries';
 import { Button } from '@/components/ui/button';
 import { useCreatePatientFlow } from '@/hooks/useCreatePatientFlow';
 import { cn } from '@/libs/utils';
@@ -30,6 +33,11 @@ export function NewSidebar() {
   const isSidebarOpen = useUIStore(state => state.isSidebarOpen);
   const toggleSidebar = useUIStore(state => state.toggleSidebar);
 
+  // Clerk auth
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const { data: userProfile } = useUserProfile();
+
   const { data: patients } = usePatients();
   const deletePatientMutation = useDeletePatient();
   const { createNewPatient, isCreating } = useCreatePatientFlow();
@@ -43,10 +51,24 @@ export function NewSidebar() {
         onClick: async () => {
           try {
             await deletePatientMutation.mutateAsync(patientId);
-            // If the deleted patient was currently selected, clear the selection
+
+            // If the deleted patient was currently selected, switch to the first available patient
             if (currentPatientId === patientId) {
-              setCurrentPatientId(null);
+              // Get the updated patient list after deletion
+              const remainingPatients = (patients || []).filter(p => p.id !== patientId);
+
+              if (remainingPatients.length > 0) {
+                // Set the first patient as the current patient
+                const firstPatient = remainingPatients[0];
+                if (firstPatient?.id) {
+                  setCurrentPatientId(firstPatient.id);
+                }
+              } else {
+                // No patients left, clear the selection
+                setCurrentPatientId(null);
+              }
             }
+
             toast.success(`Patient "${patientName}" has been deleted successfully.`);
           } catch (error) {
             console.error('Failed to delete patient:', error);
@@ -61,6 +83,17 @@ export function NewSidebar() {
         },
       },
     });
+  };
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success('Signed out successfully');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+      toast.error('Failed to sign out. Please try again.');
+    }
   };
 
   // Derive active settings tab from URL
@@ -252,6 +285,54 @@ export function NewSidebar() {
                   </li>
                 ))}
               </ul>
+            </div>
+          </div>
+
+          {/* Profile section - always at bottom */}
+          <div className="mt-auto border-t border-[var(--sidebar-border)] p-4">
+            <div className="flex items-center gap-3">
+              {/* Profile picture and user info - clickable */}
+              <Button
+                variant="ghost"
+                className="flex items-center gap-3 flex-1 min-w-0 h-auto p-2 justify-start hover:bg-transparent"
+                onClick={() => router.push('/profile')}
+              >
+                {/* Profile picture */}
+                <div className="w-10 h-10 rounded-full bg-[var(--sidebar-accent)] flex items-center justify-center overflow-hidden flex-shrink-0">
+                  {user?.imageUrl
+                    ? (
+                        <img
+                          src={user.imageUrl}
+                          alt={user.fullName || 'Profile'}
+                          className="w-full h-full object-cover"
+                        />
+                      )
+                    : (
+                        <UserCircle className="w-6 h-6 text-[var(--sidebar-accent-foreground)]" />
+                      )}
+                </div>
+
+                {/* User info */}
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="font-medium text-sm truncate">
+                    {user?.fullName || user?.firstName || 'User'}
+                  </div>
+                  <div className="text-xs text-[var(--sidebar-accent-foreground)] truncate">
+                    {userProfile?.title || 'Doctor'}
+                  </div>
+                </div>
+              </Button>
+
+              {/* Sign out button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]"
+                onClick={handleSignOut}
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>

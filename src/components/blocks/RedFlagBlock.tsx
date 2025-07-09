@@ -70,8 +70,8 @@ export function RedFlagBlock({ block, mode, onUpdate }: BlockProps<RedFlagBlockT
 
   if (mode === 'patient') {
     return (
-      <Card className="w-full border-red-200">
-        <CardHeader className="bg-red-100 border-b border-red-200">
+      <Card className="w-full border-red-200 bg-white rounded-lg">
+        <CardHeader className="bg-red-100 border-b border-red-200 rounded-t-lg">
           <CardTitle className="flex items-center gap-2 text-lg font-bold text-red-800">
             <AlertTriangle className="w-5 h-5" />
             <span>{block.title}</span>
@@ -104,8 +104,8 @@ export function RedFlagBlock({ block, mode, onUpdate }: BlockProps<RedFlagBlockT
 
   // Doctor edit/preview mode
   return (
-    <Card className="w-full border-red-200">
-      <CardHeader className="bg-red-100 border-b border-red-200">
+    <Card className="w-full border-red-200 bg-white rounded-lg">
+      <CardHeader className="bg-red-100 border-b border-red-200 rounded-t-lg">
         <CardTitle className="flex items-center gap-2 text-lg font-medium text-red-800">
           <AlertTriangle className="w-5 h-5" />
           {mode === 'edit'

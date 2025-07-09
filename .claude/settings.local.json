@@ -24,7 +24,8 @@
       "WebFetch(domain:react-hook-form.com)",
       "WebFetch(domain:tkdodo.eu)",
       "WebFetch(domain:www.npmjs.com)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "mcp__supabase__get_logs"
     ]
   },
   "enabledMcpjsonServers": [

@@ -45,10 +45,24 @@ export function Sidebar() {
         onClick: async () => {
           try {
             await deletePatientMutation.mutateAsync(patientId);
-            // If the deleted patient was currently selected, clear the selection
+
+            // If the deleted patient was currently selected, switch to the first available patient
             if (currentPatientId === patientId) {
-              setCurrentPatientId(null);
+              // Get the updated patient list after deletion
+              const remainingPatients = (patients || []).filter(p => p.id !== patientId);
+
+              if (remainingPatients.length > 0) {
+                // Set the first patient as the current patient
+                const firstPatient = remainingPatients[0];
+                if (firstPatient?.id) {
+                  setCurrentPatientId(firstPatient.id);
+                }
+              } else {
+                // No patients left, clear the selection
+                setCurrentPatientId(null);
+              }
             }
+
             toast.success(`Patient "${patientName}" has been deleted successfully.`);
           } catch (error) {
             console.error('Failed to delete patient:', error);

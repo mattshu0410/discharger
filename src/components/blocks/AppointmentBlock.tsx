@@ -85,8 +85,8 @@ export function AppointmentBlock({ block, mode, onUpdate }: BlockProps<Appointme
 
   if (mode === 'patient') {
     return (
-      <Card className="w-full border-green-200">
-        <CardHeader className="bg-green-100 border-b border-green-200">
+      <Card className="w-full border-green-200 bg-white rounded-lg">
+        <CardHeader className="bg-green-100 border-b border-green-200 rounded-t-lg">
           <CardTitle className="flex items-center gap-2 text-lg font-semibold text-green-900">
             <Calendar className="w-5 h-5" />
             <span>{block.title}</span>
@@ -131,8 +131,8 @@ export function AppointmentBlock({ block, mode, onUpdate }: BlockProps<Appointme
 
   // Doctor edit/preview mode
   return (
-    <Card className="w-full bg-green-50 border-green-200">
-      <CardHeader className="bg-green-100 border-b border-green-200">
+    <Card className="rounded-lg w-full bg-green-50 border-green-200">
+      <CardHeader className="bg-green-100 border-b border-green-200 rounded-t-lg">
         <CardTitle className="flex items-center gap-2 text-lg font-semibold text-green-900">
           <Calendar className="w-5 h-5" />
           {mode === 'edit'

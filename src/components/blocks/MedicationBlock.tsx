@@ -131,8 +131,8 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
 
   if (mode === 'patient') {
     return (
-      <Card className="w-full border-blue-200">
-        <CardHeader className="bg-blue-100 border-b border-blue-200">
+      <Card className="w-full border-blue-200 bg-white rounded-lg">
+        <CardHeader className="bg-blue-100 border-b border-blue-200 rounded-t-lg">
           <CardTitle className="flex items-center gap-2 text-lg font-bold text-blue-900">
             <Pill className="w-5 h-5" />
             <span>{block.title}</span>
@@ -174,8 +174,8 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
 
   // Doctor edit/preview mode
   return (
-    <Card className="w-full bg-blue-50 border-blue-200">
-      <CardHeader className="bg-blue-100 border-b border-blue-200">
+    <Card className="w-full bg-blue-50 border-blue-200 rounded-lg">
+      <CardHeader className="bg-blue-100 border-b border-blue-200 rounded-t-lg">
         <CardTitle className="flex items-center gap-2 text-lg font-medium text-blue-900">
           <Pill className="w-5 h-5" />
           {mode === 'edit'

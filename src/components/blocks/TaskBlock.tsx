@@ -123,8 +123,8 @@ export function TaskBlock({ block, mode, onUpdate }: BlockProps<TaskBlockType>) 
     const totalTasks = block.data.tasks.length;
 
     return (
-      <Card className="w-full border-green-200">
-        <CardHeader className="bg-green-100 border-b border-green-200">
+      <Card className="w-full border-green-200 bg-white rounded-lg">
+        <CardHeader className="bg-green-100 border-b border-green-200 rounded-t-lg">
           <CardTitle className="flex items-center justify-between text-lg font-bold text-green-900">
             <div className="flex items-center gap-2">
               <CheckSquare className="w-5 h-5" />
@@ -177,8 +177,8 @@ export function TaskBlock({ block, mode, onUpdate }: BlockProps<TaskBlockType>) 
 
   // Doctor edit/preview mode
   return (
-    <Card className="w-full border-green-200">
-      <CardHeader className="bg-green-100 border-b border-green-200">
+    <Card className="w-full border-green-200 bg-white rounded-lg">
+      <CardHeader className="bg-green-100 border-b border-green-200 rounded-t-lg">
         <CardTitle className="flex items-center gap-2 text-lg font-medium text-green-900">
           <CheckSquare className="w-5 h-5" />
           {mode === 'edit'

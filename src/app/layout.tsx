@@ -5,6 +5,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import { Toaster } from 'sonner';
 import { PostHogProvider } from '@/components/analytics/PostHogProvider';
 import { ReactQueryClientProvider } from '@/components/query/ReactQueryClientProvider';
+import { ThemeProvider } from '@/components/ThemeProvider';
 import { TourProvider } from '@/components/TourProvider';
 import { PatientProvider } from '@/context/PatientContext';
 import '@/styles/global.css';
@@ -55,16 +56,18 @@ export default async function RootLayout(props: {
       <body className="min-h-screen">
         <NextStepProvider>
           <ReactQueryClientProvider>
-            <TourProvider>
-              <PostHogProvider>
-                <NuqsAdapter>
-                  <PatientProvider>
-                    <Toaster />
-                    {props.children}
-                  </PatientProvider>
-                </NuqsAdapter>
-              </PostHogProvider>
-            </TourProvider>
+            <ThemeProvider>
+              <TourProvider>
+                <PostHogProvider>
+                  <NuqsAdapter>
+                    <PatientProvider>
+                      <Toaster />
+                      {props.children}
+                    </PatientProvider>
+                  </NuqsAdapter>
+                </PostHogProvider>
+              </TourProvider>
+            </ThemeProvider>
           </ReactQueryClientProvider>
         </NextStepProvider>
       </body>

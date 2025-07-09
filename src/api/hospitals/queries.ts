@@ -20,11 +20,29 @@ export function useHospitals() {
       const response = await fetch('/api/hospitals');
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Authentication required to fetch hospitals');
+        }
         throw new Error('Failed to fetch hospitals');
       }
 
-      return response.json();
+      const data = await response.json();
+
+      // Handle error response format
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return data;
     },
     staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on authentication errors
+      if (error.message.includes('Authentication required')) {
+        return false;
+      }
+      // Retry other errors up to 3 times
+      return failureCount < 3;
+    },
   });
 }

@@ -105,23 +105,9 @@ export function useUpdateTheme() {
   return useMutation({
     mutationFn: (theme: 'light' | 'dark' | 'system') =>
       updateUserPreferences({ theme }),
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userKeys.current() });
-
-      // Apply theme to document
-      if (data.preferences.theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else if (data.preferences.theme === 'light') {
-        document.documentElement.classList.remove('dark');
-      } else {
-        // System preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (prefersDark) {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-      }
+      // Theme application is handled by ThemeProvider
     },
   });
 }

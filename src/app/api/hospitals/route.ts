@@ -1,8 +1,19 @@
+import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/libs/supabase-server';
 
 export async function GET() {
   try {
+    // Check if user is authenticated with Clerk (required for RLS)
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 },
+      );
+    }
+
     const supabase = createServerSupabaseClient();
 
     const { data: hospitals, error } = await supabase
