@@ -21,7 +21,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { LoadingBlock } from '@/components/ui/loading-block';
-import { Progress } from '@/components/ui/progress';
 
 type PatientLayoutProps = {
   blocks: Block[];
@@ -39,7 +38,7 @@ type PatientLayoutProps = {
 
 export function PatientLayout({
   blocks,
-  progress,
+  // progress,
   onBlockUpdate,
   onBlockInteraction,
   isPreview = false,
@@ -198,7 +197,7 @@ export function PatientLayout({
   };
 
   return (
-    <div className="h-full bg-gradient-to-b from-primary-50 to-background">
+    <div className="min-h-full bg-gradient-to-b from-primary-50 to-background">
       {/* Header */}
       <div className="bg-primary text-primary-foreground p-4 pt-12 sticky top-0 z-40">
         <div className="max-w-2xl mx-auto">
@@ -224,12 +223,13 @@ export function PatientLayout({
                 isUpdatingLocale={isUpdatingLocale}
                 isTranslating={isTranslating}
                 availableTranslations={availableTranslations}
-                variant="compact"
+                variant="header"
               />
             )}
           </div>
 
-          {/* Progress Bar */}
+          {/* Progress Bar - Hidden for now, will be implemented later */}
+          {/*
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span>Progress</span>
@@ -243,6 +243,7 @@ export function PatientLayout({
             </div>
             <Progress value={progress.overallCompletion} className="h-2" />
           </div>
+          */}
         </div>
       </div>
 

@@ -1,12 +1,15 @@
 'use client';
 
 import type { Block } from '@/types/blocks';
-import { AlertTriangle, Calendar, CheckSquare, Eye, FileText, Pill, Plus, Send, Share } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { AlertTriangle, Calendar, CheckSquare, Edit3, Eye, FileText, Pill, Plus, Send, Share, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import { useGenerateBlocks } from '@/api/blocks/hooks';
 import { useCreatePatientSummary, usePatientSummaries, useUpdatePatientSummaryBlocks } from '@/api/patient-summaries/hooks';
-import { usePatient } from '@/api/patients/queries';
+import { usePatient, useUpdatePatient } from '@/api/patients/queries';
 import { AppointmentBlock } from '@/components/blocks/AppointmentBlock';
 import { MedicationBlock } from '@/components/blocks/MedicationBlock';
 import { RedFlagBlock } from '@/components/blocks/RedFlagBlock';
@@ -16,7 +19,9 @@ import { FloatingChat, PatientLayout } from '@/components/PatientSimplified';
 import { SharePatientSummaryDialog } from '@/components/SharePatientSummaryDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { LoadingBlock } from '@/components/ui/loading-block';
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { usePatientStore } from '@/stores/patientStore';
@@ -325,6 +330,13 @@ const blockTypes = [
   { type: 'text', icon: FileText, label: 'Text', color: 'bg-gray-100 text-gray-700' },
 ];
 
+// Form schema for patient name editing
+const patientNameSchema = z.object({
+  name: z.string().min(1, 'Patient name is required'),
+});
+
+type PatientNameForm = z.infer<typeof patientNameSchema>;
+
 export default function ComposerPage() {
   const [progress] = useState({
     totalTasks: 2,
@@ -336,6 +348,7 @@ export default function ComposerPage() {
     overallCompletion: 0,
   });
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
   const autoSavedForPatient = useRef(new Set<string>());
 
   // Zustand state
@@ -354,6 +367,14 @@ export default function ComposerPage() {
 
   // Get current patient data
   const { data: currentPatient } = usePatient(currentPatientId || '');
+
+  // Patient update mutation
+  const updatePatientMutation = useUpdatePatient();
+
+  // Form for patient name editing (client state)
+  const patientNameForm = useForm<PatientNameForm>({
+    resolver: zodResolver(patientNameSchema),
+  });
 
   // Get patient summaries for current patient
   const { data: summariesData, isLoading: isLoadingSummaries } = usePatientSummaries({
@@ -453,6 +474,24 @@ export default function ComposerPage() {
     console.warn('Preview interaction:', { blockId, interactionType, data });
   };
 
+  const handlePatientNameSave = async (data: PatientNameForm) => {
+    if (!currentPatientId || !data.name.trim()) {
+      return;
+    }
+
+    try {
+      await updatePatientMutation.mutateAsync({
+        id: currentPatientId,
+        data: { name: data.name.trim() },
+      });
+      setIsEditingName(false);
+      toast.success('Patient name updated successfully');
+    } catch (error) {
+      console.error('Failed to update patient name:', error);
+      toast.error('Failed to update patient name');
+    }
+  };
+
   const renderBlock = (block: Block) => {
     const mode = previewMode ? 'preview' : 'edit';
 
@@ -501,7 +540,7 @@ export default function ComposerPage() {
   return (
     <div className="flex h-screen bg-background">
       {/* Block Library Sidebar */}
-      <div className="hidden w-80 border-r bg-muted/30 p-4 overflow-y-auto">
+      <div className="hidden w-80 border-r bg-muted/30 p-4 overflow-y-auto hide-scrollbar">
         <h2 className="font-semibold text-lg mb-4">Block Library</h2>
 
         <div className="space-y-2 mb-6">
@@ -539,12 +578,59 @@ export default function ComposerPage() {
         {/* Header */}
         <div className="border-b p-4 flex items-center justify-between flex-shrink-0">
           <div>
-            <h1 className="text-xl font-semibold">Discharge Simplifier</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-xl font-semibold">Digital Patient Advocate Composer</h1>
+            <div className="text-sm text-muted-foreground">
               {currentPatient
-                ? `Patient: ${currentPatient.name} • Age: ${currentPatient.age} • ${currentPatient.sex}`
-                : 'No patient selected'}
-            </p>
+                ? (
+                    <div className="flex items-center gap-1">
+                      <span>Patient: </span>
+                      {isEditingName
+                        ? (
+                            <form onSubmit={patientNameForm.handleSubmit(handlePatientNameSave)} className="flex items-center gap-2">
+                              <Controller
+                                name="name"
+                                control={patientNameForm.control}
+                                render={({ field }) => (
+                                  <Input
+                                    {...field}
+                                    value={field.value ?? currentPatient.name}
+                                    className="h-6 px-2 py-1 text-sm min-w-[120px]"
+                                    placeholder="Enter patient name"
+                                    // autoFocus
+                                    onBlur={() => {
+                                      const name = patientNameForm.getValues('name');
+                                      if (name && name.trim() !== currentPatient.name) {
+                                        patientNameForm.handleSubmit(handlePatientNameSave)();
+                                      } else {
+                                        setIsEditingName(false);
+                                      }
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Escape') {
+                                        setIsEditingName(false);
+                                        patientNameForm.reset();
+                                      }
+                                    }}
+                                  />
+                                )}
+                              />
+                            </form>
+                          )
+                        : (
+                            <button
+                              onClick={() => setIsEditingName(true)}
+                              className="flex items-center gap-1 hover:text-foreground transition-colors group"
+                            >
+                              <span>{currentPatient.name}</span>
+                              <Edit3 className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </button>
+                          )}
+                    </div>
+                  )
+                : (
+                    'No patient selected'
+                  )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -568,86 +654,108 @@ export default function ComposerPage() {
         </div>
 
         {/* Main Content - Side by Side Layout */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left Side - Preview/Edit Area */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {previewMode
-              ? (
-            // Device Preview Mode
-                  <div className="h-full flex items-center justify-center">
-                    <DevicePreview
-                      onClose={() => setPreviewMode(false)}
-                      deviceType="phone"
-                      showCloseButton={false}
-                      floatingElements={<FloatingChat isPreview={true} />}
-                    >
-                      <PatientLayout
-                        blocks={blocks}
-                        progress={progress}
-                        onBlockUpdate={handleBlockUpdate}
-                        onBlockInteraction={handleBlockInteraction}
-                        isPreview={true}
-                        patientName={currentPatient?.name || 'Patient'}
-                        dischargeDate={latestSummary?.created_at ? new Date(latestSummary.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        patientSummaryId={latestSummary?.id}
-                      />
-                    </DevicePreview>
-                  </div>
-                )
-              : (
-            // Editable Blocks Mode
-                  <div className="h-full p-6 overflow-y-auto">
-                    <div className="max-w-4xl mx-auto space-y-6 pb-6">
-                      {isLoading
-                        ? Array.from({ length: blocks.length || 4 }, (_, index) => (
-                            <LoadingBlock key={`loading-${index}`} />
-                          ))
-                        : blocks.map(renderBlock)}
+        <div className="flex-1 overflow-hidden">
+          <ResizablePanelGroup direction="horizontal" className="h-full">
+            {/* Left Side - Preview/Edit Area */}
+            <ResizablePanel defaultSize={75} minSize={50} className="flex flex-col overflow-hidden">
+              {previewMode
+                ? (
+              // Device Preview Mode
+                    <div className="h-full flex items-center justify-center">
+                      <DevicePreview
+                        onClose={() => setPreviewMode(false)}
+                        deviceType="phone"
+                        showCloseButton={false}
+                        floatingElements={<FloatingChat isPreview={true} />}
+                      >
+                        <PatientLayout
+                          blocks={blocks}
+                          progress={progress}
+                          onBlockUpdate={handleBlockUpdate}
+                          onBlockInteraction={handleBlockInteraction}
+                          isPreview={true}
+                          patientName={currentPatient?.name || 'Patient'}
+                          dischargeDate={latestSummary?.created_at ? new Date(latestSummary.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          patientSummaryId={latestSummary?.id}
+                        />
+                      </DevicePreview>
                     </div>
-                  </div>
-                )}
-          </div>
+                  )
+                : (
+              // Editable Blocks Mode
+                    <div className="h-full p-6 overflow-y-auto hide-scrollbar">
+                      <div className="max-w-4xl mx-auto space-y-6 pb-6">
+                        {/* Safety Warning */}
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <TriangleAlert className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <p className="text-sm text-amber-800">
+                              <strong>Remember:</strong>
+                              {' '}
+                              Whilst our automation is great at extracting the right information from your discharge summaries, it is always your responsibility to double check the information to ensure patient safety.
+                            </p>
+                          </div>
+                        </div>
 
-          {/* Right Side - Discharge Input Section */}
-          <div className="w-96 border-l bg-muted/30 flex flex-col">
-            <div className="p-6 flex-1 flex flex-col">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold mb-2">Discharge Summary</h3>
-                <p className="text-sm text-muted-foreground">
-                  Paste discharge summary to generate blocks
-                </p>
+                        {isLoading
+                          ? Array.from({ length: blocks.length || 4 }, (_, index) => (
+                              <LoadingBlock key={`loading-${index}`} />
+                            ))
+                          : blocks.map(renderBlock)}
+                      </div>
+                    </div>
+                  )}
+            </ResizablePanel>
+
+            <ResizableHandle withHandle />
+
+            {/* Right Side - Discharge Input Section */}
+            <ResizablePanel defaultSize={25} minSize={20} maxSize={50} className="border-l bg-muted/30 flex flex-col max-h-full ">
+              <div className="p-6 flex-1 flex flex-col max-h-full">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold mb-2">Discharge Summary</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Paste discharge summary to automatically generate a patient-friendly summary.
+                  </p>
+                </div>
+
+                <div className="flex-1 flex flex-col space-y-4 min-h-0 overflow-hidden">
+                  <Textarea
+                    value={dischargeText}
+                    onChange={e => setDischargeText(e.target.value)}
+                    className="flex-1 resize-none overflow-y-auto min-h-0 hide-scrollbar"
+                    placeholder={`You can paste your discharge summary here... \n
+The AI is usually very good at extracting information from your discharges as long as it's somewhere in the text. However, we will not make any assumptions about what is missing for patient safety purposes. So remember to include the following information:
+- Treatment
+- Medications including generic name +/- brand name, dosage, frequency, duration, indication and special instructions
+- Follow-up instructions including any follow-up appointments (are they booked, will clinic call or do they need to call to book or is this a specialist they need to get a referral letter from GP), labs/imaging tests
+- Advice on any lifestyle changes, diet, exercise, smoking cessation, alcohol cessation, etc.
+                      `}
+                  />
+
+                  <Button
+                    onClick={handleGenerate}
+                    disabled={!dischargeText || isLoading}
+                    className="w-full"
+                  >
+                    {isLoading
+                      ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                            {isLoadingSummaries ? 'Loading...' : 'Generating...'}
+                          </>
+                        )
+                      : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Generate Blocks
+                          </>
+                        )}
+                  </Button>
+                </div>
               </div>
-
-              <div className="flex-1 flex flex-col space-y-4">
-                <Textarea
-                  value={dischargeText}
-                  onChange={e => setDischargeText(e.target.value)}
-                  className="flex-1 resize-none overflow-y-auto min-h-0"
-                  placeholder="Patient was admitted with acute appendicitis and underwent laparoscopic appendectomy..."
-                />
-
-                <Button
-                  onClick={handleGenerate}
-                  disabled={!dischargeText || isLoading}
-                  className="w-full"
-                >
-                  {isLoading
-                    ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                          {isLoadingSummaries ? 'Loading...' : 'Generating...'}
-                        </>
-                      )
-                    : (
-                        <>
-                          <Send className="w-4 h-4 mr-2" />
-                          Generate Blocks
-                        </>
-                      )}
-                </Button>
-              </div>
-            </div>
-          </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </div>
       </div>
 

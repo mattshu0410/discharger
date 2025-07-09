@@ -39,7 +39,7 @@ type LanguageSwitcherProps = {
   isUpdatingLocale?: boolean;
   isTranslating?: boolean;
   availableTranslations?: SupportedLocale[];
-  variant?: 'default' | 'compact';
+  variant?: 'default' | 'compact' | 'header';
 };
 
 export function LanguageSwitcher({
@@ -75,6 +75,50 @@ export function LanguageSwitcher({
             disabled={isLoading}
             className="h-8 px-2"
           >
+            <Globe className="w-4 h-4 mr-1" />
+            <span className="text-xs">{currentLanguage?.flag}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Language</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {LANGUAGES.map(language => (
+            <DropdownMenuItem
+              key={language.code}
+              onClick={() => handleLanguageChange(language.code)}
+              disabled={isLoading}
+              className="flex items-center justify-between"
+            >
+              <div className="flex items-center gap-2">
+                <span>{language.flag}</span>
+                <span className="text-sm">{language.nativeName}</span>
+              </div>
+              <div className="flex gap-1">
+                {language.code === currentLocale && (
+                  <Badge variant="secondary" className="text-xs">Current</Badge>
+                )}
+                {isTranslationAvailable(language.code) && language.code !== currentLocale && (
+                  <Badge variant="outline" className="text-xs">Available</Badge>
+                )}
+              </div>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
+  if (variant === 'header') {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={isLoading}
+            className="h-8 px-3 border border-black text-primary-foreground hover:bg-primary-foreground/10"
+          >
+            <span className="text-xs mr-2">Language</span>
             <Globe className="w-4 h-4 mr-1" />
             <span className="text-xs">{currentLanguage?.flag}</span>
           </Button>

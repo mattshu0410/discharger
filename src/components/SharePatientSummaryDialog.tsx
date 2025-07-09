@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { ChevronDown, ChevronUp, FileDown, MessageSquare, Phone, Printer, QrCode, Send, Trash2, User, Users } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { usePDF } from 'react-to-pdf';
 import { toast } from 'sonner';
@@ -111,6 +111,11 @@ export function SharePatientSummaryDialog({
       patient_name: patientName,
     },
   });
+
+  // Update patient name when prop changes
+  useEffect(() => {
+    form.setValue('patient_name', patientName);
+  }, [patientName, form]);
 
   const onSubmit = async (data: ShareFormData) => {
     try {

@@ -1,6 +1,6 @@
 'use client';
 import type { BlockProps, TaskBlock as TaskBlockType } from '@/types/blocks';
-import { Calendar, Check, CheckSquare, Edit3, Square, Trash2 } from 'lucide-react';
+import { Calendar, CheckSquare, Edit3, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
-export function TaskBlock({ block, mode, onUpdate, onInteraction }: BlockProps<TaskBlockType>) {
+export function TaskBlock({ block, mode, onUpdate }: BlockProps<TaskBlockType>) {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // React Hook Form setup with reactive values from server state
@@ -30,24 +30,24 @@ export function TaskBlock({ block, mode, onUpdate, onInteraction }: BlockProps<T
     name: 'data.tasks',
   });
 
-  const handleTaskComplete = (taskId: string, completed: boolean) => {
-    if (mode === 'patient' && onInteraction) {
-      onInteraction('task_completed', { taskId, completed, timestamp: new Date() });
-    }
+  // const handleTaskComplete = (taskId: string, completed: boolean) => {
+  //   if (mode === 'patient' && onInteraction) {
+  //     onInteraction('task_completed', { taskId, completed, timestamp: new Date() });
+  //   }
 
-    if (onUpdate) {
-      const updatedBlock = {
-        ...block,
-        data: {
-          ...block.data,
-          tasks: block.data.tasks.map(task =>
-            task.id === taskId ? { ...task, completed, completedAt: completed ? new Date() : undefined } : task,
-          ),
-        },
-      };
-      onUpdate(updatedBlock);
-    }
-  };
+  //   if (onUpdate) {
+  //     const updatedBlock = {
+  //       ...block,
+  //       data: {
+  //         ...block.data,
+  //         tasks: block.data.tasks.map(task =>
+  //           task.id === taskId ? { ...task, completed, completedAt: completed ? new Date() : undefined } : task,
+  //         ),
+  //       },
+  //     };
+  //     onUpdate(updatedBlock);
+  //   }
+  // };
 
   const handleDone = handleSubmit((formData) => {
     if (onUpdate) {
@@ -142,20 +142,7 @@ export function TaskBlock({ block, mode, onUpdate, onInteraction }: BlockProps<T
             <div key={task.id} className="p-4 border-b border-green-100 last:border-b-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 h-auto"
-                    onClick={() => handleTaskComplete(task.id, !task.completed)}
-                  >
-                    {task.completed
-                      ? (
-                          <Check className="w-5 h-5 text-green-600" />
-                        )
-                      : (
-                          <Square className="w-5 h-5 text-muted-foreground" />
-                        )}
-                  </Button>
+                  {/* Checkbox hidden for now - will be implemented later */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       {task.dueDate && (

@@ -240,17 +240,21 @@ export default function PatientSummaryPage() {
     : '';
 
   return (
-    <div className="relative h-screen">
-      <PatientLayout
-        blocks={blocks}
-        progress={progress}
-        onBlockUpdate={handleBlockUpdate}
-        onBlockInteraction={handleBlockInteraction}
-        patientName={patientName}
-        dischargeDate={dischargeDate}
-        patientSummaryId={summaryData?.id}
-        patientAccessKey={accessKey || undefined}
-      />
+    <div className="relative h-screen overflow-hidden">
+      {/* Scrollable content container */}
+      <div className="h-full overflow-y-auto overflow-x-hidden">
+        <PatientLayout
+          blocks={blocks}
+          progress={progress}
+          onBlockUpdate={handleBlockUpdate}
+          onBlockInteraction={handleBlockInteraction}
+          patientName={patientName}
+          dischargeDate={dischargeDate}
+          patientSummaryId={summaryData?.id}
+          patientAccessKey={accessKey || undefined}
+        />
+      </div>
+      {/* Floating elements container - positioned relative to the fixed viewport */}
       <FloatingChat isPreview={false} />
     </div>
   );

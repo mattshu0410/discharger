@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { Monitor, Smartphone, Tablet, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { IPhone14Frame } from './iPhone14Frame';
 
@@ -75,7 +76,7 @@ export function DevicePreview({
             <Button
               variant={deviceType === 'tablet' ? 'secondary' : 'ghost'}
               size="sm"
-              onClick={() => { /* Could add device switching */ }}
+              onClick={() => toast.info('Device Preview for this device is not available yet. Coming soon.')}
               className="text-white hover:bg-white/20"
             >
               <Tablet className="w-4 h-4" />
@@ -83,7 +84,7 @@ export function DevicePreview({
             <Button
               variant={deviceType === 'desktop' ? 'secondary' : 'ghost'}
               size="sm"
-              onClick={() => { /* Could add device switching */ }}
+              onClick={() => toast.info('Device Preview for this device is not available yet. Coming soon.')}
               className="text-white hover:bg-white/20"
             >
               <Monitor className="w-4 h-4" />
