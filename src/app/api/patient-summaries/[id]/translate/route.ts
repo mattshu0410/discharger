@@ -1,5 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server';
 import { z } from 'zod';
+import { logger } from '@/libs/Logger';
 import { createAccessKeySupabaseClient } from '@/libs/supabase-access-key';
 import { createServerSupabaseClient } from '@/libs/supabase-server';
 import { translationService } from '@/libs/translationService';
@@ -12,16 +13,16 @@ const translateRequestSchema = z.object({
 });
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  console.warn('[DEBUG] POST /api/patient-summaries/[id]/translate endpoint hit');
-  console.warn('[DEBUG] Request URL:', req.url);
-  console.warn('[DEBUG] Request method:', req.method);
+  logger.debug('POST /api/patient-summaries/[id]/translate endpoint hit');
+  logger.debug('Request URL:', req.url);
+  logger.debug('Request method:', req.method);
 
   try {
     const { id: patientSummaryId } = await params;
-    console.warn('[DEBUG] Patient Summary ID from params:', patientSummaryId);
+    logger.debug('Patient Summary ID from params:', patientSummaryId);
 
     const body = await req.json();
-    console.warn('[DEBUG] Request body received:', body);
+    logger.debug('Request body received:', body);
 
     // Parse request body
     const { target_locale } = translateRequestSchema.parse(body);
@@ -30,7 +31,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const url = new URL(req.url);
     const access_key = url.searchParams.get('access_key');
 
-    console.warn('[DEBUG] Parsed and validated:', {
+    logger.debug('Parsed and validated:', {
       target_locale,
       has_access_key: !!access_key,
       access_key_length: access_key?.length,
@@ -48,7 +49,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         supabase = createServerSupabaseClient();
       }
     } catch (error) {
-      console.warn('[DEBUG] Clerk auth failed:', error instanceof Error ? error.message : 'Unknown error');
+      logger.debug('Clerk auth failed:', error instanceof Error ? error.message : 'Unknown error');
     }
 
     // If no Clerk auth and access key provided, use access key client
@@ -73,7 +74,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .eq('id', patientSummaryId)
       .single();
 
-    console.warn('[DEBUG] Patient summary query result:', {
+    logger.debug('Patient summary query result:', {
       hasData: !!summary,
       error: summaryError?.message,
       summaryId: summary?.id,
@@ -94,7 +95,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .eq('locale', target_locale)
       .single();
 
-    console.warn('[DEBUG] Existing translation check:', {
+    logger.debug('Existing translation check:', {
       exists: !!existingTranslation,
       error: existingError?.message,
     });
@@ -126,7 +127,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .single();
 
     if (error) {
-      console.error('[DEBUG] Error creating translation:', error);
+      logger.error('Error creating translation:', error);
       return Response.json({ error: 'Failed to create translation' }, { status: 500 });
     }
 
@@ -138,8 +139,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return Response.json({ error: 'Invalid input', details: error.errors }, { status: 400 });
     }
 
-    console.error('[DEBUG] Unexpected error in translate endpoint:', error);
-    console.error('[DEBUG] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    logger.error('Unexpected error in translate endpoint:', error);
+    logger.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

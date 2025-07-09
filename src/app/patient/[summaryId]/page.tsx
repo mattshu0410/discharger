@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { usePatientSummary } from '@/api/patient-summaries/hooks';
 import { FloatingChat, PatientLayout } from '@/components/PatientSimplified';
+// import { logger } from '@/libs/Logger';
 
 // Mock data for patient view - using static dates to avoid hydration issues
 const mockPatientBlocks: Block[] = [
@@ -123,7 +124,7 @@ export default function PatientSummaryPage() {
   const searchParams = useSearchParams();
   const summaryId = params.summaryId as string;
   const accessKey = searchParams.get('access');
-  console.warn('summaryId:', summaryId, 'accessKey:', accessKey);
+  // logger.debug('summaryId:', summaryId, 'accessKey:', accessKey);
 
   // Fetch patient summary using unified hook with access key
   const { data: summaryData, isLoading, error } = usePatientSummary(summaryId, {
@@ -174,8 +175,8 @@ export default function PatientSummaryPage() {
     }
   }, [summaryData]);
 
-  const handleBlockInteraction = (blockId: string, interactionType: string, data: any) => {
-    console.warn('Patient interaction:', { blockId, interactionType, data });
+  const handleBlockInteraction = (_blockId: string, interactionType: string, data: any) => {
+    // logger.debug('Patient interaction:', { blockId, interactionType, data });
 
     // Update progress based on interactions
     if (interactionType === 'task_completed') {

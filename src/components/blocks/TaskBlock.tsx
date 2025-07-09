@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+// import { logger } from '@/libs/Logger';
 
 export function TaskBlock({ block, mode, onUpdate }: BlockProps<TaskBlockType>) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -72,7 +73,8 @@ export function TaskBlock({ block, mode, onUpdate }: BlockProps<TaskBlockType>) 
       toast.success(`Task "${taskTitle}" deleted successfully`);
     } catch (error) {
       toast.error('Failed to delete task');
-      console.warn(error);
+      console.error('Failed to delete task:', error);
+      // logger.debug(error);
     }
   };
 

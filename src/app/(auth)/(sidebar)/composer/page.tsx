@@ -26,6 +26,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { usePatientStore } from '@/stores/patientStore';
 import { useUIStore } from '@/stores/uiStore';
+// import { logger } from '@/libs/Logger';
 
 // Mock data for demonstration - Robert Chen STEMI case
 const mockBlocks: Block[] = [
@@ -466,6 +467,7 @@ export default function ComposerPage() {
 
       toast.success('Blocks generated and saved successfully!');
     } catch (error) {
+      toast.error('Error generating blocks. Please try again.');
       console.error('Error generating blocks:', error);
     }
   };
@@ -487,8 +489,9 @@ export default function ComposerPage() {
       setIsEditingName(false);
       toast.success('Patient name updated successfully');
     } catch (error) {
-      console.error('Failed to update patient name:', error);
+      // logger.error('Failed to update patient name:', error);
       toast.error('Failed to update patient name');
+      console.error('Failed to update patient name:', error);
     }
   };
 

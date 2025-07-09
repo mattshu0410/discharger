@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+// import { logger } from '@/libs/Logger';
 
 export function MedicationBlock({ block, mode, onUpdate }: BlockProps<MedicationBlockType>) {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -26,21 +27,21 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
 
   // Debug: Watch for state changes
   useEffect(() => {
-    console.warn('📊 Server state changed:', {
-      medications: block.data.medications?.map(m => ({ id: m.id, name: m.name })),
-      count: block.data.medications?.length,
-    });
+    // logger.debug('Server state changed:', {
+    //   medications: block.data.medications?.map(m => ({ id: m.id, name: m.name })),
+    //   count: block.data.medications?.length,
+    // });
   }, [block.data.medications]);
 
   useEffect(() => {
-    console.warn('📝 Form state changed:', {
-      medications: watchedBlock.data?.medications?.map(m => ({ id: m.id, name: m.name })),
-      count: watchedBlock.data?.medications?.length,
-    });
+    // logger.debug('Form state changed:', {
+    //   medications: watchedBlock.data?.medications?.map(m => ({ id: m.id, name: m.name })),
+    //   count: watchedBlock.data?.medications?.length,
+    // });
   }, [watchedBlock.data?.medications]);
 
   useEffect(() => {
-    console.warn('✏️ EditingId changed:', editingId);
+    // logger.debug('EditingId changed:', editingId);
   }, [editingId]);
 
   // Field array for managing medications dynamically
@@ -50,10 +51,10 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
   });
 
   const handleDone = handleSubmit((formData) => {
-    console.warn('🔄 handleDone - Sending to server:', {
-      formData: formData.data.medications,
-      editingId,
-    });
+    // logger.debug('handleDone - Sending to server:', {
+    //   formData: formData.data.medications,
+    //   editingId,
+    // });
     if (onUpdate) {
       onUpdate(formData);
     }
@@ -64,33 +65,34 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
     try {
       const medicationBeingDeleted = watchedBlock.data?.medications?.[index];
 
-      console.warn('🗑️ Before delete:', {
-        index,
-        medicationBeingDeleted,
-        watchedMeds: watchedBlock.data?.medications?.map(m => ({ id: m.id, name: m.name })),
-        serverMeds: block.data.medications?.map(m => ({ id: m.id, name: m.name })),
-        editingId,
-        willClearEditingId: medicationBeingDeleted?.id === editingId,
-      });
+      // logger.debug('Before delete:', {
+      //   index,
+      //   medicationBeingDeleted,
+      //   watchedMeds: watchedBlock.data?.medications?.map(m => ({ id: m.id, name: m.name })),
+      //   serverMeds: block.data.medications?.map(m => ({ id: m.id, name: m.name })),
+      //   editingId,
+      //   willClearEditingId: medicationBeingDeleted?.id === editingId,
+      // });
 
       // Clear editingId if we're deleting the currently edited item
       if (medicationBeingDeleted?.id === editingId) {
-        console.warn('🧹 Clearing editingId');
+        // logger.debug('Clearing editingId');
         setEditingId(null);
       }
 
       remove(index);
-      console.warn('🔄 After remove:', {
-        watchedMeds: watchedBlock.data?.medications?.map(m => ({ id: m.id, name: m.name })),
-      });
+      // logger.debug('After remove:', {
+      //   watchedMeds: watchedBlock.data?.medications?.map(m => ({ id: m.id, name: m.name })),
+      // });
 
       // Wait a tick to ensure state is updated before calling handleDone
       await new Promise(resolve => setTimeout(resolve, 0));
       handleDone();
       toast.success(`Medication "${medicationName}" deleted successfully`);
     } catch (error) {
-      console.error('❌ Delete error:', error);
+      // logger.error('Delete error:', error);
       toast.error('Failed to delete medication');
+      console.error('Failed to delete medication:', error);
     }
   };
 
@@ -104,10 +106,10 @@ export function MedicationBlock({ block, mode, onUpdate }: BlockProps<Medication
       status: 'new' as const,
       instructions: '',
     };
-    console.warn('➕ Adding medication:', newMedication);
+    // logger.debug('Adding medication:', newMedication);
     append(newMedication);
     setEditingId(newMedication.id);
-    console.warn('📝 Set editingId to:', newMedication.id);
+    // logger.debug('Set editingId to:', newMedication.id);
   };
 
   const getStatusColor = (status: string) => {

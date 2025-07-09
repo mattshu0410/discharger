@@ -1,5 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { logger } from '@/libs/Logger';
 import { createServerSupabaseClient } from '@/libs/supabase-server';
 
 // GET /api/users/profile - Get current user profile
@@ -19,9 +20,9 @@ export async function GET() {
       .eq('id', user.id)
       .single();
 
-    console.warn(existingProfile);
+    logger.debug(existingProfile);
     if (existingProfile && !selectError) {
-      console.warn('existingProfile', existingProfile);
+      logger.debug('existingProfile', existingProfile);
       // Return existing profile with Clerk data
       return NextResponse.json({
         id: existingProfile.id,
@@ -43,7 +44,7 @@ export async function GET() {
 
     // If there was another error, throw it
     if (selectError) {
-      console.error('Failed to get user profile:', selectError);
+      logger.error('Failed to get user profile:', selectError);
       return NextResponse.json(
         { error: 'Failed to get user profile' },
         { status: 500 },
@@ -53,7 +54,7 @@ export async function GET() {
     // This should never be reached but TypeScript requires a return
     return NextResponse.json({ error: 'Unexpected error' }, { status: 500 });
   } catch (error) {
-    console.error('Failed to get user profile:', error);
+    logger.error('Failed to get user profile:', error);
     return NextResponse.json(
       { error: 'Failed to get user profile' },
       { status: 500 },
@@ -108,7 +109,7 @@ export async function PUT(request: Request) {
       .single();
 
     if (updateError) {
-      console.error('Failed to update user profile:', updateError);
+      logger.error('Failed to update user profile:', updateError);
       return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
     }
 
@@ -133,7 +134,7 @@ export async function PUT(request: Request) {
       },
     });
   } catch (error) {
-    console.error('Failed to update user profile:', error);
+    logger.error('Failed to update user profile:', error);
     return NextResponse.json(
       { error: 'Failed to update user profile' },
       { status: 500 },

@@ -85,15 +85,16 @@ export function Sidebar() {
       )}
     >
       {/* Toggle button */}
-      <button
+      <Button
         id="sidebar-toggle"
-        type="button"
-        className="m-2 p-1 rounded hover:bg-[var(--sidebar-accent)] transition-colors"
+        variant="ghost"
+        size="icon"
+        className="m-2 h-8 w-8 hover:bg-[var(--sidebar-accent)]"
         onClick={toggleSidebar}
         aria-label="Toggle sidebar"
       >
         {isSidebarOpen ? <SidebarClose size={20} /> : <PanelLeft size={20} />}
-      </button>
+      </Button>
 
       <div className="flex-1 overflow-y-auto">
         {isSidebarOpen && (
@@ -175,9 +176,10 @@ export function Sidebar() {
                             </button>
 
                             {/* Delete button */}
-                            <button
-                              type="button"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500 hover:text-white rounded text-muted-foreground"
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 hover:bg-red-500 hover:text-white text-muted-foreground"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeletePatient(p.id, p.name);
@@ -185,7 +187,7 @@ export function Sidebar() {
                               title={`Delete ${p.name}`}
                             >
                               <X size={14} />
-                            </button>
+                            </Button>
                           </div>
                         </li>
                       ))}
@@ -197,11 +199,12 @@ export function Sidebar() {
                     <div className="text-xs font-semibold text-[var(--sidebar-accent-foreground)] uppercase tracking-wider">
                       Settings
                     </div>
-                    <button
+                    <Button
                       id="memory-nav-link"
-                      type="button"
+                      variant="ghost"
+                      size="sm"
                       className={cn(
-                        'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
+                        'w-full justify-start px-2 py-2 h-auto',
                         activeSettingsTab === 'memory'
                           ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                           : 'hover:bg-[var(--sidebar-accent)]',
@@ -210,12 +213,13 @@ export function Sidebar() {
                     >
                       <HardDrive size={16} />
                       Memory
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       id="snippets-nav-link"
-                      type="button"
+                      variant="ghost"
+                      size="sm"
                       className={cn(
-                        'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
+                        'w-full justify-start px-2 py-2 h-auto',
                         activeSettingsTab === 'snippets'
                           ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                           : 'hover:bg-[var(--sidebar-accent)]',
@@ -224,11 +228,12 @@ export function Sidebar() {
                     >
                       <FileText size={16} />
                       Snippets
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className={cn(
-                        'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
+                        'w-full justify-start px-2 py-2 h-auto',
                         activeSettingsTab === 'profile'
                           ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                           : 'hover:bg-[var(--sidebar-accent)]',
@@ -237,7 +242,7 @@ export function Sidebar() {
                     >
                       <UserCircle size={16} />
                       Profile
-                    </button>
+                    </Button>
                     <div className="flex items-center gap-2 px-2 py-2 text-muted-foreground">
                       <BookOpen size={16} />
                       Preferences

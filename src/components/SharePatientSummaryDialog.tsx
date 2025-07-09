@@ -286,68 +286,49 @@ export function SharePatientSummaryDialog({
                   <div className="space-y-3">
                     <Label>Role</Label>
                     <div className="flex gap-2">
-                      <button
+                      <Button
                         type="button"
+                        variant={selectedRole === 'patient' ? 'default' : 'outline'}
                         onClick={() => handleRoleSelect('patient')}
                         disabled={sendSMSMutation.isPending}
                         className="flex-1"
                       >
-                        <Badge
-                          variant={selectedRole === 'patient' ? 'default' : 'outline'}
-                          className="w-full justify-center gap-2 py-2 px-4 cursor-pointer hover:bg-accent"
-                        >
-                          <User className="w-4 h-4" />
-                          Patient
-                        </Badge>
-                      </button>
-                      <button
+                        <User className="w-4 h-4 mr-2" />
+                        Patient
+                      </Button>
+                      <Button
                         type="button"
+                        variant={selectedRole === 'caregiver' ? 'default' : 'outline'}
                         onClick={() => handleRoleSelect('caregiver')}
                         disabled={sendSMSMutation.isPending}
                         className="flex-1"
                       >
-                        <Badge
-                          variant={selectedRole === 'caregiver' ? 'default' : 'outline'}
-                          className="w-full justify-center gap-2 py-2 px-4 cursor-pointer hover:bg-accent"
-                        >
-                          <Users className="w-4 h-4" />
-                          Caregiver
-                        </Badge>
-                      </button>
+                        <Users className="w-4 h-4 mr-2" />
+                        Caregiver
+                      </Button>
                     </div>
                   </div>
 
                   {/* Submit Button */}
-                  <div className="flex gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => onOpenChange(false)}
-                      disabled={sendSMSMutation.isPending}
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={sendSMSMutation.isPending}
-                      className="flex-1"
-                    >
-                      {sendSMSMutation.isPending
-                        ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                              Sending...
-                            </>
-                          )
-                        : (
-                            <>
-                              <Send className="w-4 h-4 mr-2" />
-                              Send SMS
-                            </>
-                          )}
-                    </Button>
-                  </div>
+                  <Button
+                    type="submit"
+                    disabled={sendSMSMutation.isPending}
+                    className="w-full"
+                  >
+                    {sendSMSMutation.isPending
+                      ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                            Sending...
+                          </>
+                        )
+                      : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Send SMS
+                          </>
+                        )}
+                  </Button>
                 </form>
               </Form>
 

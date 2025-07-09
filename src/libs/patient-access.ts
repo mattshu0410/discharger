@@ -96,7 +96,7 @@ export async function generateAccessKey(
 
       if (createError) {
         logger.error('Error creating access key for QR:', createError);
-        console.warn(createError);
+        logger.debug(createError);
         return { success: false, error: 'Failed to create access key' };
       }
       accessKey = newKey;

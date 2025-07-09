@@ -3,6 +3,7 @@ import type { Block } from '@/types/blocks';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { createTranslationSchema, getBlockTypesFromBlocks } from '@/libs/blockSchemas';
+import { logger } from '@/libs/Logger';
 
 // Language mapping for natural language instructions
 const LANGUAGE_MAP: Record<SupportedLocale, string> = {
@@ -126,10 +127,10 @@ export class TranslationService {
         },
       })) as Block[];
 
-      console.warn('Successfully translated blocks:', translatedBlocks.length);
+      logger.info('Successfully translated blocks:', translatedBlocks.length);
       return translatedBlocks;
     } catch (error) {
-      console.error('Translation error:', error);
+      logger.error('Translation error:', error);
       throw new Error(`Failed to translate blocks: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }

@@ -9,6 +9,7 @@ import type {
   SendSMSRequest,
   SendSMSResponse,
 } from './types';
+// import { logger } from '@/libs/Logger';
 
 /**
  * Get all access keys for a specific patient summary
@@ -194,9 +195,9 @@ export async function generateQRCode(request: GenerateQRCodeRequest): Promise<Ge
  */
 export async function getPatientSummaryByAccessKey(accessKey: string) {
   try {
-    console.warn('Called getPatientSummaryByAccessKey', accessKey);
+    // logger.debug('Called getPatientSummaryByAccessKey', accessKey);
     const url = `/api/patient-summaries/access/${accessKey}`;
-    console.warn('Making fetch request to:', url);
+    // logger.debug('Making fetch request to:', url);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -205,11 +206,11 @@ export async function getPatientSummaryByAccessKey(accessKey: string) {
       },
     });
 
-    console.warn('Fetch response received:', response.status, response.ok);
+    // logger.debug('Fetch response received:', response.status, response.ok);
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.warn('errorData', errorData);
+      // logger.debug('errorData', errorData);
       throw new Error(errorData || `HTTP ${response.status}`);
     }
 

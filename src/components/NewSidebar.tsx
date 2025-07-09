@@ -1,7 +1,5 @@
 'use client';
 import {
-  Archive,
-  BookOpen,
   FileDown,
   FileText,
   HardDrive,
@@ -84,7 +82,11 @@ export function NewSidebar() {
       )}
     >
       {/* Top controls - toggle and new patient button */}
-      <div className="flex items-center gap-2 p-3 border-b border-[var(--sidebar-border)]">
+      <div className={cn(
+        'flex items-center gap-2 p-3 border-b border-[var(--sidebar-border)]',
+        !isSidebarOpen && 'justify-center',
+      )}
+      >
         {isSidebarOpen && (
           <Button
             id="new-patient-btn"
@@ -97,15 +99,16 @@ export function NewSidebar() {
             New Patient
           </Button>
         )}
-        <button
+        <Button
           id="sidebar-toggle"
-          type="button"
-          className="h-9 w-9 flex items-center justify-center rounded hover:bg-[var(--sidebar-accent)] transition-colors flex-shrink-0"
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 flex-shrink-0 hover:bg-[var(--sidebar-accent)]"
           onClick={toggleSidebar}
           aria-label="Toggle sidebar"
         >
           {isSidebarOpen ? <SidebarClose size={20} /> : <PanelLeft size={20} />}
-        </button>
+        </Button>
       </div>
 
       {isSidebarOpen && (
@@ -115,32 +118,34 @@ export function NewSidebar() {
             <div className="text-xs font-semibold text-[var(--sidebar-accent-foreground)] uppercase tracking-wider mb-2">
               Workflows
             </div>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               className={cn(
-                'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
+                'w-full justify-start px-2 py-2 h-auto',
                 pathname === '/'
                   ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                   : 'hover:bg-[var(--sidebar-accent)]',
               )}
               onClick={() => router.push('/')}
             >
-              <Zap size={16} />
+              <Zap size={16} className="mr-2" />
               Auto-Discharge
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               className={cn(
-                'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
+                'w-full justify-start px-2 py-2 h-auto',
                 pathname === '/composer'
                   ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                   : 'hover:bg-[var(--sidebar-accent)]',
               )}
               onClick={() => router.push('/composer')}
             >
-              <FileDown size={16} />
+              <FileDown size={16} className="mr-2" />
               Discharge Simplifier
-            </button>
+            </Button>
           </div>
 
           {/* Settings section - now below workflows */}
@@ -148,55 +153,50 @@ export function NewSidebar() {
             <div className="text-xs font-semibold text-[var(--sidebar-accent-foreground)] uppercase tracking-wider mb-2">
               Settings
             </div>
-            <button
+            <Button
               id="memory-nav-link"
-              type="button"
+              variant="ghost"
+              size="sm"
               className={cn(
-                'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
+                'w-full justify-start px-2 py-2 h-auto',
                 activeSettingsTab === 'memory'
                   ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                   : 'hover:bg-[var(--sidebar-accent)]',
               )}
               onClick={() => router.push('/memory')}
             >
-              <HardDrive size={16} />
+              <HardDrive size={16} className="mr-2" />
               Memory
-            </button>
-            <button
+            </Button>
+            <Button
               id="snippets-nav-link"
-              type="button"
+              variant="ghost"
+              size="sm"
               className={cn(
-                'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
+                'w-full justify-start px-2 py-2 h-auto',
                 activeSettingsTab === 'snippets'
                   ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                   : 'hover:bg-[var(--sidebar-accent)]',
               )}
               onClick={() => router.push('/snippets')}
             >
-              <FileText size={16} />
+              <FileText size={16} className="mr-2" />
               Snippets
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               className={cn(
-                'w-full text-left px-2 py-2 rounded transition-colors flex items-center gap-2',
+                'w-full justify-start px-2 py-2 h-auto',
                 activeSettingsTab === 'profile'
                   ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                   : 'hover:bg-[var(--sidebar-accent)]',
               )}
               onClick={() => router.push('/profile')}
             >
-              <UserCircle size={16} />
+              <UserCircle size={16} className="mr-2" />
               Profile
-            </button>
-            <div className="flex items-center gap-2 px-2 py-2 text-muted-foreground">
-              <BookOpen size={16} />
-              Preferences
-            </div>
-            <div className="flex items-center gap-2 px-2 py-2 text-muted-foreground">
-              <Archive size={16} />
-              Archive
-            </div>
+            </Button>
           </div>
 
           {/* Patient section - always below settings */}
@@ -236,9 +236,10 @@ export function NewSidebar() {
                       </button>
 
                       {/* Delete button */}
-                      <button
-                        type="button"
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-500 hover:text-white rounded text-muted-foreground"
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 hover:bg-red-500 hover:text-white text-muted-foreground"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeletePatient(p.id, p.name);
@@ -246,7 +247,7 @@ export function NewSidebar() {
                         title={`Delete ${p.name}`}
                       >
                         <X size={14} />
-                      </button>
+                      </Button>
                     </div>
                   </li>
                 ))}

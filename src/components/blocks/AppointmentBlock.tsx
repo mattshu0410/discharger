@@ -54,7 +54,7 @@ export function AppointmentBlock({ block, mode, onUpdate }: BlockProps<Appointme
       toast.success(`Appointment "${clinicName}" deleted successfully`);
     } catch (error) {
       toast.error('Failed to delete appointment');
-      console.warn(error);
+      console.error('Failed to delete appointment:', error);
     }
   };
 

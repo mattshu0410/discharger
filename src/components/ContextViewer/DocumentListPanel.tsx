@@ -3,6 +3,7 @@
 import type { Document } from '@/types';
 import type { DocumentCitation } from '@/types/discharge';
 import { ExternalLink, FileText } from 'lucide-react';
+// import { logger } from '@/libs/Logger';
 import { useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -121,15 +122,15 @@ export function DocumentListPanel({ documents, highlightedCitation }: DocumentLi
         // Find the highlighted element within the full text container
         const highlightedElement = fullTextRef.current?.querySelector('.citation-highlighted-green');
         if (highlightedElement) {
-          console.warn('Found highlighted element, scrolling to it:', highlightedElement);
+          // logger.debug('Found highlighted element, scrolling to it:', highlightedElement);
           highlightedElement.scrollIntoView({
             behavior: 'smooth',
             block: 'center',
           });
         } else {
-          console.warn('Could not find highlighted element to scroll to. Context:', highlightedCitation?.context);
-          console.warn('Full text ref:', fullTextRef.current);
-          console.warn('Available elements with citation-highlighted-green class:', fullTextRef.current?.querySelectorAll('.citation-highlighted-green'));
+          // logger.debug('Could not find highlighted element to scroll to. Context:', highlightedCitation?.context);
+          // logger.debug('Full text ref:', fullTextRef.current);
+          // logger.debug('Available elements with citation-highlighted-green class:', fullTextRef.current?.querySelectorAll('.citation-highlighted-green'));
         }
       }, 100); // Small delay to ensure DOM is updated
 

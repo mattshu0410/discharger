@@ -3,6 +3,7 @@
 import { NextStep } from 'nextstepjs';
 import { useCurrentUser, useUpdateProfile } from '@/api/users/queries';
 import steps from '@/libs/onboarding-steps';
+// import { logger } from '@/libs/Logger';
 
 type TourProviderProps = {
   children: React.ReactNode;
@@ -12,25 +13,26 @@ export function TourProvider({ children }: TourProviderProps) {
   const { data: userProfile } = useCurrentUser();
   const updateProfile = useUpdateProfile();
 
-  const handleComplete = async (_step: number, tourName: string | null) => {
-    console.warn('handleComplete called with tour:', tourName);
+  const handleComplete = async (_step: number, _tourName: string | null) => {
+    // logger.debug('handleComplete called with tour:', tourName);
     if (userProfile) {
       try {
-        console.warn('Updating onboarding status to true');
+        // logger.debug('Updating onboarding status to true');
         await updateProfile.mutateAsync({
           ...userProfile,
           onboarding_completed: true,
         });
-        console.warn('Onboarding status updated successfully');
+        // logger.debug('Onboarding status updated successfully');
       } catch (error) {
+        // logger.error('Failed to update onboarding status:', error);
         console.error('Failed to update onboarding status:', error);
       }
     } else {
-      console.warn('No userProfile available for onboarding completion');
+      // logger.debug('No userProfile available for onboarding completion');
     }
   };
 
-  console.warn('TourProvider rendering with steps:', steps);
+  // logger.debug('TourProvider rendering with steps:', steps);
 
   return (
     <NextStep

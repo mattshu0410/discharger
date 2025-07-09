@@ -7,6 +7,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// import { logger } from '@/libs/Logger';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -53,7 +54,7 @@ export function RedFlagBlock({ block, mode, onUpdate }: BlockProps<RedFlagBlockT
       toast.success(`Alert "${symptomName}" deleted successfully`);
     } catch (error) {
       toast.error('Failed to delete alert');
-      console.warn(error);
+      console.error('Failed to delete alert:', error);
     }
   };
 
