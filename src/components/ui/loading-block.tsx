@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const LoadingBlock = () => (
-  <Card className="animate-pulse">
+  <Card className="animate-pulse bg-white border-0">
     <CardContent className="p-4">
       <div className="flex items-center gap-3 mb-3">
         <Skeleton className="w-8 h-8 rounded-full  bg-blue-200" />

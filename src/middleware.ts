@@ -91,6 +91,8 @@ export default async function middleware(
       // Only enforce authentication on protected routes (not auth pages or public routes)
       if (isProtectedRoute(req) && !isPublicRoute(req)) {
         const signInUrl = new URL('/sign-in', req.url);
+        // Preserve the original URL as a return parameter
+        signInUrl.searchParams.set('return_url', req.url);
         await auth.protect({
           unauthenticatedUrl: signInUrl.toString(),
         });
