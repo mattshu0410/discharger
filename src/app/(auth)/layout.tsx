@@ -12,8 +12,8 @@ export default async function AuthLayout(props: {
     <ClerkProvider
       signInUrl={signInUrl}
       signUpUrl={signUpUrl}
-      signInFallbackRedirectUrl="/"
-      signUpFallbackRedirectUrl="/"
+      signInFallbackRedirectUrl="/discharge"
+      signUpFallbackRedirectUrl="/discharge"
       afterSignOutUrl={afterSignOutUrl}
     >
       <BaseTemplate>

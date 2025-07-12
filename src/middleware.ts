@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 import arcjet from '@/libs/Arcjet';
 
 const isProtectedRoute = createRouteMatcher([
-  '/', // Protect the homepage
+  '/discharge(.*)', // Protect the main app
   '/dashboard(.*)', // Protect dashboard and sub-routes
   '/memory(.*)', // Protect memory pages
   '/api(.*)', // Protect API routes

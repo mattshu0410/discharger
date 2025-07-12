@@ -30,7 +30,7 @@ export default function LandingPage() {
               <Button
                 size="sm"
                 className="bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white"
-                onClick={() => router.push('/composer')}
+                onClick={() => router.push('/discharge')}
               >
                 Make my patients happy!
               </Button>
@@ -63,7 +63,7 @@ export default function LandingPage() {
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white px-12 py-4 text-lg"
-                onClick={() => router.push('/composer')}
+                onClick={() => router.push('/discharge')}
               >
                 Let me in!
                 <ArrowRight className="ml-2 w-5 h-5" />

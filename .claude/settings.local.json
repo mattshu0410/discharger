@@ -26,7 +26,9 @@
       "WebFetch(domain:www.npmjs.com)",
       "Bash(rg:*)",
       "mcp__supabase__get_logs",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)"
     ]
   },
   "enabledMcpjsonServers": [
