@@ -2,13 +2,17 @@
 import { ArrowRight, Play, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { DocumentView } from '@/components/DocumentView';
 import { PatientPreview } from '@/components/PatientPreview';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/kibo-ui/comparison';
 
 export default function LandingPage() {
   const router = useRouter();
+  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 overflow-x-hidden w-full">
       {/* Navigation */}
@@ -68,21 +72,32 @@ export default function LandingPage() {
                 Let me in!
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-              <Button
-                variant="ghost"
-                size="lg"
-                className="text-gray-700 hover:bg-gray-50/50 px-12 py-4 text-lg"
-                onClick={() => {
-                  window.open(
-                    'https://www.youtube.com/watch?v=5NJZYMS6NOk',
-                    'demo-video',
-                    'width=1280,height=720,scrollbars=no,resizable=yes,menubar=no,toolbar=no,location=no,status=no',
-                  );
-                }}
-              >
-                <Play className="mr-2 w-5 h-5" />
-                Watch Demo
-              </Button>
+              <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="text-gray-700 hover:bg-gray-50/50 px-12 py-4 text-lg"
+                  >
+                    <Play className="mr-2 w-5 h-5" />
+                    Watch Demo
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="min-w-10/12 p-0 bg-black">
+                  <DialogHeader className="sr-only">
+                    <DialogTitle>Demo Video</DialogTitle>
+                  </DialogHeader>
+                  <div className="relative w-full aspect-video">
+                    <iframe
+                      src="https://www.youtube.com/embed/5NJZYMS6NOk"
+                      title="Demo Video"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      className="w-full h-full rounded-lg"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
 
             {/* Before/After Slider */}
