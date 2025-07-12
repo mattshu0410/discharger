@@ -38,7 +38,7 @@ export function IPhone14Frame({
           {/* Status Bar */}
           {showStatusBar && (
             <div className={styles.deviceStatusBar}>
-              <div className={styles.deviceTime}>
+              <div className={styles.deviceTime} suppressHydrationWarning>
                 {getCurrentTime()}
               </div>
               <div className={styles.deviceBattery}>
