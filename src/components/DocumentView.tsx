@@ -9,7 +9,7 @@ type DocumentViewProps = {
 export function DocumentView({ className }: DocumentViewProps) {
   return (
     <div className={cn(' h-full w-full flex items-center justify-center', className)}>
-      <div className="transform scale-50 origin-center">
+      <div className="transform scale-80 origin-center sm:scale-50">
         <div className="max-w-4xl mx-auto bg-white shadow-lg" style={{ fontFamily: '"Times New Roman", Times, serif' }}>
           {/* Document Header */}
           <div className="border-b-2 border-black pb-4 mb-6 p-8">

@@ -10,9 +10,9 @@ import { Comparison, ComparisonHandle, ComparisonItem } from '@/components/ui/ki
 export default function LandingPage() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 overflow-x-hidden w-full">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50">
+      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -30,9 +30,9 @@ export default function LandingPage() {
               <Button
                 size="sm"
                 className="bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 text-white"
-                onClick={() => router.push('/discharge')}
+                onClick={() => router.push('/composer')}
               >
-                Make my patients happy!
+                Get Started
               </Button>
             </div>
           </div>
