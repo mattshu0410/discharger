@@ -488,13 +488,6 @@ export function PatientForm() {
   return (
     <div className="flex flex-col gap-6 flex-1">
       {/* Patient Info Header */}
-      {currentPatient && (
-        <div className="p-3 bg-muted rounded-md">
-          <strong className="text-sm">{currentPatient.name}</strong>
-          {isLoadingOrTransitioning && <span className="ml-2 text-xs text-muted-foreground">Loading...</span>}
-        </div>
-      )}
-
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(async ({ context }: FormValues) => {
@@ -605,25 +598,6 @@ export function PatientForm() {
 
       {/* Snippet Selector - controlled by uiStore */}
       <SnippetSelector onSelect={handleSnippetSelect} />
-
-      {/* Debug info in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
-          Patient ID:
-          {' '}
-          {currentPatientId}
-          {' '}
-          | Context length:
-          {' '}
-          {currentPatientContext.length}
-          {' '}
-          |
-          Documents:
-          {' '}
-          {selectedDocuments.length}
-          {' '}
-        </div>
-      )}
     </div>
   );
 }
