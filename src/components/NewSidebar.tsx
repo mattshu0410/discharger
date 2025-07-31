@@ -160,7 +160,7 @@ export function NewSidebar() {
                   ? 'bg-[var(--sidebar-accent)] text-[var(--sidebar-accent-foreground)]'
                   : 'hover:bg-[var(--sidebar-accent)]',
               )}
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/discharge')}
             >
               <Zap size={16} className="mr-2" />
               Auto-Discharge

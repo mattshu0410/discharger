@@ -8,53 +8,50 @@ Sex: Female
 
 ## Introduction + Summary of Care
 
-Dear Dr. X, thank you for reviewing patient, a 58 year old female to be discharged on [Discharge Date] from [Department] at [Facility]. The summary of their presentation and condition is documented below.
-- Principal diagnosis: Acute knee pain.
-- Reason for presentation: The patient presented with a two-month history of knee pain that acutely commenced during a yoga session while her knee and hip were flexed on the ground. Initially, the pain was 10/10, described as feeling "broken", and made it difficult to walk. She sought care at an acute care clinic immediately after the incident.
+Dear Dr. X, thank you for reviewing patient a 58 year old Female to be discharged on Not available from Not available at Not available. The summary of their presentation and condition is documented below.
+- Principal diagnosis: Acute knee pain, likely musculoskeletal.
+- Reason for presentation: Patient presented with a two-month history of acute knee pain that started during a yoga session while the knee and hip were flexed. The pain was initially described as feeling "broken" with 10/10 severity and difficulty walking.
 - Secondary diagnoses: Chronic wrist pain.
-- Additional complications: No additional complications were noted during this presentation.
-- Past medical history: Significant past medical history includes chronic wrist pain, for which she has received two steroid injections, and she is perimenopausal.
+- Additional complications: No additional complications were noted during the admission.
+- Past medical history: Significant for chronic wrist pain for which she has received two steroid injections, and she is perimenopausal.
 - Summary of salient points of the patient care:
-- The patient was initially assessed in an acute care clinic following the onset of symptoms.
-- Knee X-rays performed at the time showed no findings.
-- She was provided with crutches for ambulation.
-- Currently, she reports low pain levels but still experiences some pain while walking.
-- She has been managing her pain with ibuprofen.
+- The patient was seen in the acute care clinic.
+- Imaging: Knee X-ray had no findings.
+- Management: She was provided with crutches for ambulation and advised on pain management.
+- Current status: Her pain has since reduced to low severity, though she still experiences some pain while walking.
 
 ## Discharge Plan
 
-- Follow up with General Practitioner for ongoing management of knee pain and review of chronic wrist pain.
+- Patient to continue with pain management as advised.
+- Patient to follow up with their General Practitioner for ongoing assessment of knee pain if symptoms persist or worsen.
 - No specific follow-up pathology or labs are required at this time.
-- No specific referrals to other services or specialists are required at this time.
+- No specific referrals to other services or specialists have been made at discharge.
 
 ## Issues List
 
-- Acute Knee Pain: Onset 2 months prior during a yoga session with initial 10/10 pain. Knee X-ray was negative. Currently, pain is low but present with walking.
-- Chronic Wrist Pain: History of two steroid injections.
-- Perimenopausal.
+- Acute Knee Pain: Acute onset during yoga, initially 10/10 pain with difficulty walking. Knee X-ray showed no findings. Currently, low pain but still present with walking.
+- Chronic Wrist Pain: History of chronic wrist pain managed with two steroid injections.
+- Plan for ongoing care: Continue conservative management for knee pain. Follow up with General Practitioner for persistent symptoms.
 
 ## Medications
 
-New medications:
-- No new medications were prescribed during this admission.
+- New medications:
+- Ibuprofen: Taken for pain as needed.
 
-Changed medications:
-- No changes were made to existing medications during this admission.
+- Changed medications: No changes to regular medications during admission.
 
-Unchanged medications:
-- Estrogen replacement (details not specified)
-- Glucosamine (details not specified)
-- Ibuprofen oral as needed for pain (details not specified)
-- Evening primrose oil (details not specified)
-- Turmeric (details not specified)
+- Unchanged medications:
+- Estrogen Replacement: As per usual dose and frequency
+- Evening Primrose Oil: As per usual dose and frequency
+- Glucosamine: As per usual dose and frequency
+- Tumeric: As per usual dose and frequency
 
-Ceased medications:
-- No medications were ceased during this admission.
+- Ceased medications: None CEASED
 
 ## Information Provided to the Patient
 
-- Education was provided regarding activity modification and pain management strategies for her knee pain.
-- The patient was advised to continue using ibuprofen as needed for pain relief.
-- She was encouraged to follow up with her General Practitioner for ongoing assessment and management of both her knee and chronic wrist pain.
-- The patient demonstrated a good understanding of the instructions and her current condition.
+- Education was provided regarding the nature of her knee pain and the importance of activity modification.
+- Instructions were given on the proper use of crutches for ambulation.
+- Advice was provided on pain management strategies, including the appropriate use of over-the-counter analgesia.
+- The patient demonstrated a good understanding of the instructions and her condition, indicating adequate health literacy regarding her current management plan.
 
