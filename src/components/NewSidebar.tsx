@@ -2,8 +2,6 @@
 import { useClerk, useUser } from '@clerk/nextjs';
 import {
   FileDown,
-  FileText,
-  HardDrive,
   LogOut,
   PanelLeft,
   Plus,
@@ -98,13 +96,9 @@ export function NewSidebar() {
 
   // Derive active settings tab from URL
   const activeSettingsTab
-    = pathname === '/memory'
-      ? 'memory'
-      : pathname === '/snippets'
-        ? 'snippets'
-        : pathname === '/profile'
-          ? 'profile'
-          : null; // no default - only highlight when actually on a settings page
+    = pathname === '/profile'
+      ? 'profile'
+      : null; // no default - only highlight when actually on a settings page
 
   return (
     <div
@@ -186,6 +180,7 @@ export function NewSidebar() {
             <div className="text-xs font-semibold text-[var(--sidebar-accent-foreground)] uppercase tracking-wider mb-2">
               Settings
             </div>
+            {/* Temporarily hidden - uncomment to re-enable
             <Button
               id="memory-nav-link"
               variant="ghost"
@@ -216,6 +211,7 @@ export function NewSidebar() {
               <FileText size={16} className="mr-2" />
               Snippets
             </Button>
+            */}
             <Button
               variant="ghost"
               size="sm"

@@ -21,6 +21,11 @@ export default function Index() {
   // Initialize onboarding
   useOnboarding();
 
+  // Set page title
+  useEffect(() => {
+    document.title = 'Auto-Discharge | Discharger';
+  }, []);
+
   // Auto-load first patient when component mounts and no patient is selected
   useEffect(() => {
     if (!currentPatientId && patients && patients.length > 0) {
