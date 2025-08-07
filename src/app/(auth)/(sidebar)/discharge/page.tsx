@@ -1,6 +1,7 @@
 'use client';
 import { Eye, EyeOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { NextStepViewport } from 'nextstepjs';
 import { useEffect } from 'react';
 import { usePatients } from '@/api/patients/queries';
 import { useUserProfile } from '@/api/users/queries';
@@ -15,12 +16,12 @@ import { usePatientStore } from '@/stores/patientStore';
 
 export default function Index() {
   const router = useRouter();
+  const { data: userProfile, isLoading } = useUserProfile();
   const isContextViewerOpen = useUIStore((state: any) => state.isContextViewerOpen);
   const toggleContextViewer = useUIStore((state: any) => state.toggleContextViewer);
   const currentPatientId = usePatientStore(state => state.currentPatientId);
   const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
   const { data: patients } = usePatients();
-  const { data: userProfile, isLoading: isProfileLoading } = useUserProfile();
 
   // Initialize onboarding
   useOnboarding();
@@ -29,13 +30,6 @@ export default function Index() {
   useEffect(() => {
     document.title = 'Auto-Discharge | Discharger';
   }, []);
-
-  // Check onboarding completion and redirect if needed
-  useEffect(() => {
-    if (!isProfileLoading && userProfile && !userProfile.onboarding_completed) {
-      router.push('/onboarding');
-    }
-  }, [userProfile, isProfileLoading, router]);
 
   // Auto-load first patient when component mounts and no patient is selected
   useEffect(() => {
@@ -48,70 +42,73 @@ export default function Index() {
     }
   }, [currentPatientId, patients, setCurrentPatientId]);
 
-  // Show loading while checking onboarding status
-  if (isProfileLoading || (userProfile && !userProfile.onboarding_completed)) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
+  // Early return checks after all hooks
+  if (!isLoading && userProfile && !userProfile.onboarding_completed) {
+    if (typeof window !== 'undefined') {
+      router.replace('/onboarding');
+    }
+    return null; // Render nothing while redirecting
+  }
+
+  if (isLoading || !userProfile) {
+    // Optionally show a spinner here
+    return null;
   }
 
   return (
     <ResizablePanelGroup direction="vertical" className="h-full w-full">
-      <ResizablePanel defaultSize={isContextViewerOpen ? 70 : 100}>
-        {/* Main content */}
-        <ResizablePanelGroup direction="horizontal" className="flex-1 flex flex-row bg-background">
-          {/* Left: Patient Form */}
-          <ResizablePanel defaultSize={50} className="w-1/2 border-r border-border flex flex-col">
-            <div className="flex items-center justify-between p-8 pb-4">
-              <h2 className="text-lg font-semibold">Clinical Notes</h2>
-              <Button
-                id="context-viewer-toggle"
-                variant="outline"
-                onClick={toggleContextViewer}
-                size="icon"
-              >
-                {isContextViewerOpen ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-            <div className="flex-1 overflow-y-auto px-8 pb-8 hide-scrollbar">
-              <PatientForm />
-            </div>
-          </ResizablePanel>
+      <NextStepViewport id="scrollable-viewport">
+        <ResizablePanel defaultSize={isContextViewerOpen ? 70 : 100}>
+          {/* Main content */}
+          <ResizablePanelGroup direction="horizontal" className="flex-1 flex flex-row bg-background">
+            {/* Left: Patient Form */}
+            <ResizablePanel defaultSize={50} className="w-1/2 border-r border-border flex flex-col">
+              <div className="flex items-center justify-between p-8 pb-4">
+                <h2 className="text-lg font-semibold">Clinical Notes</h2>
+                <Button
+                  id="context-viewer-toggle"
+                  variant="outline"
+                  onClick={toggleContextViewer}
+                  size="icon"
+                >
+                  {isContextViewerOpen ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-8 pb-8 hide-scrollbar">
+                <PatientForm />
+              </div>
+            </ResizablePanel>
 
-          <ResizableHandle withHandle />
+            <ResizableHandle withHandle />
 
-          {/* Right: Discharge Summary */}
-          <ResizablePanel defaultSize={50} className="w-1/2">
-            <DischargeSummaryPanel />
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </ResizablePanel>
+            {/* Right: Discharge Summary */}
+            <ResizablePanel defaultSize={50} className="w-1/2">
+              <DischargeSummaryPanel />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
 
-      {/* Context Viewer Panel */}
-      {isContextViewerOpen && (
-        <>
-          <ResizableHandle withHandle />
-          <ResizablePanel
-            defaultSize={30}
-            className="flex flex-col border-t bg-muted/50"
-          >
-            <div className="p-4 border-b">
-              <h3 className="font-semibold">Context Sources</h3>
-              <p className="text-sm text-muted-foreground">
-                Documents and snippets used in this patient's context
-              </p>
-            </div>
-            <div className="flex-1 overflow-y-auto hide-scrollbar">
-              <ContextViewer />
-            </div>
-          </ResizablePanel>
-        </>
-      )}
+        {/* Context Viewer Panel */}
+        {isContextViewerOpen && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              defaultSize={30}
+              className="flex flex-col border-t bg-muted/50"
+            >
+              <div className="p-4 border-b">
+                <h3 className="font-semibold">Context Sources</h3>
+                <p className="text-sm text-muted-foreground">
+                  Documents and snippets used in this patient's context
+                </p>
+              </div>
+              <div className="flex-1 overflow-y-auto hide-scrollbar">
+                <ContextViewer />
+              </div>
+            </ResizablePanel>
+          </>
+        )}
+      </NextStepViewport>
     </ResizablePanelGroup>
   );
 }

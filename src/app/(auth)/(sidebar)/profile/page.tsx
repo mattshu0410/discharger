@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useHospitals } from '@/api/hospitals/queries';
 import {
+  useResetTour,
   useUpdateDepartment,
   useUpdateExemplarReport,
   useUpdateHospital,
@@ -45,6 +46,7 @@ export default function ProfilePage() {
   const updateDepartment = useUpdateDepartment();
   const updateHospital = useUpdateHospital();
   const updateExemplarReport = useUpdateExemplarReport();
+  const resetTour = useResetTour();
 
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [openDepartment, setOpenDepartment] = useState(false);
@@ -54,7 +56,8 @@ export default function ProfilePage() {
   // Update exemplar report state when userProfile changes
   useEffect(() => {
     if (userProfile?.exemplar_report !== undefined) {
-      setExemplarReport(userProfile.exemplar_report || '');
+      const newValue = userProfile.exemplar_report || '';
+      setExemplarReport(newValue);
     }
   }, [userProfile?.exemplar_report]);
 
@@ -103,6 +106,15 @@ export default function ProfilePage() {
       toast.success('Exemplar report updated successfully');
     } catch {
       toast.error('Failed to update exemplar report');
+    }
+  };
+
+  const handleResetTour = async () => {
+    try {
+      await resetTour.mutateAsync();
+      toast.success('Tour reset successfully! Visit the discharge page to see the tour again.');
+    } catch {
+      toast.error('Failed to reset tour');
     }
   };
 
@@ -510,6 +522,23 @@ export default function ProfilePage() {
                 </Button>
                 <p className="text-sm text-muted-foreground">
                   Update your password, security settings, and more.
+                </p>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  onClick={handleResetTour}
+                  disabled={resetTour.isPending}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  {resetTour.isPending ? 'Resetting Tour...' : 'Reset App Tour'}
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Reset the interactive tour to see it again on the discharge page.
                 </p>
               </div>
 

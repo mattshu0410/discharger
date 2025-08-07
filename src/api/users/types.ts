@@ -9,6 +9,7 @@ export type UpdateProfileRequest = {
   department?: string;
   hospitalId?: string;
   onboarding_completed?: boolean;
+  tour_completed?: boolean;
   exemplar_report?: string;
 };
 

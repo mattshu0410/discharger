@@ -10,6 +10,7 @@ const isProtectedRoute = createRouteMatcher([
   '/memory(.*)', // Protect memory pages
   '/api(.*)', // Protect API routes
   '/composer(.*)', // Protect composer pages
+  '/onboarding(.*)', // Protect onboarding pages
 ]);
 
 const isAlwaysPublicRoute = createRouteMatcher([
@@ -44,10 +45,6 @@ const isPublicRoute = (request: NextRequest): boolean => {
 const isAuthPage = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
-]);
-
-const isOnboardingPage = createRouteMatcher([
-  '/onboarding(.*)',
 ]);
 
 // Improve security with Arcjet
@@ -90,18 +87,9 @@ export default async function middleware(
         const signInUrl = new URL('/sign-in', req.url);
         // Preserve the original URL as a return parameter
         signInUrl.searchParams.set('return_url', req.url);
-        const { userId } = await auth.protect({
+        await auth.protect({
           unauthenticatedUrl: signInUrl.toString(),
         });
-
-        // If user is authenticated, check for onboarding completion
-        if (userId) {
-          // Avoid redirect loop - don't redirect if already on onboarding page
-          if (!isOnboardingPage(req)) {
-            // Note: Onboarding check is now handled in the individual pages/components
-            // to avoid circular dependency with Supabase client
-          }
-        }
       }
       // Auth pages (/sign-in, /sign-up) get Clerk middleware but no protection
       return NextResponse.next();

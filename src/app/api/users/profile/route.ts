@@ -60,6 +60,7 @@ export async function GET() {
         department: existingProfile.department,
         hospitalId: existingProfile.hospital_id,
         onboarding_completed: existingProfile.onboarding_completed,
+        tour_completed: existingProfile.tour_completed,
         exemplar_report: existingProfile.exemplar_report,
         preferences: {
           defaultDocumentIds: existingProfile.default_document_ids || [],
@@ -128,6 +129,9 @@ export async function PUT(request: Request) {
     if (data.onboarding_completed !== undefined) {
       updateData.onboarding_completed = data.onboarding_completed;
     }
+    if (data.tour_completed !== undefined) {
+      updateData.tour_completed = data.tour_completed;
+    }
     if (data.exemplar_report !== undefined) {
       updateData.exemplar_report = data.exemplar_report;
     }
@@ -158,6 +162,7 @@ export async function PUT(request: Request) {
       department: updatedProfile.department,
       hospitalId: updatedProfile.hospital_id,
       onboarding_completed: updatedProfile.onboarding_completed,
+      tour_completed: updatedProfile.tour_completed,
       exemplar_report: updatedProfile.exemplar_report,
       preferences: {
         defaultDocumentIds: updatedProfile.default_document_ids || [],

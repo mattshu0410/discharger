@@ -213,6 +213,7 @@ export function NewSidebar() {
             </Button>
             */}
             <Button
+              id="profile-settings-nav-link"
               variant="ghost"
               size="sm"
               className={cn(

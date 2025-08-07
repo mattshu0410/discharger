@@ -11,13 +11,13 @@ export function useOnboarding() {
   const { startNextStep } = useNextStep();
 
   useEffect(() => {
-    // Only check onboarding if user is authenticated and we have profile data
-    if (user && userProfile && !userProfile.onboarding_completed) {
+    // Only start tour if user is authenticated, has profile data, and hasn't completed the tour
+    if (user && userProfile && userProfile.onboarding_completed && !userProfile.tour_completed) {
       console.warn('Starting onboarding tour in 1 second...');
       // Start the onboarding tour with delay to ensure DOM is ready
       const timeoutId = setTimeout(() => {
         console.warn('Calling startNextStep with "onboarding"');
-        // startNextStep('onboarding');
+        startNextStep('onboarding');
       }, 1000);
       return () => clearTimeout(timeoutId);
     } else {
@@ -25,6 +25,7 @@ export function useOnboarding() {
     }
   }, [user, userProfile, startNextStep]);
   return {
-    isOnboardingCompleted: userProfile?.onboarding_completed ?? true,
+    isTourCompleted: userProfile?.tour_completed ?? false,
+    isOnboardingCompleted: userProfile?.onboarding_completed ?? false,
   };
 }

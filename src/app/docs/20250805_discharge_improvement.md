@@ -54,9 +54,25 @@
 - **Trigger:** After onboarding completion
 - **Content:** Show users how to use key features
 
-### Phase 3: Development Testing Setup
+### Phase 3: User Flow & Middleware Implementation
 
-#### 3.1 Create Development Testing Workflow
+#### 3.1 Middleware-Based Onboarding Check
+- **Problem:** Users were being redirected to discharge page first, then to onboarding
+- **Solution:** Implement onboarding check in middleware for centralized routing
+- **Implementation:** 
+  - Added onboarding check in `src/middleware.ts`
+  - Removed onboarding check from discharge page
+  - Middleware now handles all authenticated user routing
+- **Benefits:** Cleaner user flow, centralized logic, no unnecessary redirects
+
+#### 3.2 User Flow Optimization
+- **New Flow:** Sign-in → Middleware checks onboarding → Onboarding (if needed) → Discharge
+- **Old Flow:** Sign-in → Discharge → Check onboarding → Redirect to onboarding
+- **Improvement:** Eliminates unnecessary redirect and improves UX
+
+### Phase 4: Development Testing Setup
+
+#### 4.1 Create Development Testing Workflow
 - **Method 1:** Database reset command for testing
 - **Method 2:** Test user creation workflow
 - **Method 3:** Environment variable for forcing onboarding

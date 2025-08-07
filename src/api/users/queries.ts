@@ -148,6 +148,18 @@ export function useUpdateHospital() {
   });
 }
 
+// Reset tour completion status
+export function useResetTour() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => updateUserProfile({ tour_completed: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.current() });
+    },
+  });
+}
+
 // Export aliases for backward compatibility
 export const useUserProfile = useCurrentUser;
 export const useUpdateExemplarReport = () => {

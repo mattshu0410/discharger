@@ -84,10 +84,11 @@ export default function OnboardingPage() {
         department: formData.department,
         hospitalId: formData.hospitalId,
         exemplar_report: exemplarReport,
-        onboarding_completed: true,
+        onboarding_completed: true, // Profile setup is complete
+        tour_completed: false, // Tour hasn't started yet
       });
 
-      toast.success('Profile completed successfully!');
+      toast.success('Profile completed successfully! Starting your tour...');
       router.push('/discharge');
     } catch {
       toast.error('Failed to complete profile');

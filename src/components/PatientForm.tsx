@@ -503,10 +503,10 @@ export function PatientForm() {
             name="name"
             render={({ field: _field }) => (
               <FormItem>
-                <FormLabel>Patient Name</FormLabel>
+                <FormLabel>Patient Identifier</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter patient name"
+                    placeholder="Enter patient identifier"
                     {..._field}
                     onChange={(e) => {
                       _field.onChange(e);
@@ -525,7 +525,7 @@ export function PatientForm() {
             name="context"
             render={({ field: _field }) => (
               <FormItem className="flex-1 flex flex-col">
-                <div className="flex items-center justify-between">
+                <div id="clinical-context-header" className="flex items-center justify-between">
                   <FormLabel>Clinical Context</FormLabel>
                   <AutoSaveIndicator />
                 </div>
