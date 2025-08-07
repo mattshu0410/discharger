@@ -1,0 +1,18 @@
+DISCHARGE SUMMARY
+Diagnosis 
+Community acquired pneumonia (Discharge) 
+ADMISSION SUMMARY 
+Summary of Progress 
+Dear Doctor,
+Thank you for your ongoing care of ______, a ____-year-old male/female who presented to the Emergency Department at ______ on _____ with a productive cough and associated dyspnoea.
+____ reported a cough for the past 4 weeks which had worsened in the past 5 days to become productive and green in nature. They had no fevers or systemic symptoms. They had no oxygen requirement and were tachycardic likely secondary to dehydration and anxiety given their ongoing symptoms. Bloods revealed no elevation inflammatory markers however right lower lobe consolidation was noted on chest x-ray. Accordingly, they were deemed safe for discharge with oral antibiotics as below.
+DISCHARGE PLAN
+1. Discharge home.
+2. Please continue amoxicillin 1g every 8 hours and doxycycline 100mg every 12 hours for 5 days.
+3. Follow-up with your GP in 3-5 days after discharge for review.
+- GP to kindly review improvement in symptoms
+4. Please seek medical attention and/or present to your nearest emergency department if your symptoms get worse or you have any other concerns.
+- Severe chest pain, difficulty breathing, fevers, nausea and vomiting, worsening asthma
+Kind Regards,
+Dr [doctor], Emergency Medicine JMO
+On behalf of Dr [supervisor], Emergency Medicine Consultant

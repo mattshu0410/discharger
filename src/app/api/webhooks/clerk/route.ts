@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
               theme: 'system',
               default_document_ids: [],
               favorite_document_ids: [],
+              onboarding_completed: false,
             });
 
           // console.warn('Created profile for user:', data.id);

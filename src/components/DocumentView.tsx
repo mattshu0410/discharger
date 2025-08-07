@@ -30,17 +30,17 @@ export function DocumentView({ className }: DocumentViewProps) {
                 <p>
                   <strong>Patient Name:</strong>
                   {' '}
-                  Mervyn BRADY
+                  MB
                 </p>
                 <p>
                   <strong>Age:</strong>
                   {' '}
-                  85 years old
+                  70 years old
                 </p>
                 <p>
                   <strong>Admission Date:</strong>
                   {' '}
-                  10/03/2025
+                  01/05/2025
                 </p>
                 <p>
                   <strong>Medical Service:</strong>
@@ -50,7 +50,7 @@ export function DocumentView({ className }: DocumentViewProps) {
                 <p>
                   <strong>AMO:</strong>
                   {' '}
-                  Dr. Robert Charles JF Nickels
+                  Dr. John Doe
                 </p>
               </div>
               <div>
@@ -62,7 +62,7 @@ export function DocumentView({ className }: DocumentViewProps) {
                 <p>
                   <strong>LMO:</strong>
                   {' '}
-                  Dr. Kevin Yun Wang
+                  Dr. James Doe
                 </p>
                 <p>
                   <strong>LMO Address:</strong>
@@ -158,7 +158,7 @@ export function DocumentView({ className }: DocumentViewProps) {
             <div>
               <h3 className="font-bold text-black mb-2">FOLLOW-UP ARRANGEMENTS:</h3>
               <ul className="list-disc list-inside space-y-1">
-                <li>Endocrine OPD with Dr. Haigh - 24th April 2025 (booked)</li>
+                <li>Endocrine OPD - 10 April 2025 (booked)</li>
                 <li>GP to organise MRI pituitary + Pituitary panel 2 weeks before above appointment</li>
                 <li>GCUH Ophthalmology OPD - referral sent, patient will be contacted</li>
                 <li>Medical Oncology and Radiation Oncology OPD - referrals sent</li>
@@ -175,15 +175,14 @@ export function DocumentView({ className }: DocumentViewProps) {
               <div className="flex justify-between">
                 <div>
                   <p><strong>Attending Medical Officer:</strong></p>
-                  <p>Dr. Robert Charles JF Nickels</p>
+                  <p>Dr. John Doe</p>
                   <p>Respiratory Physician</p>
-                  <p>Provider No: 2382337X</p>
+                  <p>Provider No: XXXXXXXX</p>
                 </div>
                 <div>
                   <p><strong>Local Medical Officer:</strong></p>
-                  <p>Dr. Kevin Yun Wang</p>
-                  <p>Ocean Shores Medical Centre</p>
-                  <p>Provider No: 482671BF</p>
+                  <p>Dr. James Doe</p>
+                  <p>Provider No: XXXXXXXX</p>
                 </div>
               </div>
             </div>

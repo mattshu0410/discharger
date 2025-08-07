@@ -66,6 +66,7 @@ export type UserProfile = {
   department?: string;
   hospitalId?: string;
   onboarding_completed?: boolean;
+  exemplar_report?: string;
   preferences: UserPreferences;
 };
 

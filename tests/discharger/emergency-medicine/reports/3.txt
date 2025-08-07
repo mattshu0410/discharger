@@ -1,0 +1,18 @@
+Diagnosis 
+Vertigo (Discharge) 
+ADMISSION SUMMARY 
+Summary of Progress 
+Dear Doctor,
+Thank you for your ongoing care of ______, a _____-year-old female/male who presented to the Emergency Department at ______ on ______ with nausea, vomiting and vertigo.
+They reported symptoms ongoing for the past 3 days that were exacerbated by movement or attempting to stand. They underwent a CT brain and CoW which demonstrated no intracranial pathology to account for their symptoms. They were given IV stemetil and fluid resuscitation with some improvement in symptoms. Given they were Dix Hallpike positive on the left an Epley manouvre was attempted that was unsuccessful. They have been given a fact sheet on how to attempt this at home. Given improvement in symptoms, they were deemed safe for discharge with a script for oral stemetil to continue. They were safety netted on when to represent if their symptoms worsened.
+DISCHARGE PLAN
+1. Discharge home.
+2. Please continue medications symptomatic treatment for your vertigo as below:
+- Prochlorperazine 5 to 10mg every 6 to 8 hours for up to 2 days
+3. Follow-up with your GP in 3-5 days after discharge for review. 
+- Can refer to dizzy clinic if no improvement in symptoms (Fax: XXXX XXXX)
+4. Please seek medical attention and/or present to your nearest emergency department if your symptoms get worse or you have any other concerns.
+- Severe headache, intractable vomiting, dizziness and falls, chest pain
+Kind Regards,
+Dr [doctor], Emergency Medicine JMO
+On behalf of Dr [supervisor], Emergency Medicine Consultant

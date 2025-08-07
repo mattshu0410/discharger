@@ -14,6 +14,7 @@ export function createServerSupabaseClient() {
           return token;
         } catch (error) {
           console.error('Error getting Clerk token for Supabase:', error);
+          // Return null to use anonymous access if Clerk auth fails
           return null;
         }
       },

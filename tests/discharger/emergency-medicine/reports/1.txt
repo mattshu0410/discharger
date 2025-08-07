@@ -1,0 +1,19 @@
+DISCHARGE SUMMARY
+Diagnosis 
+Chronic sciatica (Discharge)  
+ADMISSION SUMMARY 
+Summary of Progress 
+Dear Doctor,
+Thank you for your ongoing care of [patient], a [age]-year-old female/male who presented to the Emergency Department at [time] on [date] with chronic back pain and sciatica.
+[patient] reported bilateral lower back pain for several months with left lower limb sciatica. They were able to mobilise independently, had no neurological deficits on examination, and had no red flags concerning for serious underlying pathology. They were advised to continue pharmacological and non-pharmacological measures to manage their pain, continue physical activity, follow up with our back pain clinic and have an MRI in late April as an outpatient as previously arranged.
+DISCHARGE PLAN
+2. Please continue the following medications
+- Celecoxib 100mg twice daily for 5 days
+- Esomeprazole 20mg daily for 5 days
+- Panadol 1g four times a day as needed for pain
+3. Follow-up with lower back pain clinic on Thursday as per the provided form (Phone: XXXX XXXX to confirm appointment).
+4. Please seek medical attention and/or present to your nearest emergency department if your symptoms get worse or you have any other concerns.
+-Weakness in legs, unsteadiness when walking, changes to bowel or  bladder function, severe pain at night, fevers
+Kind Regards,
+Dr [doctor], Emergency Medicine JMO
+On behalf of Dr [supervisor], Emergency Medicine Consultant

@@ -1,4 +1,6 @@
 import type { DischargeSection, GenerateDischargeSummaryRequest, GenerateDischargeSummaryResponse } from '@/types/discharge';
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { currentUser } from '@clerk/nextjs/server';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
@@ -25,12 +27,13 @@ const dischargeSectionsSchema = z.object({
   ).describe('Array of discharge summary sections with embedded nested citation arrays.'),
 });
 
-const systemTemplate = `You are a medical AI assistant that converts ED notes into concise discharge summaries with appropriate citations.
+const systemTemplate = `You are a medical AI assistant that converts electronic health record notes into concise discharge summaries with appropriate citations.
 CITATION SYSTEM
-- Use <CIT id="c1">keyword</CIT> for clinical information from ED notes
+- Use <CIT id="c1">keyword</CIT> for clinical information from electronic health record notes
 - Keep citations short (1-3 words maximum)
 - Cite key diagnoses, symptoms, findings, and treatments
 - Each citation ID used only once (c1, c2, c3, etc.)
+- IMPORTANT: Citations should be seamlessly integrated into the text without adding extra spaces before or after the citation tags
 OUTPUT STRUCTURE
 - Generate two main sections:
 1. ADMISSION SUMMARY
@@ -52,20 +55,24 @@ OUTPUT STRUCTURE
 - Safety netting:
   - "Please seek medical attention if..."
   - List specific red flag symptoms
-- Sign-off: "Kind Regards, Dr [Name], Emergency Medicine JMO On behalf of Dr [Name], Emergency Medicine Consultant"
+- Sign-off: "Kind Regards, Dr [Name], Emergency Medicine JMO"
 WRITING GUIDELINES
 - Write concisely for GP audience
 - Use professional medical language
-- Base content directly on ED note information
+- Base content directly on note information
 - Don't invent details not in the source
 - Focus on clinically relevant information for ongoing care
 - Use line breaks (\\n) to separate different pieces of information for better readability
 - Format lists and key points on separate lines
+- Ensure citations flow naturally within sentences without disrupting spacing
 EXAMPLE CITATION USAGE
-- Patient presented with <CIT id="c1">chronic sciatica</CIT>
-- Examination revealed <CIT id="c2">positive straight leg raise</CIT>
-- <CIT id="c3">CT brain</CIT> showed no abnormalities
-- Treated with <CIT id="c4">IV stemetil</CIT>
+- Patient presented with <CIT id="c1">chronic sciatica</CIT> pain
+- Examination revealed <CIT id="c2">positive straight leg raise</CIT> bilaterally
+- <CIT id="c3">CT brain</CIT> imaging showed no abnormalities
+- Treated with <CIT id="c4">IV stemetil</CIT> for nausea
+EXAMPLE DISCHARGE SUMMARY
+{exampleDischargeSummary}
+
 Keep it simple, accurate, and clinically focused. Use proper formatting with line breaks for better readability.`;
 
 const generateNewSummaryTemplate = `Administrative Information: {administrative}
@@ -104,8 +111,9 @@ export async function POST(req: Request) {
 
     const supabase = createServerSupabaseClient();
 
-    // Step 1: Get user profile and hospital information for administrative section
+    // Step 1: Get user profile, hospital information, and exemplar report
     let administrativeInfo = '';
+    let exemplarReport = '';
     try {
       const { data: profile } = await supabase
         .from('profiles')
@@ -114,6 +122,7 @@ export async function POST(req: Request) {
           title,
           department,
           hospital_id,
+          exemplar_report,
           hospitals (
             name,
             address,
@@ -137,10 +146,56 @@ export async function POST(req: Request) {
           hospitalInfo?.fax && `Fax: ${hospitalInfo.fax}`,
           hospitalInfo?.local_health_district && `Health District: ${hospitalInfo.local_health_district}`,
         ].filter(Boolean).join('\n');
+
+        // Get exemplar report with priority logic
+        if (profile.exemplar_report) {
+          // Priority 1: User's custom exemplar report
+          exemplarReport = profile.exemplar_report;
+        } else if (profile.department) {
+          // Priority 2: Department-specific exemplar
+          try {
+            const departmentPath = join(process.cwd(), 'tests', 'discharger', profile.department.toLowerCase().replace(/\s+/g, '-'), 'reports', '1.txt');
+
+            if (existsSync(departmentPath)) {
+              exemplarReport = readFileSync(departmentPath, 'utf8');
+            } else {
+              // Priority 3: Fall back to emergency medicine exemplar
+              const defaultPath = join(process.cwd(), 'tests', 'discharger', 'emergency-medicine', 'reports', '1.txt');
+              exemplarReport = readFileSync(defaultPath, 'utf8');
+            }
+          } catch (error) {
+            console.error('Error reading department exemplar report:', error);
+            // Fall back to emergency medicine exemplar
+            try {
+              const defaultPath = join(process.cwd(), 'tests', 'discharger', 'emergency-medicine', 'reports', '1.txt');
+              exemplarReport = readFileSync(defaultPath, 'utf8');
+            } catch (fallbackError) {
+              console.error('Error reading default exemplar report:', fallbackError);
+              exemplarReport = 'No exemplar report available.';
+            }
+          }
+        } else {
+          // Priority 3: Default to emergency medicine exemplar
+          try {
+            const defaultPath = join(process.cwd(), 'tests', 'discharger', 'emergency-medicine', 'reports', '1.txt');
+            exemplarReport = readFileSync(defaultPath, 'utf8');
+          } catch (error) {
+            console.error('Error reading default exemplar report:', error);
+            exemplarReport = 'No exemplar report available.';
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching user profile for administrative info:', error);
       // Continue without administrative info if there's an error
+      // Try to get default exemplar report
+      try {
+        const defaultPath = join(process.cwd(), 'tests', 'discharger', 'emergency-medicine', 'reports', '1.txt');
+        exemplarReport = readFileSync(defaultPath, 'utf8');
+      } catch (fallbackError) {
+        console.error('Error reading default exemplar report:', fallbackError);
+        exemplarReport = 'No exemplar report available.';
+      }
     }
 
     // Step 2: Perform RAG similarity search if context is provided
@@ -259,6 +314,7 @@ export async function POST(req: Request) {
         administrative: administrativeInfo,
         context,
         documentContents,
+        exampleDischargeSummary: exemplarReport,
       };
     }
 

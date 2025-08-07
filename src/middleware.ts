@@ -13,6 +13,7 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 const isAlwaysPublicRoute = createRouteMatcher([
+  '/', // Root route should be public
   '/patient(.*)', // Public patient portal
 ]);
 
@@ -45,6 +46,10 @@ const isAuthPage = createRouteMatcher([
   '/sign-up(.*)',
 ]);
 
+const isOnboardingPage = createRouteMatcher([
+  '/onboarding(.*)',
+]);
+
 // Improve security with Arcjet
 const aj = arcjet.withRule(
   detectBot({
@@ -59,18 +64,10 @@ const aj = arcjet.withRule(
   }),
 );
 
-const BYPASS_AUTH = process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true';
-
 export default async function middleware(
   request: NextRequest,
   event: NextFetchEvent,
 ) {
-  // Optional: Bypass auth for development testing
-  if (BYPASS_AUTH) {
-    // console.warn('🔓 Auth bypass enabled');
-    return NextResponse.next();
-  }
-
   // Verify the request with Arcjet
   // Use `process.env` instead of Env to reduce bundle size in middleware
   if (process.env.ARCJET_KEY) {
@@ -93,12 +90,18 @@ export default async function middleware(
         const signInUrl = new URL('/sign-in', req.url);
         // Preserve the original URL as a return parameter
         signInUrl.searchParams.set('return_url', req.url);
-        await auth.protect({
+        const { userId } = await auth.protect({
           unauthenticatedUrl: signInUrl.toString(),
         });
 
-        // User profiles are now created via Clerk webhooks
-        // No need to ensure profile creation in middleware
+        // If user is authenticated, check for onboarding completion
+        if (userId) {
+          // Avoid redirect loop - don't redirect if already on onboarding page
+          if (!isOnboardingPage(req)) {
+            // Note: Onboarding check is now handled in the individual pages/components
+            // to avoid circular dependency with Supabase client
+          }
+        }
       }
       // Auth pages (/sign-in, /sign-up) get Clerk middleware but no protection
       return NextResponse.next();

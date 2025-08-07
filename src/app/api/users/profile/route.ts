@@ -11,7 +11,16 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const supabase = createServerSupabaseClient();
+    let supabase;
+    try {
+      supabase = createServerSupabaseClient();
+    } catch (error) {
+      console.error('Error creating Supabase client:', error);
+      return NextResponse.json(
+        { error: 'Failed to connect to database' },
+        { status: 500 },
+      );
+    }
 
     // Get or create user profile
     const { data: existingProfile, error: selectError } = await supabase
@@ -20,8 +29,25 @@ export async function GET() {
       .eq('id', user.id)
       .single();
 
-    logger.debug(existingProfile);
-    if (existingProfile && !selectError) {
+    if (selectError && selectError.code === 'PGRST116') {
+      // Profile should have been created by Clerk webhook
+      // If it doesn't exist, there might be an issue with the webhook
+      logger.warn('Profile not found for user, should have been created by Clerk webhook:', user.id);
+      return NextResponse.json(
+        { error: 'Profile not found. Please contact support.' },
+        { status: 404 },
+      );
+    }
+
+    if (selectError) {
+      logger.error('Failed to get user profile:', selectError);
+      return NextResponse.json(
+        { error: 'Failed to get user profile' },
+        { status: 500 },
+      );
+    }
+
+    if (existingProfile) {
       logger.debug('existingProfile', existingProfile);
       // Return existing profile with Clerk data
       return NextResponse.json({
@@ -34,21 +60,13 @@ export async function GET() {
         department: existingProfile.department,
         hospitalId: existingProfile.hospital_id,
         onboarding_completed: existingProfile.onboarding_completed,
+        exemplar_report: existingProfile.exemplar_report,
         preferences: {
           defaultDocumentIds: existingProfile.default_document_ids || [],
           favoriteDocumentIds: existingProfile.favorite_document_ids || [],
           theme: existingProfile.theme || 'system',
         },
       });
-    }
-
-    // If there was another error, throw it
-    if (selectError) {
-      logger.error('Failed to get user profile:', selectError);
-      return NextResponse.json(
-        { error: 'Failed to get user profile' },
-        { status: 500 },
-      );
     }
 
     // This should never be reached but TypeScript requires a return
@@ -71,7 +89,17 @@ export async function PUT(request: Request) {
     }
 
     const data = await request.json();
-    const supabase = createServerSupabaseClient();
+
+    let supabase;
+    try {
+      supabase = createServerSupabaseClient();
+    } catch (error) {
+      console.error('Error creating Supabase client:', error);
+      return NextResponse.json(
+        { error: 'Failed to connect to database' },
+        { status: 500 },
+      );
+    }
 
     // Update profile
     const updateData: any = {
@@ -100,6 +128,9 @@ export async function PUT(request: Request) {
     if (data.onboarding_completed !== undefined) {
       updateData.onboarding_completed = data.onboarding_completed;
     }
+    if (data.exemplar_report !== undefined) {
+      updateData.exemplar_report = data.exemplar_report;
+    }
 
     const { data: updatedProfile, error: updateError } = await supabase
       .from('profiles')
@@ -127,6 +158,7 @@ export async function PUT(request: Request) {
       department: updatedProfile.department,
       hospitalId: updatedProfile.hospital_id,
       onboarding_completed: updatedProfile.onboarding_completed,
+      exemplar_report: updatedProfile.exemplar_report,
       preferences: {
         defaultDocumentIds: updatedProfile.default_document_ids || [],
         favoriteDocumentIds: updatedProfile.favorite_document_ids || [],

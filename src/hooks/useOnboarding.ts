@@ -21,7 +21,6 @@ export function useOnboarding() {
       }, 1000);
       return () => clearTimeout(timeoutId);
     } else {
-      console.warn('Onboarding not started');
       return undefined;
     }
   }, [user, userProfile, startNextStep]);

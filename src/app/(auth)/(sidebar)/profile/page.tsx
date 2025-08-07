@@ -2,14 +2,15 @@
 import { useClerk, UserProfile, useUser } from '@clerk/nextjs';
 import { format } from 'date-fns';
 import { Award, Building2, Calendar, Check, ChevronsUpDown, LogOut, Mail, Monitor, Moon, Settings, Stethoscope, Sun, User } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useHospitals } from '@/api/hospitals/queries';
 import {
   useUpdateDepartment,
+  useUpdateExemplarReport,
   useUpdateHospital,
+  useUpdatePreferences,
   useUpdateTitle,
-  useUpdateUserPreferences,
   useUserProfile,
 } from '@/api/users/queries';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import { useClinicalDepartments, useMedicalTitles } from '@/libs/csv-data';
 
 import { cn } from '@/libs/utils';
 
@@ -28,95 +31,32 @@ export default function ProfilePage() {
   const { signOut } = useClerk();
   const { data: userProfile, isLoading: isProfileLoading } = useUserProfile();
   const { data: hospitals, isLoading: isLoadingHospitals } = useHospitals();
+  const { titles: medicalTitles, loading: loadingTitles } = useMedicalTitles();
+  const { departments: clinicalDepartments, loading: loadingDepartments } = useClinicalDepartments();
+
+  // Debug logging
+  console.warn('User Profile:', userProfile);
+  console.warn('Hospitals:', hospitals);
+  console.warn('User Hospital ID:', userProfile?.hospitalId);
+  console.warn('Found Hospital:', hospitals?.find(hospital => hospital.id === userProfile?.hospitalId));
   // Mutations
-  const updatePreferences = useUpdateUserPreferences();
+  const updatePreferences = useUpdatePreferences();
   const updateTitle = useUpdateTitle();
   const updateDepartment = useUpdateDepartment();
   const updateHospital = useUpdateHospital();
+  const updateExemplarReport = useUpdateExemplarReport();
 
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [openDepartment, setOpenDepartment] = useState(false);
   const [openHospital, setOpenHospital] = useState(false);
+  const [exemplarReport, setExemplarReport] = useState('');
 
-  // Medical titles from CSV
-  const medicalTitles = [
-    'Intern',
-    'Resident Medical Officer (RMO)',
-    'Senior Resident Medical Officer (SRMO)',
-    'Registrar',
-    'Advanced Trainee',
-    'Fellow',
-    'Consultant (Staff Specialist)',
-    'Visiting Medical Officer (VMO)',
-    'Career Medical Officer (CMO)',
-  ];
-
-  // Clinical departments from CSV
-  const clinicalDepartments = [
-    { category: 'Medical', department: 'General Medicine / Internal Medicine' },
-    { category: 'Medical', department: 'Cardiology' },
-    { category: 'Medical', department: 'Endocrinology' },
-    { category: 'Medical', department: 'Gastroenterology' },
-    { category: 'Medical', department: 'Geriatric Medicine' },
-    { category: 'Medical', department: 'Haematology' },
-    { category: 'Medical', department: 'Infectious Diseases' },
-    { category: 'Medical', department: 'Medical Oncology' },
-    { category: 'Medical', department: 'Nephrology' },
-    { category: 'Medical', department: 'Neurology' },
-    { category: 'Medical', department: 'Respiratory / Pulmonology' },
-    { category: 'Medical', department: 'Rheumatology' },
-    { category: 'Medical', department: 'Immunology' },
-    { category: 'Medical', department: 'Dermatology' },
-    { category: 'Medical', department: 'Rehabilitation Medicine' },
-    { category: 'Medical', department: 'Palliative Care' },
-    { category: 'Medical', department: 'Pain Medicine' },
-    { category: 'Medical', department: 'Clinical Pharmacology' },
-    { category: 'Medical', department: 'Sleep Medicine' },
-    { category: 'Surgical', department: 'General Surgery' },
-    { category: 'Surgical', department: 'Cardiothoracic Surgery' },
-    { category: 'Surgical', department: 'Neurosurgery' },
-    { category: 'Surgical', department: 'Orthopaedic Surgery' },
-    { category: 'Surgical', department: 'Plastic & Reconstructive Surgery' },
-    { category: 'Surgical', department: 'ENT (Otolaryngology, Head and Neck Surgery)' },
-    { category: 'Surgical', department: 'Urology' },
-    { category: 'Surgical', department: 'Vascular Surgery' },
-    { category: 'Surgical', department: 'Hepatobiliary Surgery' },
-    { category: 'Surgical', department: 'Colorectal Surgery' },
-    { category: 'Surgical', department: 'Breast Surgery' },
-    { category: 'Surgical', department: 'Transplant Surgery' },
-    { category: 'Surgical', department: 'Surgical Oncology' },
-    { category: 'Critical Care', department: 'Emergency Medicine' },
-    { category: 'Critical Care', department: 'Intensive Care (ICU)' },
-    { category: 'Critical Care', department: 'Anaesthetics / Perioperative Medicine' },
-    { category: 'Women\'s and Children\'s Health', department: 'Obstetrics' },
-    { category: 'Women\'s and Children\'s Health', department: 'Gynaecology' },
-    { category: 'Women\'s and Children\'s Health', department: 'Neonatology' },
-    { category: 'Women\'s and Children\'s Health', department: 'Paediatrics' },
-    { category: 'Women\'s and Children\'s Health', department: 'Paediatric Surgery' },
-    { category: 'Women\'s and Children\'s Health', department: 'Maternal-Fetal Medicine' },
-    { category: 'Mental Health', department: 'General Psychiatry' },
-    { category: 'Mental Health', department: 'Child and Adolescent Psychiatry' },
-    { category: 'Mental Health', department: 'Geriatric Psychiatry' },
-    { category: 'Mental Health', department: 'Forensic Psychiatry' },
-    { category: 'Mental Health', department: 'Addiction Medicine' },
-    { category: 'Diagnostics', department: 'Radiology / Medical Imaging' },
-    { category: 'Diagnostics', department: 'Nuclear Medicine' },
-    { category: 'Diagnostics', department: 'Pathology' },
-    { category: 'Diagnostics', department: 'Clinical Genetics' },
-    { category: 'Diagnostics', department: 'Laboratory Medicine' },
-    { category: 'Other', department: 'Sports Medicine' },
-    { category: 'Other', department: 'Occupational Medicine' },
-    { category: 'Other', department: 'Public Health / Preventive Medicine' },
-    { category: 'Other', department: 'Hyperbaric Medicine' },
-    { category: 'Other', department: 'Sexual Health / Venereology' },
-    { category: 'Allied Health', department: 'Physiotherapy' },
-    { category: 'Allied Health', department: 'Occupational Therapy' },
-    { category: 'Allied Health', department: 'Speech Pathology' },
-    { category: 'Allied Health', department: 'Dietetics / Nutrition' },
-    { category: 'Allied Health', department: 'Social Work' },
-    { category: 'Allied Health', department: 'Psychology' },
-    { category: 'Allied Health', department: 'Pharmacy' },
-  ];
+  // Update exemplar report state when userProfile changes
+  useEffect(() => {
+    if (userProfile?.exemplar_report !== undefined) {
+      setExemplarReport(userProfile.exemplar_report || '');
+    }
+  }, [userProfile?.exemplar_report]);
 
   const handleThemeChange = async (newTheme: 'light' | 'dark' | 'system') => {
     try {
@@ -157,6 +97,15 @@ export default function ProfilePage() {
     }
   };
 
+  const handleExemplarReportChange = async () => {
+    try {
+      await updateExemplarReport.mutateAsync(exemplarReport);
+      toast.success('Exemplar report updated successfully');
+    } catch {
+      toast.error('Failed to update exemplar report');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await signOut();
@@ -166,7 +115,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (!isUserLoaded || isProfileLoading) {
+  if (!isUserLoaded || isProfileLoading || loadingTitles || loadingDepartments) {
     return (
       <div className="p-6 space-y-6">
         <div>
@@ -301,8 +250,8 @@ export default function ProfilePage() {
                     </SelectTrigger>
                     <SelectContent>
                       {medicalTitles.map(title => (
-                        <SelectItem key={title} value={title}>
-                          {title}
+                        <SelectItem key={title.name} value={title.name}>
+                          {title.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -442,6 +391,35 @@ export default function ProfilePage() {
                   <p className="text-sm text-muted-foreground">Loading hospitals...</p>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          <Separator />
+
+          {/* Exemplar Report */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Award className="h-4 w-4" />
+                Exemplar Report
+              </CardTitle>
+              <CardDescription>
+                Provide an example of a high-quality discharge summary to help guide the AI.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Textarea
+                value={exemplarReport}
+                onChange={e => setExemplarReport(e.target.value)}
+                rows={10}
+                placeholder="Paste your exemplar report here..."
+              />
+              <Button
+                onClick={handleExemplarReportChange}
+                disabled={updateExemplarReport.isPending}
+              >
+                {updateExemplarReport.isPending ? 'Saving...' : 'Save Exemplar Report'}
+              </Button>
             </CardContent>
           </Card>
 

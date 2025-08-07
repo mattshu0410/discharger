@@ -150,4 +150,24 @@ export function useUpdateHospital() {
 
 // Export aliases for backward compatibility
 export const useUserProfile = useCurrentUser;
-export const useUpdateUserPreferences = useUpdatePreferences;
+export const useUpdateExemplarReport = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (exemplarReport: string) => {
+      const response = await fetch('/api/users/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ exemplar_report: exemplarReport }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update exemplar report');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.current() });
+    },
+  });
+};

@@ -1,7 +1,9 @@
 'use client';
 import { Eye, EyeOff } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { usePatients } from '@/api/patients/queries';
+import { useUserProfile } from '@/api/users/queries';
 import { ContextViewer } from '@/components/ContextViewer';
 import { DischargeSummaryPanel } from '@/components/DischargeSummary/DischargeSummaryPanel';
 import { PatientForm } from '@/components/PatientForm';
@@ -12,11 +14,13 @@ import { useUIStore } from '@/stores';
 import { usePatientStore } from '@/stores/patientStore';
 
 export default function Index() {
+  const router = useRouter();
   const isContextViewerOpen = useUIStore((state: any) => state.isContextViewerOpen);
   const toggleContextViewer = useUIStore((state: any) => state.toggleContextViewer);
   const currentPatientId = usePatientStore(state => state.currentPatientId);
   const setCurrentPatientId = usePatientStore(state => state.setCurrentPatientId);
   const { data: patients } = usePatients();
+  const { data: userProfile, isLoading: isProfileLoading } = useUserProfile();
 
   // Initialize onboarding
   useOnboarding();
@@ -25,6 +29,13 @@ export default function Index() {
   useEffect(() => {
     document.title = 'Auto-Discharge | Discharger';
   }, []);
+
+  // Check onboarding completion and redirect if needed
+  useEffect(() => {
+    if (!isProfileLoading && userProfile && !userProfile.onboarding_completed) {
+      router.push('/onboarding');
+    }
+  }, [userProfile, isProfileLoading, router]);
 
   // Auto-load first patient when component mounts and no patient is selected
   useEffect(() => {
@@ -36,6 +47,18 @@ export default function Index() {
       }
     }
   }, [currentPatientId, patients, setCurrentPatientId]);
+
+  // Show loading while checking onboarding status
+  if (isProfileLoading || (userProfile && !userProfile.onboarding_completed)) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ResizablePanelGroup direction="vertical" className="h-full w-full">
