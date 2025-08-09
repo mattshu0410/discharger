@@ -28,7 +28,8 @@
       "mcp__supabase__get_logs",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "WebFetch(domain:posthog.com)"
     ]
   },
   "enabledMcpjsonServers": [

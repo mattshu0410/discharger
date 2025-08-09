@@ -573,6 +573,7 @@ export function PatientForm() {
           />
 
           <Button
+          // Do not edit ID, used for PostHog tracking.
             id="generate-discharge-btn"
             type="submit"
             disabled={generateDischargeText.isPending || !currentPatientContext.trim() || isLoadingOrTransitioning}
