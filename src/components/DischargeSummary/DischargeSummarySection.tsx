@@ -2,8 +2,9 @@
 
 import type { DischargeSection } from '@/types/discharge';
 import { Check, Copy } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { useDischargeSummaryStore, useUIStore } from '@/stores';
 
 type DischargeSummarySectionProps = {
@@ -14,8 +15,35 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
   const [copied, setCopied] = useState(false);
   const { highlightedSection, highlightSection, highlightCitation } = useDischargeSummaryStore();
   const { setContextViewerOpen } = useUIStore();
+  const { trackContentCopy, trackCopyError } = useAnalytics();
+  const sectionRef = useRef<HTMLDivElement>(null);
 
   const isHighlighted = highlightedSection === section.id;
+
+  // Add clipboard event listener to detect manual copying
+  useEffect(() => {
+    const handleClipboardCopy = () => {
+      const selection = window.getSelection();
+      if (selection && selection.toString().length > 0) {
+        // Check if the selection is within this section
+        const sectionElement = sectionRef.current;
+        if (sectionElement?.contains(selection.anchorNode)) {
+          // Track manual copy
+          trackContentCopy({
+            section_id: section.id,
+            section_title: section.title,
+            content_length: selection.toString().length,
+            copy_method: 'manual_selection',
+            has_citations: section.citations.length > 0,
+            citation_count: section.citations.length,
+          });
+        }
+      }
+    };
+
+    document.addEventListener('copy', handleClipboardCopy);
+    return () => document.removeEventListener('copy', handleClipboardCopy);
+  }, [section.id, section.title, section.citations.length, trackContentCopy]);
 
   // Debug logging for citations
   // console.warn(`📋 Section "${section.title}" citations:`, section.citations);
@@ -62,10 +90,22 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
       // Strip CIT tags from content before copying
       const cleanContent = section.content.replace(/<CIT id="[^"]+">([^<]+)<\/CIT>/g, '$1');
       await navigator.clipboard.writeText(`${section.title}\n\n${cleanContent}`);
+
+      // Track copy event
+      trackContentCopy({
+        section_id: section.id,
+        section_title: section.title,
+        content_length: cleanContent.length,
+        copy_method: 'copy_button',
+        has_citations: section.citations.length > 0,
+        citation_count: section.citations.length,
+      });
+
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
+      trackCopyError(section.id, error instanceof Error ? error.message : 'Copy failed');
     }
   };
 
@@ -89,6 +129,7 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
 
   return (
     <div
+      ref={sectionRef}
       className={`border rounded-lg p-4 transition-colors cursor-pointer ${
         isHighlighted ? 'bg-primary/5 border-primary/50' : 'hover:bg-muted/50'
       }`}

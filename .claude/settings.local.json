@@ -29,6 +29,7 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(rm:*)",
+      "WebFetch(domain:posthog.com)",
       "WebFetch(domain:posthog.com)"
     ]
   },

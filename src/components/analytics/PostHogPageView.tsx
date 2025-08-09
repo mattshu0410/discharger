@@ -34,10 +34,11 @@ const PostHogPageView = () => {
       });
     }
 
-    if (isSignedIn && posthog._isIdentified()) {
+    // Reset when user signs out (not when signed in!)
+    if (!isSignedIn && posthog._isIdentified()) {
       posthog.reset();
     }
-  }, [posthog, user]);
+  }, [posthog, user, isSignedIn, userId]);
 
   return null;
 };

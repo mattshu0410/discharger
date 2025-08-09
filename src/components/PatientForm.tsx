@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useDischargeSummaryStore, useUIStore } from '@/stores';
 import { setAutoSaveFunction, usePatientStore } from '@/stores/patientStore';
@@ -99,6 +100,9 @@ export function PatientForm() {
 
   // Initialize autosave
   const { savePatientContext } = useAutoSave();
+
+  // Initialize analytics
+  const { trackDischargeGenerationStarted, trackDischargeGenerationCompleted } = useAnalytics();
 
   // Update patient mutation for saving discharge and document IDs
   const updatePatientMutation = useUpdatePatient();
@@ -255,6 +259,15 @@ export function PatientForm() {
       setDischargeIsGenerating(true);
       setDischargeError(null);
 
+      // Track generation started
+      if (currentPatientId) {
+        trackDischargeGenerationStarted({
+          patient_id: currentPatientId,
+          context_length: context.length,
+          document_count: documentIds?.length || 0,
+        });
+      }
+
       const res = await fetch('/api/discharge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -277,6 +290,16 @@ export function PatientForm() {
     onSuccess: async (response) => {
       // console.warn('Generated discharge summary:', response.summary);
       setDischargeSummary(response.summary);
+
+      // Track generation completed
+      if (currentPatientId) {
+        trackDischargeGenerationCompleted({
+          patient_id: currentPatientId,
+          context_length: currentPatientContext?.length || 0,
+          document_count: selectedDocuments.length,
+          section_count: response.summary.sections.length,
+        });
+      }
 
       // Trigger fetching of all documents used in generation (selected + RAG-retrieved)
       const usedDocumentIds = response.summary.metadata.documentIds;
