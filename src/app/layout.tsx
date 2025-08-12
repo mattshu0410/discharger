@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ClerkProvider } from '@clerk/nextjs';
 import { Funnel_Sans, Lexend } from 'next/font/google';
 import { NextStepProvider } from 'nextstepjs';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
@@ -51,25 +52,37 @@ export default async function RootLayout(props: {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
+  const signInUrl = '/sign-in';
+  const signUpUrl = '/sign-up';
+  const afterSignOutUrl = '/';
+
   return (
     <html lang="en" className={`${lexend.variable} ${funnel_sans.variable}`}>
       <body className="min-h-screen">
-        <NextStepProvider>
-          <ReactQueryClientProvider>
-            <ThemeProvider>
-              <TourProvider>
-                <PostHogProvider>
-                  <NuqsAdapter>
-                    <PatientProvider>
-                      <Toaster />
-                      {props.children}
-                    </PatientProvider>
-                  </NuqsAdapter>
-                </PostHogProvider>
-              </TourProvider>
-            </ThemeProvider>
-          </ReactQueryClientProvider>
-        </NextStepProvider>
+        <ClerkProvider
+          signInUrl={signInUrl}
+          signUpUrl={signUpUrl}
+          signInFallbackRedirectUrl="/discharge"
+          signUpFallbackRedirectUrl="/discharge"
+          afterSignOutUrl={afterSignOutUrl}
+        >
+          <NextStepProvider>
+            <ReactQueryClientProvider>
+              <ThemeProvider>
+                <TourProvider>
+                  <PostHogProvider>
+                    <NuqsAdapter>
+                      <PatientProvider>
+                        <Toaster />
+                        {props.children}
+                      </PatientProvider>
+                    </NuqsAdapter>
+                  </PostHogProvider>
+                </TourProvider>
+              </ThemeProvider>
+            </ReactQueryClientProvider>
+          </NextStepProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

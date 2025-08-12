@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { useClinicalDepartments, useMedicalTitles } from '@/libs/csv-data';
 
 import { cn } from '@/libs/utils';
@@ -47,6 +48,7 @@ export default function ProfilePage() {
   const updateHospital = useUpdateHospital();
   const updateExemplarReport = useUpdateExemplarReport();
   const resetTour = useResetTour();
+  const { setPersonProperties } = useAnalytics();
 
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [openDepartment, setOpenDepartment] = useState(false);
@@ -76,6 +78,7 @@ export default function ProfilePage() {
   const handleTitleChange = async (newTitle: string) => {
     try {
       await updateTitle.mutateAsync(newTitle);
+      setPersonProperties({ title: newTitle });
       toast.success('Title updated successfully');
     } catch {
       toast.error('Failed to update title');
@@ -85,6 +88,7 @@ export default function ProfilePage() {
   const handleDepartmentChange = async (newDepartment: string) => {
     try {
       await updateDepartment.mutateAsync(newDepartment);
+      setPersonProperties({ department: newDepartment });
       toast.success('Department updated successfully');
     } catch {
       toast.error('Failed to update department');
@@ -94,6 +98,12 @@ export default function ProfilePage() {
   const handleHospitalChange = async (newHospitalId: string) => {
     try {
       await updateHospital.mutateAsync(newHospitalId);
+      const selectedHospital = hospitals?.find(h => h.id === newHospitalId);
+      setPersonProperties({
+        hospital_id: newHospitalId,
+        hospital_name: selectedHospital?.name,
+        hospital_district: selectedHospital?.local_health_district,
+      });
       toast.success('Hospital updated successfully');
     } catch {
       toast.error('Failed to update hospital');

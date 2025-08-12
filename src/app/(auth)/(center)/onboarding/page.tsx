@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { useClinicalDepartments, useMedicalTitles } from '@/libs/csv-data';
 import { cn } from '@/libs/utils';
 
@@ -47,6 +48,7 @@ export default function OnboardingPage() {
   const updateProfile = useUpdateProfile();
   const { titles: medicalTitles, loading: loadingTitles } = useMedicalTitles();
   const { departments: clinicalDepartments, loading: loadingDepartments } = useClinicalDepartments();
+  const { setPersonProperties } = useAnalytics();
 
   const [openDepartment, setOpenDepartment] = useState(false);
   const [openHospital, setOpenHospital] = useState(false);
@@ -86,6 +88,17 @@ export default function OnboardingPage() {
         exemplar_report: exemplarReport,
         onboarding_completed: true, // Profile setup is complete
         tour_completed: false, // Tour hasn't started yet
+      });
+
+      // Update PostHog person properties
+      const selectedHospital = hospitals?.find(h => h.id === formData.hospitalId);
+      setPersonProperties({
+        title: formData.title,
+        department: formData.department,
+        hospital_id: formData.hospitalId,
+        hospital_name: selectedHospital?.name,
+        hospital_district: selectedHospital?.local_health_district,
+        onboarding_completed: true,
       });
 
       toast.success('Profile completed successfully! Starting your tour...');
