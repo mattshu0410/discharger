@@ -40,6 +40,8 @@ type UIState = {
   // Composer state
   isComposerPreviewMode: boolean;
   composerDischargeText: string;
+  // Citation visibility state
+  showCitations: boolean;
   // Actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -71,6 +73,9 @@ type UIState = {
   // Composer actions
   setComposerPreviewMode: (isPreview: boolean) => void;
   setComposerDischargeText: (text: string) => void;
+  // Citation visibility actions
+  toggleCitations: () => void;
+  setShowCitations: (show: boolean) => void;
 };
 
 export const useUIStore = create<UIState>()(
@@ -99,6 +104,8 @@ export const useUIStore = create<UIState>()(
     // Composer initial state
     isComposerPreviewMode: false,
     composerDischargeText: '',
+    // Citation visibility initial state
+    showCitations: true,
     // Actions
     toggleSidebar: () => set((state) => {
       state.isSidebarOpen = !state.isSidebarOpen;
@@ -301,6 +308,15 @@ export const useUIStore = create<UIState>()(
 
     setComposerDischargeText: text => set((state) => {
       state.composerDischargeText = text;
+    }),
+
+    // Citation visibility actions
+    toggleCitations: () => set((state) => {
+      state.showCitations = !state.showCitations;
+    }),
+
+    setShowCitations: show => set((state) => {
+      state.showCitations = show;
     }),
   })),
 );

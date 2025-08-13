@@ -1,14 +1,15 @@
 'use client';
 
 import { format } from 'date-fns';
-import { Clock, RefreshCw } from 'lucide-react';
+import { Clock, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { useGenerateDischargeSummary } from '@/api/discharge/queries';
 import { Button } from '@/components/ui/button';
-import { useDischargeSummaryStore, usePatientStore } from '@/stores';
+import { useDischargeSummaryStore, usePatientStore, useUIStore } from '@/stores';
 
 export function DischargeSummaryHeader() {
   const { lastGeneratedAt, isRegenerating, setDischargeSummary, setError, setIsRegenerating } = useDischargeSummaryStore();
   const { currentPatientId, currentPatientContext, selectedDocuments } = usePatientStore();
+  const { showCitations, toggleCitations } = useUIStore();
 
   const generateMutation = useGenerateDischargeSummary();
 
@@ -53,26 +54,47 @@ export function DischargeSummaryHeader() {
         )}
       </div>
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleRegenerate}
-        disabled={isRegenerating}
-      >
-        {isRegenerating
-          ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Regenerating...
-              </>
-            )
-          : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Regenerate
-              </>
-            )}
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleCitations}
+        >
+          {showCitations
+            ? (
+                <>
+                  <EyeOff className="mr-2 h-4 w-4" />
+                  Hide Citations
+                </>
+              )
+            : (
+                <>
+                  <Eye className="mr-2 h-4 w-4" />
+                  Show Citations
+                </>
+              )}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRegenerate}
+          disabled={isRegenerating}
+        >
+          {isRegenerating
+            ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Regenerating...
+                </>
+              )
+            : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Regenerate
+                </>
+              )}
+        </Button>
+      </div>
     </div>
   );
 }

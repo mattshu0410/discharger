@@ -14,7 +14,7 @@ type DischargeSummarySectionProps = {
 export function DischargeSummarySection({ section }: DischargeSummarySectionProps) {
   const [copied, setCopied] = useState(false);
   const { highlightedSection, highlightSection, highlightCitation } = useDischargeSummaryStore();
-  const { setContextViewerOpen } = useUIStore();
+  const { setContextViewerOpen, showCitations } = useUIStore();
   const { trackContentCopy, trackCopyError } = useAnalytics();
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +56,11 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
 
     let content = section.content;
 
+    // If citations are hidden, just strip the CIT tags and return plain text
+    if (!showCitations) {
+      return content.replace(/<CIT id="[^"]+">([^<]+)<\/CIT>/g, '$1');
+    }
+
     // Replace <CIT id="citationId">text</CIT> with clickable highlighted spans
     const citRegex = /<CIT id="([^"]+)">([^<]+)<\/CIT>/g;
 
@@ -83,7 +88,7 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
     });
 
     return content;
-  }, [section.content, section.citations]);
+  }, [section.content, section.citations, showCitations]);
 
   const handleCopy = async () => {
     try {
@@ -166,12 +171,14 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
 
       <div
         className="prose prose-sm max-w-none"
-        onClick={handleCitationClick}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            handleCitationClick(e as any);
-          }
-        }}
+        onClick={showCitations ? handleCitationClick : undefined}
+        onKeyDown={showCitations
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                handleCitationClick(e as any);
+              }
+            }
+          : undefined}
         role="presentation"
       >
         <div
@@ -181,7 +188,7 @@ export function DischargeSummarySection({ section }: DischargeSummarySectionProp
       </div>
 
       {/* Citations count and types */}
-      {section.citations.length > 0 && (
+      {showCitations && section.citations.length > 0 && (
         <div className="mt-3 pt-3 border-t">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>
