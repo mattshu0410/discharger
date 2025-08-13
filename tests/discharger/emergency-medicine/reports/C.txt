@@ -1,0 +1,24 @@
+# Discharge Summary - Note 3 (Plain Text)
+
+## ADMISSION SUMMARY
+
+Dear Doctor,
+ Thank you for your ongoing care of [___], a [age]-year-old [M/F] who presented to the [department] at [hospital] on [date] with nausea, vomiting and dizziness for 2/7 history.
+ The primary diagnosis is likely Benign Paroxysmal Positional Vertigo (BPPV) given the positive Dix-Hallpike. Key symptoms included unsteadiness on feet, exacerbated by head movement and sitting to standing, and later onset postural vertigo. Relevant past medical history includes Tricuspid atresia, single ventricle with Fontan circulation, refractory atrial tachyarrhythmias, AICD, and Obesity.
+ On examination, the patient appeared uncomfortable and required 1x assist to mobilise. Neurological examination was otherwise unremarkable. A CT brain + angio was performed and was negative for acute pathology. A Dix-Hallpike test was positive on the left.
+ Treatment included Stemetil and IV fluids. An Epley’s manoeuvre was unsuccessful in resolving symptoms. The patient's symptoms are starting to improve and they are now safe for discharge.
+
+## DISCHARGE PLAN
+
+DISCHARGE PLAN
+1. Discharge destination: Discharge home with wife and daughter.
+2. Medications: Please continue all regular medications as prescribed.
+3. Follow-up arrangements: Follow-up with your GP in 7 days for review of vertigo symptoms.
+4. Safety netting: Please seek medical attention and/or present to your nearest emergency department if you experience:
+   - Worsening dizziness or vertigo
+   - New onset weakness or numbness
+   - Difficulty speaking or swallowing
+   - Severe headache
+   - Any other concerning symptoms
+Kind Regards, Dr [Physician], [Department] [Position]
+

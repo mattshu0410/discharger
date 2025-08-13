@@ -25,8 +25,8 @@ Chronic sciatica (Discharge)
 ADMISSION SUMMARY 
 Summary of Progress 
 Dear Doctor,
-Thank you for your ongoing care of _____, a ____-year-old female/male who presented to the Emergency Department at ___ on ____ with chronic back pain and sciatica.
-____ reported bilateral lower back pain for several months with left lower limb sciatica. They were able to mobilise independently, had no neurological deficits on examination, and had no red flags concerning for serious underlying pathology. They were advised to continue pharmacological and non-pharmacological measures to manage their pain, continue physical activity, follow up with our back pain clinic and have an MRI in late April as an outpatient as previously arranged.
+Thank you for your ongoing care of [patient], a [age]-year-old female/male who presented to the Emergency Department at [time] on [date] with chronic back pain and sciatica.
+[patient] reported bilateral lower back pain for several months with left lower limb sciatica. They were able to mobilise independently, had no neurological deficits on examination, and had no red flags concerning for serious underlying pathology. They were advised to continue pharmacological and non-pharmacological measures to manage their pain, continue physical activity, follow up with our back pain clinic and have an MRI in late April as an outpatient as previously arranged.
 DISCHARGE PLAN
 1. Discharge home.
 2. Please continue the following medications
@@ -37,8 +37,8 @@ DISCHARGE PLAN
 4. Please seek medical attention and/or present to your nearest emergency department if your symptoms get worse or you have any other concerns.
 -Weakness in legs, unsteadiness when walking, changes to bowel or  bladder function, severe pain at night, fevers
 Kind Regards,
-Dr _____, Emergency Medicine JMO
-On behalf of Dr _____, Emergency Medicine Consultant`;
+Dr [name], Emergency Medicine JMO
+On behalf of Dr [name], Emergency Medicine Consultant`;
 
 export default function OnboardingPage() {
   const { user, isLoaded: isUserLoaded } = useUser();
@@ -114,7 +114,7 @@ export default function OnboardingPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">Welcome to Discharger</CardTitle>
           <CardDescription className="text-lg">
-            Loading your onboarding experience...
+            Loading...
           </CardDescription>
         </CardHeader>
       </Card>
@@ -295,8 +295,8 @@ export default function OnboardingPage() {
               id="exemplar_report"
               value={formData.exemplarReport}
               onChange={e => setFormData(prev => ({ ...prev, exemplarReport: e.target.value }))}
-              rows={10}
-              placeholder="Paste your exemplar report here to help guide the AI..."
+              className="h-32 max-h-48 min-h-24 resize-none"
+              placeholder={DEFAULT_EXEMPLAR_REPORT}
             />
             <p className="text-sm text-muted-foreground">
               Provide an example of a high-quality discharge summary to help guide the AI. If left empty, a default exemplar will be used.

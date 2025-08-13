@@ -1,0 +1,26 @@
+# Discharge Summary - Note 2 (Plain Text)
+
+## ADMISSION SUMMARY
+
+Dear Doctor,
+ Thank you for your ongoing care of [], a []-year-old [] who presented to the [] at [] on [] with 4-week history of cough.
+ The primary diagnosis was mild Community Acquired Pneumonia (CAP). Key symptoms included ongoing cough for 4 weeks, which worsened in the past 5 days with more productive green phlegm, chest pain secondary to cough described as "burning", and pre-syncopal and dyspnoeic yesterday after exertion. The patient also reported worsened anxiety with ongoing symptoms. Relevant past medical history includes Asthma, Anxiety, and Depression, with current medications being Propanolol 10mg daily and Escitalopram 20mg daily. On examination, the patient appeared well and was conversing comfortably with no respiratory distress, but was tachycardic with cough exacerbated by deep breathing and ?right lower inspiratory creps. Investigations including bloods, CXR, and ECG were planned. Treatment involved analgesia and the patient was deemed suitable for discharge with oral antibiotics.
+
+## DISCHARGE PLAN
+
+1. Discharge destination: Discharge home with father.
+2. Medications:
+ Please continue Propanolol 10mg daily.
+ Please continue Escitalopram 20mg daily.
+ Please continue prescribed oral antibiotics as directed.
+3. Follow-up arrangements:
+ Follow-up with your GP in 3-5 days for review of CAP.
+4. Safety netting:
+ Please seek medical attention and/or present to your nearest emergency department if you experience:
+ - Worsening cough or phlegm production
+ - Increasing shortness of breath or difficulty breathing
+ - Fevers or chills
+ - Worsening chest pain
+ - Dizziness or pre-syncope
+Kind Regards, Dr [], [] []
+

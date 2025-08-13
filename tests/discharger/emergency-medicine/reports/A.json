@@ -1,0 +1,142 @@
+{
+  "summary": {
+    "id": "discharge_1755069248767",
+    "patientId": "test-patient-1",
+    "sections": [
+      {
+        "id": "section_discharge_1755069248767_1",
+        "title": "ADMISSION SUMMARY",
+        "content": "Dear Doctor,\n Thank you for your ongoing care of [patient], a [age]-year-old F/M who presented to the [department] at [hospital] on [date] with <CIT id=\"c1\">chronic lower back pain</CIT>.\n The primary diagnosis is <CIT id=\"c11\">degenerative spinal changes</CIT> with <CIT id=\"c12\">sciatica</CIT>. The patient reported <CIT id=\"c2\">bilateral lower back pain</CIT> with <CIT id=\"c3\">radicular left leg pain</CIT> shooting to the toes and occasional toe numbness, which <CIT id=\"c4\">flares when standing</CIT>. Relevant past medical history includes <CIT id=\"c5\">Meningitis</CIT> and <CIT id=\"c6\">Hip OA</CIT>.\n On examination, the patient appeared well and mobilising independently. Key findings included a <CIT id=\"c9\">positive straight leg raise on the left lower limb</CIT> and <CIT id=\"c10\">pain flares with left ankle dorsiflexion</CIT>. No midline spinal or paraspinal tenderness, erythema, or back swelling was noted. Neurological examination of the lower limbs revealed normal tone, 5/5 power in all domains, intact fine touch sensation, and present reflexes with downgoing Babinski.\n Treatment provided included <CIT id=\"c14\">analgesia</CIT>. The patient was discharged as stable, with a plan for further investigations and specialist follow-up.",
+        "order": 1,
+        "citations": [
+          {
+            "id": "c1",
+            "context": "chronic lower back pain",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c11",
+            "context": "degenerative spinal changes",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c12",
+            "context": "sciatica",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c2",
+            "context": "bilateral lower back pain",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c3",
+            "context": "radicular left leg pain",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c4",
+            "context": "flares when standing",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c5",
+            "context": "Meningitis",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c6",
+            "context": "Hip OA",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c9",
+            "context": "positive straight leg raise on the left lower limb",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c10",
+            "context": "pain flares with left ankle dorsiflexion",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c14",
+            "context": "analgesia",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          }
+        ]
+      },
+      {
+        "id": "section_discharge_1755069248767_2",
+        "title": "DISCHARGE PLAN",
+        "content": "1. Discharge destination: Discharge home with wife.\n2. Medications: Please continue <CIT id=\"c7\">Vitamins</CIT> and <CIT id=\"c8\">Magnesium</CIT> as prescribed. No new medications prescribed at discharge.\n3. Follow-up arrangements:\n    *   Complete <CIT id=\"c13\">XR</CIT> as scheduled.\n    *   Attend <CIT id=\"c15\">LBP clinic</CIT> appointment as arranged.\n    *   Proceed with <CIT id=\"c16\">MRI pending end of April</CIT> as previously arranged by GP.\n4. Safety netting: Please seek medical attention and/or present to your nearest emergency department if you experience:\n    *   Worsening pain despite analgesia\n    *   New or worsening weakness in legs\n    *   New numbness or tingling\n    *   Loss of bowel or bladder control\n    *   Fever or chills\n    *   Unexplained weight loss\nKind Regards, Dr [Physician], [Department] [Position]",
+        "order": 2,
+        "citations": [
+          {
+            "id": "c7",
+            "context": "Vitamins",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c8",
+            "context": "Magnesium",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c13",
+            "context": "XR",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c15",
+            "context": "LBP clinic",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c16",
+            "context": "MRI pending end of April",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "generatedAt": "2025-08-13T07:14:08.767Z",
+      "llmModel": "gemini-2.5-flash",
+      "documentIds": [],
+      "feedbackApplied": []
+    }
+  }
+}

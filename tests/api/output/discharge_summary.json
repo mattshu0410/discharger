@@ -1,87 +1,80 @@
 {
   "summary": {
-    "id": "discharge_1751803082193",
+    "id": "discharge_1755065259942",
     "patientId": "test-patient",
     "sections": [
       {
-        "id": "section_discharge_1751803082193_1",
-        "title": "Administrative Information",
-        "content": "Patient Full Name: Not available\nDate of Birth (Age in years): 58 years\nSex: Female",
+        "id": "section_discharge_1755065259942_1",
+        "title": "ADMISSION SUMMARY",
+        "content": "Dear Doctor, Thank you for your ongoing care of patient, a <CIT id=\"c1\">58-year-old female</CIT> who presented to the Emergency Department at our hospital on today's date with a <CIT id=\"c2\">2-month history of knee pain</CIT>.\n\nHer primary complaint was <CIT id=\"c3\">acute onset knee pain during a yoga session</CIT> where her knee and hip were flexed. She described the pain as feeling <CIT id=\"c4\">\"broken\", 10/10 in severity, non-migratory, and making it difficult to walk</CIT>. Initial investigations included a <CIT id=\"c5\">knee X-ray which showed no findings</CIT>, and she was provided with <CIT id=\"c6\">crutches</CIT>.\n\nCurrently, her pain is <CIT id=\"c7\">low, though still present with walking</CIT>. She has been managing her pain with <CIT id=\"c8\">ibuprofen</CIT>. Her past medical history is notable for <CIT id=\"c9\">chronic wrist pain treated with two steroid injections</CIT>. She is <CIT id=\"c10\">perimenopausal and takes estrogen replacement, along with turmeric, glucosamine, and evening primrose oil supplements</CIT>. Given her improved pain and stable condition, she is suitable for discharge.",
         "order": 1,
-        "citations": []
-      },
-      {
-        "id": "section_discharge_1751803082193_2",
-        "title": "Introduction + Summary of Care",
-        "content": "Dear Dr. X, thank you for reviewing patient a 58 year old Female to be discharged on Not available from Not available at Not available. The summary of their presentation and condition is documented below.\n- Principal diagnosis: <CIT id=\"c1\">Acute knee pain</CIT>, likely musculoskeletal.\n- Reason for presentation: Patient presented with a <CIT id=\"c1\">two-month history of acute knee pain</CIT> that started during a <CIT id=\"c1\">yoga session</CIT> while the knee and hip were flexed. The pain was initially described as feeling <CIT id=\"c2\">\"broken\"</CIT> with <CIT id=\"c3\">10/10 severity</CIT> and <CIT id=\"c4\">difficulty walking</CIT>.\n- Secondary diagnoses: <CIT id=\"c8\">Chronic wrist pain</CIT>.\n- Additional complications: No additional complications were noted during the admission.\n- Past medical history: Significant for <CIT id=\"c8\">chronic wrist pain</CIT> for which she has received <CIT id=\"c9\">two steroid injections</CIT>, and she is <CIT id=\"c10\">perimenopausal</CIT>.\n- Summary of salient points of the patient care:\n- The patient was seen in the acute care clinic.\n- Imaging: <CIT id=\"c5\">Knee X-ray had no findings</CIT>.\n- Management: She was provided with <CIT id=\"c5\">crutches</CIT> for ambulation and advised on pain management.\n- Current status: Her pain has since reduced to <CIT id=\"c6\">low severity</CIT>, though she still experiences <CIT id=\"c7\">some pain while walking</CIT>.",
-        "order": 2,
         "citations": [
           {
             "id": "c1",
-            "context": "58YO F with 2mth history of knee pain, occurring during a yoga session acutely while knee is flexed and hip flexed on the ground.",
+            "context": "58YO F",
             "relevanceScore": 1,
             "sourceType": "user-context",
             "contextSection": "main"
           },
           {
             "id": "c2",
-            "context": "Pain feels like its \"broken\", difficult to walk, 10/10 pain, doesn't migrate.",
+            "context": "2mth history of knee pain",
             "relevanceScore": 1,
             "sourceType": "user-context",
             "contextSection": "main"
           },
           {
             "id": "c3",
-            "context": "Pain feels like its \"broken\", difficult to walk, 10/10 pain, doesn't migrate.",
+            "context": "yoga session acutely while knee is flexed and hip flexed on the ground",
             "relevanceScore": 1,
             "sourceType": "user-context",
             "contextSection": "main"
           },
           {
             "id": "c4",
-            "context": "Pain feels like its \"broken\", difficult to walk, 10/10 pain, doesn't migrate.",
+            "context": "Pain feels like its \"broken\", difficult to walk, 10/10 pain, doesn't migrate",
             "relevanceScore": 1,
             "sourceType": "user-context",
             "contextSection": "main"
           },
           {
             "id": "c5",
-            "context": "Ix: Knee XR had no findings, gave crunches and went home.",
+            "context": "Knee XR had no findings",
             "relevanceScore": 1,
             "sourceType": "user-context",
             "contextSection": "main"
           },
           {
             "id": "c6",
-            "context": "Now, has low pain, but still has some pain while walking.",
+            "context": "gave crunches and went home",
             "relevanceScore": 1,
             "sourceType": "user-context",
             "contextSection": "main"
           },
           {
             "id": "c7",
-            "context": "Now, has low pain, but still has some pain while walking.",
+            "context": "low pain, but still has some pain while walking",
             "relevanceScore": 1,
             "sourceType": "user-context",
             "contextSection": "main"
           },
           {
             "id": "c8",
-            "context": "She also has chronic wrist pain, which has had 2x steroid shots.",
+            "context": "ibuprofen for pain medication",
             "relevanceScore": 1,
             "sourceType": "user-context",
             "contextSection": "main"
           },
           {
             "id": "c9",
-            "context": "She also has chronic wrist pain, which has had 2x steroid shots.",
+            "context": "chronic wrist pain, which has had 2x steroid shots",
             "relevanceScore": 1,
             "sourceType": "user-context",
             "contextSection": "main"
           },
           {
             "id": "c10",
-            "context": "She is perimenopausal, takes estrogen replacement and takes supplements (tumeric, glucosamine, evening primrose oil).",
+            "context": "perimenopausal, takes estrogen replacement and takes supplements (tumeric, glucosamine, evening primrose oil)",
             "relevanceScore": 1,
             "sourceType": "user-context",
             "contextSection": "main"
@@ -89,108 +82,15 @@
         ]
       },
       {
-        "id": "section_discharge_1751803082193_3",
-        "title": "Discharge Plan",
-        "content": "- Patient to continue with pain management as advised.\n- Patient to follow up with their General Practitioner for ongoing assessment of knee pain if symptoms persist or worsen.\n- No specific follow-up pathology or labs are required at this time.\n- No specific referrals to other services or specialists have been made at discharge.",
-        "order": 3,
-        "citations": []
-      },
-      {
-        "id": "section_discharge_1751803082193_4",
-        "title": "Issues List",
-        "content": "- Acute Knee Pain: <CIT id=\"c11\">Acute onset during yoga</CIT>, initially <CIT id=\"c12\">10/10 pain with difficulty walking</CIT>. <CIT id=\"c13\">Knee X-ray showed no findings</CIT>. Currently, <CIT id=\"c14\">low pain but still present with walking</CIT>.\n- Chronic Wrist Pain: History of <CIT id=\"c15\">chronic wrist pain</CIT> managed with <CIT id=\"c15\">two steroid injections</CIT>.\n- Plan for ongoing care: Continue conservative management for knee pain. Follow up with General Practitioner for persistent symptoms.",
-        "order": 4,
-        "citations": [
-          {
-            "id": "c11",
-            "context": "58YO F with 2mth history of knee pain, occurring during a yoga session acutely while knee is flexed and hip flexed on the ground.",
-            "relevanceScore": 1,
-            "sourceType": "user-context",
-            "contextSection": "main"
-          },
-          {
-            "id": "c12",
-            "context": "Pain feels like its \"broken\", difficult to walk, 10/10 pain, doesn't migrate.",
-            "relevanceScore": 1,
-            "sourceType": "user-context",
-            "contextSection": "main"
-          },
-          {
-            "id": "c13",
-            "context": "Ix: Knee XR had no findings, gave crunches and went home.",
-            "relevanceScore": 1,
-            "sourceType": "user-context",
-            "contextSection": "main"
-          },
-          {
-            "id": "c14",
-            "context": "Now, has low pain, but still has some pain while walking.",
-            "relevanceScore": 1,
-            "sourceType": "user-context",
-            "contextSection": "main"
-          },
-          {
-            "id": "c15",
-            "context": "She also has chronic wrist pain, which has had 2x steroid shots.",
-            "relevanceScore": 1,
-            "sourceType": "user-context",
-            "contextSection": "main"
-          }
-        ]
-      },
-      {
-        "id": "section_discharge_1751803082193_5",
-        "title": "Medications",
-        "content": "- New medications:\n- Ibuprofen: <CIT id=\"c16\">Taken for pain</CIT> as needed.\n\n- Changed medications: No changes to regular medications during admission.\n\n- Unchanged medications:\n- Estrogen Replacement: <CIT id=\"c17\">As per usual dose and frequency</CIT>\n- Evening Primrose Oil: <CIT id=\"c18\">As per usual dose and frequency</CIT>\n- Glucosamine: <CIT id=\"c19\">As per usual dose and frequency</CIT>\n- Tumeric: <CIT id=\"c20\">As per usual dose and frequency</CIT>\n\n- Ceased medications: None CEASED",
-        "order": 5,
-        "citations": [
-          {
-            "id": "c16",
-            "context": "She took ibuprofen for pain medication.",
-            "relevanceScore": 1,
-            "sourceType": "user-context",
-            "contextSection": "main"
-          },
-          {
-            "id": "c17",
-            "context": "She is perimenopausal, takes estrogen replacement and takes supplements (tumeric, glucosamine, evening primrose oil).",
-            "relevanceScore": 1,
-            "sourceType": "user-context",
-            "contextSection": "main"
-          },
-          {
-            "id": "c18",
-            "context": "She is perimenopausal, takes estrogen replacement and takes supplements (tumeric, glucosamine, evening primrose oil).",
-            "relevanceScore": 1,
-            "sourceType": "user-context",
-            "contextSection": "main"
-          },
-          {
-            "id": "c19",
-            "context": "She is perimenopausal, takes estrogen replacement and takes supplements (tumeric, glucosamine, evening primrose oil).",
-            "relevanceScore": 1,
-            "sourceType": "user-context",
-            "contextSection": "main"
-          },
-          {
-            "id": "c20",
-            "context": "She is perimenopausal, takes estrogen replacement and takes supplements (tumeric, glucosamine, evening primrose oil).",
-            "relevanceScore": 1,
-            "sourceType": "user-context",
-            "contextSection": "main"
-          }
-        ]
-      },
-      {
-        "id": "section_discharge_1751803082193_6",
-        "title": "Information Provided to the Patient",
-        "content": "- Education was provided regarding the nature of her knee pain and the importance of activity modification.\n- Instructions were given on the proper use of crutches for ambulation.\n- Advice was provided on pain management strategies, including the appropriate use of over-the-counter analgesia.\n- The patient demonstrated a good understanding of the instructions and her condition, indicating adequate health literacy regarding her current management plan.",
-        "order": 6,
+        "id": "section_discharge_1755065259942_2",
+        "title": "DISCHARGE PLAN",
+        "content": "DISCHARGE PLAN\n\n1. Discharge Destination: Patient is discharged home.\n\n2. New Medications: No new medications prescribed. Please continue current medications as appropriate.\n\n3. Follow-up Arrangements:\n   - Please arrange for a review with her General Practitioner within 1-2 weeks for ongoing management of her knee pain.\n\n4. Safety Netting:\n   - Please seek medical attention if she experiences worsening knee pain, new swelling, redness, warmth, inability to bear weight, or any signs of infection.\n\nKind Regards,\nDr [Name]\nEmergency Medicine JMO",
+        "order": 2,
         "citations": []
       }
     ],
     "metadata": {
-      "generatedAt": "2025-07-06T11:58:02.193Z",
+      "generatedAt": "2025-08-13T06:07:39.942Z",
       "llmModel": "gemini-2.5-flash",
       "documentIds": [],
       "feedbackApplied": []

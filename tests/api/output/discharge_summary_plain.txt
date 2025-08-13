@@ -1,57 +1,28 @@
 # Discharge Summary (Plain Text)
 
-## Administrative Information
+## ADMISSION SUMMARY
 
-Patient Full Name: Not available
-Date of Birth (Age in years): 58 years
-Sex: Female
+Dear Doctor, Thank you for your ongoing care of patient, a 58-year-old female who presented to the Emergency Department at our hospital on today's date with a 2-month history of knee pain.
 
-## Introduction + Summary of Care
+Her primary complaint was acute onset knee pain during a yoga session where her knee and hip were flexed. She described the pain as feeling "broken", 10/10 in severity, non-migratory, and making it difficult to walk. Initial investigations included a knee X-ray which showed no findings, and she was provided with crutches.
 
-Dear Dr. X, thank you for reviewing patient a 58 year old Female to be discharged on Not available from Not available at Not available. The summary of their presentation and condition is documented below.
-- Principal diagnosis: Acute knee pain, likely musculoskeletal.
-- Reason for presentation: Patient presented with a two-month history of acute knee pain that started during a yoga session while the knee and hip were flexed. The pain was initially described as feeling "broken" with 10/10 severity and difficulty walking.
-- Secondary diagnoses: Chronic wrist pain.
-- Additional complications: No additional complications were noted during the admission.
-- Past medical history: Significant for chronic wrist pain for which she has received two steroid injections, and she is perimenopausal.
-- Summary of salient points of the patient care:
-- The patient was seen in the acute care clinic.
-- Imaging: Knee X-ray had no findings.
-- Management: She was provided with crutches for ambulation and advised on pain management.
-- Current status: Her pain has since reduced to low severity, though she still experiences some pain while walking.
+Currently, her pain is low, though still present with walking. She has been managing her pain with ibuprofen. Her past medical history is notable for chronic wrist pain treated with two steroid injections. She is perimenopausal and takes estrogen replacement, along with turmeric, glucosamine, and evening primrose oil supplements. Given her improved pain and stable condition, she is suitable for discharge.
 
-## Discharge Plan
+## DISCHARGE PLAN
 
-- Patient to continue with pain management as advised.
-- Patient to follow up with their General Practitioner for ongoing assessment of knee pain if symptoms persist or worsen.
-- No specific follow-up pathology or labs are required at this time.
-- No specific referrals to other services or specialists have been made at discharge.
+DISCHARGE PLAN
 
-## Issues List
+1. Discharge Destination: Patient is discharged home.
 
-- Acute Knee Pain: Acute onset during yoga, initially 10/10 pain with difficulty walking. Knee X-ray showed no findings. Currently, low pain but still present with walking.
-- Chronic Wrist Pain: History of chronic wrist pain managed with two steroid injections.
-- Plan for ongoing care: Continue conservative management for knee pain. Follow up with General Practitioner for persistent symptoms.
+2. New Medications: No new medications prescribed. Please continue current medications as appropriate.
 
-## Medications
+3. Follow-up Arrangements:
+   - Please arrange for a review with her General Practitioner within 1-2 weeks for ongoing management of her knee pain.
 
-- New medications:
-- Ibuprofen: Taken for pain as needed.
+4. Safety Netting:
+   - Please seek medical attention if she experiences worsening knee pain, new swelling, redness, warmth, inability to bear weight, or any signs of infection.
 
-- Changed medications: No changes to regular medications during admission.
-
-- Unchanged medications:
-- Estrogen Replacement: As per usual dose and frequency
-- Evening Primrose Oil: As per usual dose and frequency
-- Glucosamine: As per usual dose and frequency
-- Tumeric: As per usual dose and frequency
-
-- Ceased medications: None CEASED
-
-## Information Provided to the Patient
-
-- Education was provided regarding the nature of her knee pain and the importance of activity modification.
-- Instructions were given on the proper use of crutches for ambulation.
-- Advice was provided on pain management strategies, including the appropriate use of over-the-counter analgesia.
-- The patient demonstrated a good understanding of the instructions and her condition, indicating adequate health literacy regarding her current management plan.
+Kind Regards,
+Dr [Name]
+Emergency Medicine JMO
 

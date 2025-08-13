@@ -20,6 +20,7 @@
     "check-types": "tsc --noEmit --pretty",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:discharge": "vitest run tests/api/discharge.test.ts",
     "commit": "cz",
     "db:generate": "supabase db diff -f user_profiles",
     "db:migrate": "supabase db push",

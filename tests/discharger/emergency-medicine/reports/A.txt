@@ -1,0 +1,27 @@
+# Discharge Summary - Note 1 (Plain Text)
+
+## ADMISSION SUMMARY
+
+Dear Doctor,
+ Thank you for your ongoing care of [patient], a [age]-year-old F/M who presented to the [department] at [hospital] on [date] with chronic lower back pain.
+ The primary diagnosis is degenerative spinal changes with sciatica. The patient reported bilateral lower back pain with radicular left leg pain shooting to the toes and occasional toe numbness, which flares when standing. Relevant past medical history includes Meningitis and Hip OA.
+ On examination, the patient appeared well and mobilising independently. Key findings included a positive straight leg raise on the left lower limb and pain flares with left ankle dorsiflexion. No midline spinal or paraspinal tenderness, erythema, or back swelling was noted. Neurological examination of the lower limbs revealed normal tone, 5/5 power in all domains, intact fine touch sensation, and present reflexes with downgoing Babinski.
+ Treatment provided included analgesia. The patient was discharged as stable, with a plan for further investigations and specialist follow-up.
+
+## DISCHARGE PLAN
+
+1. Discharge destination: Discharge home with wife.
+2. Medications: Please continue Vitamins and Magnesium as prescribed. No new medications prescribed at discharge.
+3. Follow-up arrangements:
+    *   Complete XR as scheduled.
+    *   Attend LBP clinic appointment as arranged.
+    *   Proceed with MRI pending end of April as previously arranged by GP.
+4. Safety netting: Please seek medical attention and/or present to your nearest emergency department if you experience:
+    *   Worsening pain despite analgesia
+    *   New or worsening weakness in legs
+    *   New numbness or tingling
+    *   Loss of bowel or bladder control
+    *   Fever or chills
+    *   Unexplained weight loss
+Kind Regards, Dr [Physician], [Department] [Position]
+

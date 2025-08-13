@@ -1,0 +1,212 @@
+{
+  "summary": {
+    "id": "discharge_1755069273327",
+    "patientId": "test-patient-2",
+    "sections": [
+      {
+        "id": "section_discharge_1755069273327_1",
+        "title": "ADMISSION SUMMARY",
+        "content": "Dear Doctor,\n Thank you for your ongoing care of [], a []-year-old [] who presented to the [] at [] on [] with <CIT id=\"c1\">4-week history of cough</CIT>.\n The primary diagnosis was <CIT id=\"c2\">mild Community Acquired Pneumonia (CAP)</CIT>. Key symptoms included <CIT id=\"c3\">ongoing cough for 4 weeks</CIT>, which <CIT id=\"c4\">worsened in the past 5 days with more productive green phlegm</CIT>, <CIT id=\"c5\">chest pain secondary to cough</CIT> described as \"burning\", and <CIT id=\"c6\">pre-syncopal and dyspnoeic yesterday after exertion</CIT>. The patient also reported <CIT id=\"c7\">worsened anxiety</CIT> with ongoing symptoms. Relevant past medical history includes <CIT id=\"c18\">Asthma</CIT>, <CIT id=\"c19\">Anxiety</CIT>, and <CIT id=\"c20\">Depression</CIT>, with current medications being <CIT id=\"c21\">Propanolol 10mg daily</CIT> and <CIT id=\"c22\">Escitalopram 20mg daily</CIT>. On examination, the patient <CIT id=\"c8\">appeared well</CIT> and was <CIT id=\"c9\">conversing comfortably with no respiratory distress</CIT>, but was <CIT id=\"c10\">tachycardic</CIT> with <CIT id=\"c11\">cough exacerbated by deep breathing</CIT> and <CIT id=\"c12\">?right lower inspiratory creps</CIT>. Investigations including <CIT id=\"c13\">bloods</CIT>, <CIT id=\"c14\">CXR</CIT>, and <CIT id=\"c15\">ECG</CIT> were planned. Treatment involved <CIT id=\"c16\">analgesia</CIT> and the patient was deemed suitable for discharge with <CIT id=\"c17\">oral antibiotics</CIT>.",
+        "order": 1,
+        "citations": [
+          {
+            "id": "c1",
+            "context": "4/25 hx cough",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c2",
+            "context": "Mild CAP",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c3",
+            "context": "ongoing cough for 4 weeks",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c4",
+            "context": "Worsened in the past 5 days with more productive green phlegm",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c5",
+            "context": "Chest pain secondary to cough",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c6",
+            "context": "Pre-syncopal and dyspnoeic yesterday after exertion at taekwondo",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c7",
+            "context": "Anxiety has worsened with ongoing symptoms",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c8",
+            "context": "Appears well",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c9",
+            "context": "Conversing comfortably, no respiratory distress or iWOB",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c10",
+            "context": "tachycardic",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c11",
+            "context": "Cough exacerbated by deep breathing",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c12",
+            "context": "?R lower inspiratory creps",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c13",
+            "context": "Bloods",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c14",
+            "context": "CXR",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c15",
+            "context": "ECG",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c16",
+            "context": "Analgesia",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c17",
+            "context": "PO abx",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c18",
+            "context": "Asthma",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c19",
+            "context": "Anxiety",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c20",
+            "context": "Depression",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c21",
+            "context": "Propanolol 10mg daily",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c22",
+            "context": "Escitalopram 20mg daily",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          }
+        ]
+      },
+      {
+        "id": "section_discharge_1755069273327_2",
+        "title": "DISCHARGE PLAN",
+        "content": "1. Discharge destination: Discharge <CIT id=\"c23\">home with father</CIT>.\n2. Medications:\n Please continue <CIT id=\"c21\">Propanolol 10mg daily</CIT>.\n Please continue <CIT id=\"c22\">Escitalopram 20mg daily</CIT>.\n Please continue prescribed <CIT id=\"c17\">oral antibiotics</CIT> as directed.\n3. Follow-up arrangements:\n Follow-up with your GP in 3-5 days for review of CAP.\n4. Safety netting:\n Please seek medical attention and/or present to your nearest emergency department if you experience:\n - Worsening cough or phlegm production\n - Increasing shortness of breath or difficulty breathing\n - Fevers or chills\n - Worsening chest pain\n - Dizziness or pre-syncope\nKind Regards, Dr [], [] []",
+        "order": 2,
+        "citations": [
+          {
+            "id": "c23",
+            "context": "Home with father",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c21",
+            "context": "Propanolol 10mg daily",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c22",
+            "context": "Escitalopram 20mg daily",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c17",
+            "context": "PO abx",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "generatedAt": "2025-08-13T07:14:33.327Z",
+      "llmModel": "gemini-2.5-flash",
+      "documentIds": [],
+      "feedbackApplied": []
+    }
+  }
+}

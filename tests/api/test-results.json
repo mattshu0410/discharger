@@ -1,0 +1,26 @@
+[
+  {
+    "noteId": "1",
+    "input": "",
+    "output": null,
+    "success": false,
+    "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON",
+    "timestamp": "2025-08-13T05:56:04.260Z"
+  },
+  {
+    "noteId": "2",
+    "input": "",
+    "output": null,
+    "success": false,
+    "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON",
+    "timestamp": "2025-08-13T05:56:04.491Z"
+  },
+  {
+    "noteId": "3",
+    "input": "",
+    "output": null,
+    "success": false,
+    "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON",
+    "timestamp": "2025-08-13T05:56:04.593Z"
+  }
+]

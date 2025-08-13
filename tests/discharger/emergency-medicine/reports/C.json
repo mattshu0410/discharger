@@ -1,0 +1,162 @@
+{
+  "summary": {
+    "id": "discharge_1755069288993",
+    "patientId": "test-patient-3",
+    "sections": [
+      {
+        "id": "section_discharge_1755069288993_1",
+        "title": "ADMISSION SUMMARY",
+        "content": "Dear Doctor,\n Thank you for your ongoing care of [___], a [age]-year-old [M/F] who presented to the [department] at [hospital] on [date] with <CIT id=\"c1\">nausea, vomiting and dizziness</CIT> for <CIT id=\"c2\">2/7 history</CIT>.\n The primary diagnosis is likely Benign Paroxysmal Positional Vertigo (BPPV) given the positive Dix-Hallpike. Key symptoms included <CIT id=\"c3\">unsteadiness on feet</CIT>, <CIT id=\"c4\">exacerbated by head movement and sitting to standing</CIT>, and later onset <CIT id=\"c5\">postural vertigo</CIT>. Relevant past medical history includes <CIT id=\"c6\">Tricuspid atresia</CIT>, <CIT id=\"c7\">single ventricle with Fontan circulation</CIT>, <CIT id=\"c8\">refractory atrial tachyarrhythmias</CIT>, <CIT id=\"c9\">AICD</CIT>, and <CIT id=\"c10\">Obesity</CIT>.\n On examination, the patient appeared <CIT id=\"c11\">uncomfortable</CIT> and required <CIT id=\"c12\">1x assist to mobilise</CIT>. Neurological examination was otherwise unremarkable. A <CIT id=\"c13\">CT brain + angio</CIT> was performed and was <CIT id=\"c14\">negative</CIT> for acute pathology. A <CIT id=\"c15\">Dix-Hallpike test was positive on the left</CIT>.\n Treatment included <CIT id=\"c16\">Stemetil</CIT> and <CIT id=\"c17\">IV fluids</CIT>. An <CIT id=\"c18\">Epley’s manoeuvre was unsuccessful</CIT> in resolving symptoms. The patient's <CIT id=\"c19\">symptoms are starting to improve</CIT> and they are now safe for discharge.",
+        "order": 1,
+        "citations": [
+          {
+            "id": "c1",
+            "context": "M/F presenting with 2/7 hx of nausea, vomiting and dizziness",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c2",
+            "context": "2/7 hx",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c3",
+            "context": "unsteady on feet",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c4",
+            "context": "exacerbated by head movement and sitting to standing",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c5",
+            "context": "postural vertigo",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c6",
+            "context": "Tricuspid atresia",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c7",
+            "context": "single ventricle with Fontan circulation",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c8",
+            "context": "Refractory atrial tachyarrhythmias",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c9",
+            "context": "AICD",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c10",
+            "context": "Obesity",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c11",
+            "context": "uncomfortable",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c12",
+            "context": "mobilise with 1x assist",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c13",
+            "context": "CT B + angio",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c14",
+            "context": "CTB + angio negative",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c15",
+            "context": "Dix hallpike +ve on left",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c16",
+            "context": "Stemetil",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c17",
+            "context": "IVF",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c18",
+            "context": "Epley’s unsuccessful",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          },
+          {
+            "id": "c19",
+            "context": "Symptoms starting to improve",
+            "relevanceScore": 1,
+            "sourceType": "user-context",
+            "contextSection": "main"
+          }
+        ]
+      },
+      {
+        "id": "section_discharge_1755069288993_2",
+        "title": "DISCHARGE PLAN",
+        "content": "DISCHARGE PLAN\n1. Discharge destination: Discharge home with wife and daughter.\n2. Medications: Please continue all regular medications as prescribed.\n3. Follow-up arrangements: Follow-up with your GP in 7 days for review of vertigo symptoms.\n4. Safety netting: Please seek medical attention and/or present to your nearest emergency department if you experience:\n   - Worsening dizziness or vertigo\n   - New onset weakness or numbness\n   - Difficulty speaking or swallowing\n   - Severe headache\n   - Any other concerning symptoms\nKind Regards, Dr [Physician], [Department] [Position]",
+        "order": 2,
+        "citations": []
+      }
+    ],
+    "metadata": {
+      "generatedAt": "2025-08-13T07:14:48.993Z",
+      "llmModel": "gemini-2.5-flash",
+      "documentIds": [],
+      "feedbackApplied": []
+    }
+  }
+}
