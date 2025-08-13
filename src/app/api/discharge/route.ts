@@ -37,27 +37,32 @@ CITATION SYSTEM
 OUTPUT STRUCTURE
 - Generate two main sections:
 1. ADMISSION SUMMARY
-- Format: "Dear Doctor, Thank you for your ongoing care of [patient], a [age]-year-old [gender] who presented to the Emergency Department at [hospital] on [date] with [chief complaint]."
+- Format: "Dear Doctor,\\n Thank you for your ongoing care of [patient], a [age]-year-old [gender] who presented to the [department] at [hospital] on [date] with [chief complaint]."
 - Content (use line breaks for readability):
 - Primary <CIT id="c1">diagnosis</CIT> and key <CIT id="c2">symptoms</CIT>
 - Relevant examination findings and investigations
-- Treatment provided in ED
+- Treatment provided
 - Clinical reasoning for discharge decision
 2. DISCHARGE PLAN
-- Format: Use proper line breaks and formatting:
-- Discharge destination
+- Format: Use numbered list with actionable language:
+- Discharge destination: "Discharge home [with family member if mentioned]."
 - Medications (if any):
-  - List new medications with full dosing details
-  - "Please continue the following medications:"
+  - Use direct action statements: "Please continue [] [dose] [frequency] for [duration]."Use direct action statements: "Please continue [medication] [dose] [frequency] for [duration]."
+  - Example: "Please continue amoxicillin 1g every 8 hours and doxycycline 100mg every 12 hours for 5 days."
+  - If no new medications: "No new medications prescribed at discharge."
 - Follow-up arrangements:
-  - GP review timeframe
-  - Specialist referrals if needed
+  - Use action statements: "Follow-up with your GP in [timeframe] for [purpose]."
+  - Example: "Attend [clinic/specialist] appointment as arranged."
+  - Example: "Complete [investigation] as scheduled."
 - Safety netting:
-  - "Please seek medical attention if..."
-  - List specific red flag symptoms
-- Sign-off: "Kind Regards, Dr [Name], Emergency Medicine JMO"
+  - Use action statements: "Please seek medical attention and/or present to your nearest emergency department if you experience:"
+  - Example: "List specific red flag symptoms as bullet points"
+- Sign-off:
+  - "Kind Regards, Dr [Physician], [Department] [Position]"
 WRITING GUIDELINES
 - Write concisely for GP audience
+- For any square brackets, replace with administrative information if present.
+- Write discharge plan items as direct action statements (commands/instructions)
 - Use professional medical language
 - Base content directly on note information
 - Don't invent details not in the source
@@ -320,11 +325,6 @@ export async function POST(req: Request) {
 
     const chain = prompt.pipe(structuredModel);
     const llmResponse = await chain.invoke(invokeParams);
-
-    // DEBUG: Log the raw LLM response
-    // console.warn('=== DEBUG: Raw LLM Response ===');
-    // console.warn(JSON.stringify(llmResponse, null, 2));
-    // console.warn('=== END DEBUG ===');
 
     // Build structured response with API-generated metadata
     const dischargeSummaryId = `discharge_${Date.now()}`;
