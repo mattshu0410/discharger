@@ -1,6 +1,8 @@
 'use client';
 
 import { Loader2 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { triggerDoctorConfetti } from '@/libs/confetti';
 import { useDischargeSummaryStore } from '@/stores';
 import { DischargeSummaryContent } from './DischargeSummaryContent';
 import { DischargeSummaryHeader } from './DischargeSummaryHeader';
@@ -8,6 +10,14 @@ import { FeedbackInput } from './FeedbackInput';
 
 export function DischargeSummaryPanel() {
   const { currentSummary, isGenerating, error } = useDischargeSummaryStore();
+  const previousIsGenerating = useRef(isGenerating);
+
+  useEffect(() => {
+    if (previousIsGenerating.current === true && isGenerating === false && currentSummary && !error) {
+      triggerDoctorConfetti();
+    }
+    previousIsGenerating.current = isGenerating;
+  }, [isGenerating, currentSummary, error]);
 
   // Loading state
   if (isGenerating) {
